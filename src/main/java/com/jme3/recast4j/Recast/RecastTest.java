@@ -38,13 +38,13 @@ import java.io.FileOutputStream;
 import java.nio.ByteOrder;
 
 public class RecastTest {
-	
-	/**
-	 * 
-	 * @param args
-	 */
+
+    /**
+     * 
+     * @param args
+     */
     public static void main(String[] args) {
-    	
+
         RecastConfigBuilder builder = new RecastConfigBuilder();
         Mesh m = new Box(50f, 0.5f, 50f);
 
@@ -61,7 +61,7 @@ public class RecastTest {
             saveToFile(meshData);
             saveToFile(navMesh);
         } catch (Exception e) {
-        	e.printStackTrace();
+            e.printStackTrace();
         }
 
         System.out.println(Flags.ofBitmask(1, 2, 4).setFlagByBitmask(8).setFlagByBitmask(16).getValue());
@@ -72,28 +72,19 @@ public class RecastTest {
         RecastBuilderConfig bcfg = new RecastBuilderConfigBuilder(m).build(new RecastConfigBuilder().build());
         return NavMeshBuilder.createNavMeshData(new NavMeshDataCreateParamsBuilder(new RecastBuilder().build(new GeometryProviderBuilder(m).build(), bcfg)).build(bcfg));
     }
-    
-	private static void saveToFile(MeshData md) throws Exception {
-		MeshDataWriter mdw = new MeshDataWriter();
-		File f = new File("test.md");
-		System.out.println("Saving MeshData=" + f.getAbsolutePath());
-		mdw.write(new FileOutputStream(f), md, ByteOrder.BIG_ENDIAN, false);
-	}
 
-	private static void saveToFile(NavMesh nm) throws Exception {
-		MeshSetWriter msw = new MeshSetWriter();
-		File f = new File("test.nm");
-		System.out.println("Saving NavMesh=" + f.getAbsolutePath());
-		msw.write(new FileOutputStream(f), nm, ByteOrder.BIG_ENDIAN, false);
-	}
+    private static void saveToFile(MeshData md) throws Exception {
+        MeshDataWriter mdw = new MeshDataWriter();
+        File f = new File("test.md");
+        System.out.println("Saving MeshData=" + f.getAbsolutePath());
+        mdw.write(new FileOutputStream(f), md, ByteOrder.BIG_ENDIAN, false);
+    }
 
-//    private static void saveToFile(MeshData md) throws Exception {
-//        MeshDataWriter mdw = new MeshDataWriter();
-//        mdw.write(new FileOutputStream(new File("test.md")),  md, ByteOrder.BIG_ENDIAN, false);
-//    }
-//
-//    private static void saveToFile(NavMesh nm) throws Exception {
-//        MeshSetWriter msw = new MeshSetWriter();
-//        msw.write(new FileOutputStream(new File("test.nm")), nm, ByteOrder.BIG_ENDIAN, false);
-//    }
+    private static void saveToFile(NavMesh nm) throws Exception {
+        MeshSetWriter msw = new MeshSetWriter();
+        File f = new File("test.nm");
+        System.out.println("Saving NavMesh=" + f.getAbsolutePath());
+        msw.write(new FileOutputStream(f), nm, ByteOrder.BIG_ENDIAN, false);
+    }
+
 }
