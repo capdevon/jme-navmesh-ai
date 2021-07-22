@@ -151,15 +151,15 @@ public class JmeInputGeomProvider implements InputGeomProvider {
         }
     }
 
-	public List<Modification> getListMods() {
-		return this.listModifications;
-	}
-	
-	public void addMod(Modification mod) {
-		this.listModifications.add(mod);
-	}
+    public List < Modification > getListMods() {
+        return this.listModifications;
+    }
 
-    public List<org.recast4j.detour.OffMeshConnection> getListOffMeshCons() {
+    public void addMod(Modification mod) {
+        this.listModifications.add(mod);
+    }
+
+    public List < org.recast4j.detour.OffMeshConnection > getListOffMeshCons() {
         return listOffMeshCons;
     }
 
