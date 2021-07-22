@@ -10,6 +10,7 @@ import com.jme3.recast4j.Detour.Crowd.CrowdManager;
  * Use this as starting point for your entity-based approaches.
  */
 public class CrowdManagerAppState extends BaseAppState {
+
     protected CrowdManager crowdManager;
 
     public CrowdManagerAppState(CrowdManager crowdManager) {
@@ -18,14 +19,6 @@ public class CrowdManagerAppState extends BaseAppState {
 
     public CrowdManagerAppState() {
         this(new CrowdManager());
-    }
-
-    public CrowdManager getCrowdManager() {
-        return crowdManager;
-    }
-
-    public void setCrowdManager(CrowdManager crowdManager) {
-        this.crowdManager = crowdManager;
     }
 
     @Override
@@ -44,12 +37,20 @@ public class CrowdManagerAppState extends BaseAppState {
     }
 
     @Override
-    protected void onDisable() {
-    }
+    protected void onDisable() {}
 
     @Override
     public void update(float tpf) {
         super.update(tpf);
         crowdManager.update(tpf);
     }
+
+    public CrowdManager getCrowdManager() {
+        return crowdManager;
+    }
+
+    public void setCrowdManager(CrowdManager crowdManager) {
+        this.crowdManager = crowdManager;
+    }
+    
 }
