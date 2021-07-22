@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mesh>
+    <sharedgeometry vertexcount="6">
+        <vertexbuffer colours_diffuse="False" normals="true" positions="true" texture_coords="1">
+            <vertex>
+                <position z="-0.841297" x="1.422867" y="0.000000"/>
+                <normal z="-0.000001" x="0.000000" y="-1.000000"/>
+                <texcoord u="0.693367" v="0.675101"/>
+            </vertex>
+            <vertex>
+                <position z="-1.076599" x="-0.636559" y="-0.000000"/>
+                <normal z="-0.000001" x="0.000000" y="-1.000000"/>
+                <texcoord u="0.728023" v="0.508278"/>
+            </vertex>
+            <vertex>
+                <position z="-1.422867" x="-0.841297" y="0.000000"/>
+                <normal z="-0.000001" x="0.000000" y="-1.000000"/>
+                <texcoord u="0.693367" v="0.485166"/>
+            </vertex>
+            <vertex>
+                <position z="1.076599" x="0.636559" y="2.267532"/>
+                <normal z="-0.000000" x="-0.000000" y="1.000000"/>
+                <texcoord u="0.221592" v="0.852226"/>
+            </vertex>
+            <vertex>
+                <position z="-0.636559" x="1.076599" y="2.267532"/>
+                <normal z="-0.000000" x="-0.000000" y="1.000000"/>
+                <texcoord u="0.006092" v="0.852226"/>
+            </vertex>
+            <vertex>
+                <position z="-1.076599" x="-0.636559" y="2.267532"/>
+                <normal z="-0.000000" x="-0.000000" y="1.000000"/>
+                <texcoord u="0.006092" v="0.995938"/>
+            </vertex>
+        </vertexbuffer>
+    </sharedgeometry>
+    <submeshes>
+        <submesh usesharedvertices="true" operationtype="triangle_list" use32bitindexes="False" material="box_mat.001">
+            <faces count="2">
+                <face v3="2" v2="1" v1="0"/>
+                <face v3="5" v2="4" v1="3"/>
+            </faces>
+        </submesh>
+    </submeshes>
+    <submeshnames>
+        <submesh index="0" name="box_mat.001">
+        </submesh>
+    </submeshnames>
+    <skeletonlink name="crate_offmesh.skeleton"/>
+    <boneassignments>
+        <vertexboneassignment weight="0.1839469075202942" vertexindex="0" boneindex="0"/>
+        <vertexboneassignment weight="0.8160526156425476" vertexindex="0" boneindex="2"/>
+        <vertexboneassignment weight="0.9801087379455566" vertexindex="1" boneindex="2"/>
+        <vertexboneassignment weight="1.0" vertexindex="2" boneindex="2"/>
+        <vertexboneassignment weight="0.6308727860450745" vertexindex="3" boneindex="0"/>
+        <vertexboneassignment weight="0.4973161518573761" vertexindex="4" boneindex="0"/>
+        <vertexboneassignment weight="1.0" vertexindex="5" boneindex="1"/>
+    </boneassignments>
+</mesh>

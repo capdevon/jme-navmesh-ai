@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mesh>
+    <sharedgeometry vertexcount="3">
+        <vertexbuffer colours_diffuse="False" normals="true" positions="true" texture_coords="1">
+            <vertex>
+                <position z="-0.365853" x="-7.682925" y="-0.816100"/>
+                <normal z="0.000000" x="0.000000" y="1.000000"/>
+                <texcoord u="0.756462" v="0.622755"/>
+            </vertex>
+            <vertex>
+                <position z="0.365855" x="-7.682925" y="-0.816100"/>
+                <normal z="0.000000" x="0.000000" y="1.000000"/>
+                <texcoord u="0.744400" v="0.622939"/>
+            </vertex>
+            <vertex>
+                <position z="0.365855" x="-6.951218" y="-0.816100"/>
+                <normal z="0.000000" x="0.000000" y="1.000000"/>
+                <texcoord u="0.744400" v="0.635010"/>
+            </vertex>
+        </vertexbuffer>
+    </sharedgeometry>
+    <submeshes>
+        <submesh usesharedvertices="true" operationtype="triangle_list" use32bitindexes="False" material="water_bottom">
+            <faces count="1">
+                <face v3="2" v2="1" v1="0"/>
+            </faces>
+        </submesh>
+    </submeshes>
+    <submeshnames>
+        <submesh index="0" name="water_bottom">
+        </submesh>
+    </submeshnames>
+    <skeletonlink name="pond_offmesh.skeleton"/>
+    <boneassignments>
+        <vertexboneassignment weight="1.0" vertexindex="0" boneindex="1"/>
+        <vertexboneassignment weight="1.0" vertexindex="1" boneindex="1"/>
+        <vertexboneassignment weight="1.0" vertexindex="2" boneindex="1"/>
+    </boneassignments>
+</mesh>
