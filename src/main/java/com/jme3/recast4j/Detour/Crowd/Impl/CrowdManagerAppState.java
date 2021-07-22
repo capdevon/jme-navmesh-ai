@@ -23,25 +23,22 @@ public class CrowdManagerAppState extends BaseAppState {
 
     @Override
     protected void initialize(Application application) {
-
     }
 
     @Override
     protected void cleanup(Application application) {
-
     }
 
     @Override
     protected void onEnable() {
-
     }
 
     @Override
-    protected void onDisable() {}
+    protected void onDisable() {
+    }
 
     @Override
     public void update(float tpf) {
-        super.update(tpf);
         crowdManager.update(tpf);
     }
 
