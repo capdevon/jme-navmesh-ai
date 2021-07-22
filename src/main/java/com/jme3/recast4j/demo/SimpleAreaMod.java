@@ -26,15 +26,15 @@ import org.recast4j.recast.AreaModification;
 
 public class SimpleAreaMod {
 
-	public static final int POLYAREA_TYPE_MASK 		= 0x07;
+	public static final int POLYAREA_TYPE_MASK 	= 0x07;
 	public static final int POLYAREA_TYPE_GROUND 	= 0x1;
 	public static final int POLYAREA_TYPE_WATER 	= 0x2;
-	public static final int POLYAREA_TYPE_ROAD 		= 0x3;
-	public static final int POLYAREA_TYPE_DOOR 		= 0x4;
+	public static final int POLYAREA_TYPE_ROAD 	= 0x3;
+	public static final int POLYAREA_TYPE_DOOR 	= 0x4;
 	public static final int POLYAREA_TYPE_GRASS 	= 0x5;
-	public static final int POLYAREA_TYPE_JUMP 		= 0x6;
+	public static final int POLYAREA_TYPE_JUMP 	= 0x6;
 
-	public static final AreaModification AREAMOD_GROUND = new AreaModification(POLYAREA_TYPE_GROUND, POLYAREA_TYPE_MASK);
+	public static final AreaModification AREAMOD_GROUND 	= new AreaModification(POLYAREA_TYPE_GROUND, POLYAREA_TYPE_MASK);
 	public static final AreaModification AREAMOD_WATER 	= new AreaModification(POLYAREA_TYPE_WATER, POLYAREA_TYPE_MASK);
 	public static final AreaModification AREAMOD_ROAD 	= new AreaModification(POLYAREA_TYPE_ROAD, POLYAREA_TYPE_MASK);
 	public static final AreaModification AREAMOD_GRASS 	= new AreaModification(POLYAREA_TYPE_GRASS, POLYAREA_TYPE_MASK);
