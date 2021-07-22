@@ -455,21 +455,7 @@ public class NavState extends AbstractNavState {
 
             if (!straightPath.result.isEmpty()) {
 
-                List<Vector3f> wayPoints = new ArrayList<>(straightPath.result.size());
-                Vector3f oldPos = character.getWorldTranslation();
-
-                for (StraightPathItem spi : straightPath.result) {
-
-                    Vector3f waypoint = DetourUtils.toVector3f(spi.getPos());
-                    rootNode.attachChild(createLinePath(ColorRGBA.Orange, oldPos.add(0f, 0.5f, 0f), waypoint.add(0f, 0.5f, 0f)));
-
-                    if (spi.getRef() != 0) { // if ref is 0, it's the linkB.
-                        rootNode.attachChild(createBoxPath(ColorRGBA.Blue, waypoint.add(0f, 0.5f, 0f)));
-                    }
-
-                    wayPoints.add(waypoint);
-                    oldPos = waypoint;
-                }
+                List<Vector3f> wayPoints = drawPath(straightPath.result, character);
 
                 character.getControl(PhysicsAgentControl.class).stopFollowing();
                 character.getControl(PhysicsAgentControl.class).followPath(wayPoints);
@@ -490,8 +476,8 @@ public class NavState extends AbstractNavState {
      * @param endPoly
      */
     private void findPathSliced(Node character, QueryFilter filter, FindNearestPolyResult startPoly, FindNearestPolyResult endPoly) {
-        
-    	query.initSlicedFindPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter, 0);
+
+        query.initSlicedFindPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter, 0);
 
         Result<Integer> res;
         do {
@@ -514,29 +500,14 @@ public class NavState extends AbstractNavState {
             // Get the proper path from the rough polygon listing
             Result<List<StraightPathItem>> straightPath = query.findStraightPath(startPoly.getNearestPos(), endPoly.getNearestPos(), slicedPath.result, Integer.MAX_VALUE, 0);
 
-			if (!straightPath.result.isEmpty()) {
-				
-				Vector3f oldPos = character.getWorldTranslation();
-	            List<Vector3f> wayPoints = new ArrayList<>(straightPath.result.size());
-	            
-				for (StraightPathItem spi : straightPath.result) {
-					
-					Vector3f waypoint = DetourUtils.toVector3f(spi.getPos());
-					rootNode.attachChild(createLinePath(ColorRGBA.Orange, oldPos.add(0f, 0.5f, 0f), waypoint.add(0f, 0.5f, 0f)));
-					
-					if (spi.getRef() != 0) { 
-						// if ref is 0, it's the linkB.
-						rootNode.attachChild(createBoxPath(ColorRGBA.Blue, waypoint.add(0f, 0.5f, 0f)));
-					}
-					
-					wayPoints.add(waypoint);
-					oldPos = waypoint;
-				}
+            if (!straightPath.result.isEmpty()) {
 
-				character.getControl(PhysicsAgentControl.class).stopFollowing();
-				character.getControl(PhysicsAgentControl.class).followPath(wayPoints);
-				
-			} else {
+                List<Vector3f> wayPoints = drawPath(straightPath.result, character);
+
+                character.getControl(PhysicsAgentControl.class).stopFollowing();
+                character.getControl(PhysicsAgentControl.class).followPath(wayPoints);
+
+            } else {
                 System.err.println("Unable to find straight paths");
             }
         } else {
@@ -552,13 +523,13 @@ public class NavState extends AbstractNavState {
      * @param endPoly
      */
     private void findPathSlicedPartial(Node character, QueryFilter filter, FindNearestPolyResult startPoly, FindNearestPolyResult endPoly) {
-		
-    	query.initSlicedFindPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter, 0);
-		Result<Integer> res = query.updateSlicedFindPath(1);
-		Result<List<Long>> slicedPath = query.finalizeSlicedFindPath();
 
-		query.initSlicedFindPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter, 0);
-		Result<List<Long>> slicedPathPartial = query.finalizeSlicedFindPathPartial(slicedPath.result);
+        query.initSlicedFindPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter, 0);
+        Result<Integer> res = query.updateSlicedFindPath(1);
+        Result<List<Long>> slicedPath = query.finalizeSlicedFindPath();
+
+        query.initSlicedFindPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter, 0);
+        Result<List<Long>> slicedPathPartial = query.finalizeSlicedFindPathPartial(slicedPath.result);
 
         // @TODO: Use NavMeshSliceControl (but then how to do the Debug Graphics?)
         // @TODO: Try Partial. How would one make this logic with controls etc so it's easy?
@@ -568,33 +539,40 @@ public class NavState extends AbstractNavState {
             // Get the proper path from the rough polygon listing
             Result<List<StraightPathItem>> straightPath = query.findStraightPath(startPoly.getNearestPos(), endPoly.getNearestPos(), slicedPathPartial.result, Integer.MAX_VALUE, 0);
 
-			if (!straightPath.result.isEmpty()) {
-				
-				Vector3f oldPos = character.getWorldTranslation();
-	            List<Vector3f> wayPoints = new ArrayList<>(straightPath.result.size());
-	            
-				for (StraightPathItem spi : straightPath.result) {
-					
-					Vector3f waypoint = DetourUtils.toVector3f(spi.getPos());
-					rootNode.attachChild(createLinePath(ColorRGBA.Orange, oldPos.add(0f, 0.5f, 0f), waypoint.add(0f, 0.5f, 0f)));
-					
-					if (spi.getRef() != 0) { // if ref is 0, it's the linkB.
-						rootNode.attachChild(createBoxPath(ColorRGBA.Blue, waypoint.add(0f, 0.5f, 0f)));
-					}
-					
-					wayPoints.add(waypoint);
-					oldPos = waypoint;
-				}
+            if (!straightPath.result.isEmpty()) {
 
-				character.getControl(PhysicsAgentControl.class).stopFollowing();
-				character.getControl(PhysicsAgentControl.class).followPath(wayPoints);
-				
-			} else {
+                List<Vector3f> wayPoints = drawPath(straightPath.result, character);
+
+                character.getControl(PhysicsAgentControl.class).stopFollowing();
+                character.getControl(PhysicsAgentControl.class).followPath(wayPoints);
+
+            } else {
                 System.err.println("Unable to find straight paths");
             }
         } else {
             System.err.println("I'm sorry, unable to find a path.....");
         }
+    }
+
+    private List<Vector3f> drawPath(List<StraightPathItem> straightPath, Node character) {
+
+        List<Vector3f> wayPoints = new ArrayList<>(straightPath.size());
+        Vector3f oldPos = character.getWorldTranslation();
+
+        for (StraightPathItem spi : straightPath) {
+
+            Vector3f waypoint = DetourUtils.toVector3f(spi.getPos());
+            rootNode.attachChild(createLinePath(ColorRGBA.Orange, oldPos.add(0, .5f, 0), waypoint.add(0, .5f, 0)));
+
+            if (spi.getRef() != 0) { // if ref is 0, it's the linkB.
+                rootNode.attachChild(createBoxPath(ColorRGBA.Blue, waypoint.add(0, .5f, 0)));
+            }
+
+            wayPoints.add(waypoint);
+            oldPos = waypoint;
+        }
+
+        return wayPoints;
     }
     
     /**
@@ -1793,47 +1771,47 @@ public class NavState extends AbstractNavState {
         
     }
     
-	private void saveToFile(MeshData md) throws Exception {
-		MeshDataWriter mdw = new MeshDataWriter();
-		File f = new File("test.md");
-		System.out.println("Saving MeshData=" + f.getAbsolutePath());
-		mdw.write(new FileOutputStream(f), md, ByteOrder.BIG_ENDIAN, false);
-	}
+    private void saveToFile(MeshData md) throws Exception {
+        MeshDataWriter mdw = new MeshDataWriter();
+        File f = new File("test.md");
+        System.out.println("Saving MeshData=" + f.getAbsolutePath());
+        mdw.write(new FileOutputStream(f), md, ByteOrder.BIG_ENDIAN, false);
+    }
 
-	private void saveToFile(NavMesh nm) throws Exception {
-		MeshSetWriter msw = new MeshSetWriter();
-		File f = new File("test.nm");
-		System.out.println("Saving NavMesh=" + f.getAbsolutePath());
-		msw.write(new FileOutputStream(f), nm, ByteOrder.BIG_ENDIAN, false);
-	}
+    private void saveToFile(NavMesh nm) throws Exception {
+        MeshSetWriter msw = new MeshSetWriter();
+        File f = new File("test.nm");
+        System.out.println("Saving NavMesh=" + f.getAbsolutePath());
+        msw.write(new FileOutputStream(f), nm, ByteOrder.BIG_ENDIAN, false);
+    }
     
-	private void configureAreaMod(JmeInputGeomProvider geomProvider) {
-		worldMap.depthFirstTraversal(new SceneGraphVisitorAdapter() {
-			@Override
-			public void visit(Geometry spat) {
+    private void configureAreaMod(JmeInputGeomProvider geomProvider) {
+        worldMap.depthFirstTraversal(new SceneGraphVisitorAdapter() {
+            @Override
+            public void visit(Geometry spat) {
 
-				int geomLength = spat.getMesh().getTriangleCount() * 3;
-				String[] name = spat.getMaterial().getName().split("_");
+                int geomLength = spat.getMesh().getTriangleCount() * 3;
+                String[] name = spat.getMaterial().getName().split("_");
 
-				switch (name[0]) {
-					case "water":
-						geomProvider.addMod(new Modification(geomLength, AREAMOD_WATER));
-						break;
-					case "road":
-						geomProvider.addMod(new Modification(geomLength, AREAMOD_ROAD));
-						break;
-					case "grass":
-						geomProvider.addMod(new Modification(geomLength, AREAMOD_GRASS));
-						break;
-					case "door":
-						geomProvider.addMod(new Modification(geomLength, AREAMOD_DOOR));
-						break;
-					default:
-						geomProvider.addMod(new Modification(geomLength, AREAMOD_GROUND));
-				}
-			}
-		});
-	}
+                switch (name[0]) {
+                    case "water":
+                        geomProvider.addMod(new Modification(geomLength, AREAMOD_WATER));
+                        break;
+                    case "road":
+                        geomProvider.addMod(new Modification(geomLength, AREAMOD_ROAD));
+                        break;
+                    case "grass":
+                        geomProvider.addMod(new Modification(geomLength, AREAMOD_GRASS));
+                        break;
+                    case "door":
+                        geomProvider.addMod(new Modification(geomLength, AREAMOD_DOOR));
+                        break;
+                    default:
+                        geomProvider.addMod(new Modification(geomLength, AREAMOD_GROUND));
+                }
+            }
+        });
+    }
     
     /**
      * This is a mandatory class otherwise the tile cache build will not set
@@ -1900,48 +1878,48 @@ public class NavState extends AbstractNavState {
      * 
      * @param poly The polygon id to look for flags.
      */
-	private void printFlags(long poly) {
-		if (isBitSet(POLYFLAGS_DOOR, navMesh.getPolyFlags(poly).result)) {
-			LOG.info("POLYFLAGS_DOOR [{}]", POLYFLAGS_DOOR);
-		}
-		if (isBitSet(POLYFLAGS_WALK, navMesh.getPolyFlags(poly).result)) {
-			LOG.info("POLYFLAGS_WALK [{}]", POLYFLAGS_WALK);
-		}
-		if (isBitSet(POLYFLAGS_SWIM, navMesh.getPolyFlags(poly).result)) {
-			LOG.info("POLYFLAGS_SWIM [{}]", POLYFLAGS_SWIM);
-		}
-		if (isBitSet(POLYFLAGS_JUMP, navMesh.getPolyFlags(poly).result)) {
-			LOG.info("POLYFLAGS_JUMP [{}]", POLYFLAGS_JUMP);
-		}
-		if (isBitSet(POLYFLAGS_DISABLED, navMesh.getPolyFlags(poly).result)) {
-			LOG.info("POLYFLAGS_DISABLED [{}]", POLYFLAGS_DISABLED);
-		}
-	}
-    
+    private void printFlags(long poly) {
+        if (isBitSet(POLYFLAGS_DOOR, navMesh.getPolyFlags(poly).result)) {
+            LOG.info("POLYFLAGS_DOOR [{}]", POLYFLAGS_DOOR);
+        }
+        if (isBitSet(POLYFLAGS_WALK, navMesh.getPolyFlags(poly).result)) {
+            LOG.info("POLYFLAGS_WALK [{}]", POLYFLAGS_WALK);
+        }
+        if (isBitSet(POLYFLAGS_SWIM, navMesh.getPolyFlags(poly).result)) {
+            LOG.info("POLYFLAGS_SWIM [{}]", POLYFLAGS_SWIM);
+        }
+        if (isBitSet(POLYFLAGS_JUMP, navMesh.getPolyFlags(poly).result)) {
+            LOG.info("POLYFLAGS_JUMP [{}]", POLYFLAGS_JUMP);
+        }
+        if (isBitSet(POLYFLAGS_DISABLED, navMesh.getPolyFlags(poly).result)) {
+            LOG.info("POLYFLAGS_DISABLED [{}]", POLYFLAGS_DISABLED);
+        }
+    }
+
     /**
      * Prints any flag found in the supplied flags.
      * @param flags The flags to print.
      */
-	private void printFlags(int flags) {
-		if (flags == 0) {
-			LOG.info("No flag found.");
-		}
-		if (isBitSet(POLYFLAGS_DOOR, flags)) {
-			LOG.info("POLYFLAGS_DOOR         [{}]", POLYFLAGS_DOOR);
-		}
-		if (isBitSet(POLYFLAGS_WALK, flags)) {
-			LOG.info("POLYFLAGS_WALK         [{}]", POLYFLAGS_WALK);
-		}
-		if (isBitSet(POLYFLAGS_SWIM, flags)) {
-			LOG.info("POLYFLAGS_SWIM         [{}]", POLYFLAGS_SWIM);
-		}
-		if (isBitSet(POLYFLAGS_JUMP, flags)) {
-			LOG.info("POLYFLAGS_JUMP         [{}]", POLYFLAGS_JUMP);
-		}
-		if (isBitSet(POLYFLAGS_DISABLED, flags)) {
-			LOG.info("POLYFLAGS_DISABLED     [{}]", POLYFLAGS_DISABLED);
-		}
-	}
+    private void printFlags(int flags) {
+        if (flags == 0) {
+            LOG.info("No flag found.");
+        }
+        if (isBitSet(POLYFLAGS_DOOR, flags)) {
+            LOG.info("POLYFLAGS_DOOR         [{}]", POLYFLAGS_DOOR);
+        }
+        if (isBitSet(POLYFLAGS_WALK, flags)) {
+            LOG.info("POLYFLAGS_WALK         [{}]", POLYFLAGS_WALK);
+        }
+        if (isBitSet(POLYFLAGS_SWIM, flags)) {
+            LOG.info("POLYFLAGS_SWIM         [{}]", POLYFLAGS_SWIM);
+        }
+        if (isBitSet(POLYFLAGS_JUMP, flags)) {
+            LOG.info("POLYFLAGS_JUMP         [{}]", POLYFLAGS_JUMP);
+        }
+        if (isBitSet(POLYFLAGS_DISABLED, flags)) {
+            LOG.info("POLYFLAGS_DISABLED     [{}]", POLYFLAGS_DISABLED);
+        }
+    }
     
     /**
      * Checks whether a bit flag is set.
