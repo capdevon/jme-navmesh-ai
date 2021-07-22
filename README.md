@@ -8,7 +8,8 @@ Updated Libraries:
 - recast4j-1.2.8
 
 # Documentation:
-[jme3-recast4j](https://github.com/MeFisto94/jme3-recast4j-demo/wiki)
+- [jme3-recast4j](https://github.com/MeFisto94/jme3-recast4j-demo/wiki)
+- [Recast Navigation for JME](https://wiki.jmonkeyengine.org/docs/3.4/contributions/ai/recast.html)
 
 # Youtube videos:
 [Tiled NavMesh](https://youtu.be/rCZWPvcwktQ)
