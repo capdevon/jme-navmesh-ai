@@ -443,37 +443,37 @@ public class NavState extends AbstractNavState {
      * @param endPoly
      */
     private void findPathImmediately(Node character, QueryFilter filter, FindNearestPolyResult startPoly, FindNearestPolyResult endPoly) {
-        
-    	Result<List<Long>> path = query.findPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter);
+
+        Result<List<Long>> path = query.findPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter);
         if (path.succeeded()) {
-            
-        	// Get the proper path from the rough polygon listing
-        	int maxStraightPath = 256;
-        	int options = 0;
-        	
+
+            // Get the proper path from the rough polygon listing
+            int maxStraightPath = 256;
+            int options = 0;
+
             Result<List<StraightPathItem>> straightPath = query.findStraightPath(startPoly.getNearestPos(), endPoly.getNearestPos(), path.result, maxStraightPath, options);
-            
+
             if (!straightPath.result.isEmpty()) {
-            	
-            	List<Vector3f> wayPoints = new ArrayList<>(straightPath.result.size());
-            	Vector3f oldPos = character.getWorldTranslation();
-				
-            	for (StraightPathItem spi : straightPath.result) {
-					
-            		Vector3f waypoint = DetourUtils.toVector3f(spi.getPos());
-					rootNode.attachChild(createLinePath(ColorRGBA.Orange, oldPos.add(0f, 0.5f, 0f), waypoint.add(0f, 0.5f, 0f)));
-					
-					if (spi.getRef() != 0) { // if ref is 0, it's the linkB.
-						rootNode.attachChild(createBoxPath(ColorRGBA.Blue, waypoint.add(0f, 0.5f, 0f)));
-					}
-					
-					wayPoints.add(waypoint);
-					oldPos = waypoint;
-				}
+
+                List<Vector3f> wayPoints = new ArrayList<>(straightPath.result.size());
+                Vector3f oldPos = character.getWorldTranslation();
+
+                for (StraightPathItem spi : straightPath.result) {
+
+                    Vector3f waypoint = DetourUtils.toVector3f(spi.getPos());
+                    rootNode.attachChild(createLinePath(ColorRGBA.Orange, oldPos.add(0f, 0.5f, 0f), waypoint.add(0f, 0.5f, 0f)));
+
+                    if (spi.getRef() != 0) { // if ref is 0, it's the linkB.
+                        rootNode.attachChild(createBoxPath(ColorRGBA.Blue, waypoint.add(0f, 0.5f, 0f)));
+                    }
+
+                    wayPoints.add(waypoint);
+                    oldPos = waypoint;
+                }
 
                 character.getControl(PhysicsAgentControl.class).stopFollowing();
                 character.getControl(PhysicsAgentControl.class).followPath(wayPoints);
-                
+
             } else {
                 System.err.println("Unable to find straight paths");
             }
