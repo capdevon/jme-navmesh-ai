@@ -35,6 +35,7 @@ import com.jme3.recast4j.demo.states.NavState;
 import com.jme3.recast4j.demo.states.ThirdPersonCamState;
 import com.jme3.recast4j.demo.states.UtilState;
 import com.jme3.recast4j.demo.states.tutorial.CrowdState;
+import com.jme3.recast4j.demo.utils.GameObject;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -99,6 +100,9 @@ public class DemoApplication extends SimpleApplication {
     }
 
     private void setupWorld() {
+    	
+    	viewPort.setBackgroundColor(new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f));
+    	
         worldMap = new Node("worldmap");
         rootNode.attachChild(worldMap);
 
@@ -228,7 +232,7 @@ public class DemoApplication extends SimpleApplication {
         Node door = (Node) assetManager.loadModel("Models/Level/Door.mesh.j3o");
         door.setName("door");
         
-        SkeletonControl skelControl = stateManager.getState(UtilState.class).findControl(door, SkeletonControl.class);
+        SkeletonControl skelControl = GameObject.getComponentInChild(door, SkeletonControl.class);
         /**
          * Couldn't get hardware skinning to turn off which would allow the 
          * bounding box to move with the door as it opens or closes so added
