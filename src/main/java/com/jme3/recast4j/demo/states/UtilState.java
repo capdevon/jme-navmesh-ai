@@ -107,21 +107,4 @@ public class UtilState extends BaseAppState {
         return str.length() == pos.getIndex();
     }
     
-    public <T extends Control> T findControl(Spatial s, Class<T> controlClass) {
-        T ctrl = s.getControl(controlClass);
-        if (ctrl != null) {
-            return ctrl;
-        }
-        if (s instanceof Node) {
-            Node n = (Node) s;
-            for (Spatial spatial : n.getChildren()) {
-                ctrl = findControl(spatial, controlClass);
-                if (ctrl != null) {
-                    return ctrl;
-                }
-            }
-        }
-        return null;
-    }
-    
 }
