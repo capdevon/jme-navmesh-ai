@@ -114,7 +114,6 @@ import com.jme3.bounding.BoundingBox;
 import com.jme3.collision.CollisionResults;
 import com.jme3.input.MouseInput;
 import com.jme3.input.event.MouseButtonEvent;
-import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
@@ -132,13 +131,12 @@ import com.jme3.recast4j.demo.RecastBuilder;
 import com.jme3.recast4j.demo.TileLayerBuilder;
 import com.jme3.recast4j.demo.controls.DoorSwingControl;
 import com.jme3.recast4j.demo.controls.PhysicsAgentControl;
+import com.jme3.recast4j.demo.utils.GameObject;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.scene.Spatial;
-import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Line;
 import com.simsilica.lemur.event.DefaultMouseListener;
 import com.simsilica.lemur.event.MouseEventControl;
 
@@ -149,24 +147,22 @@ import com.simsilica.lemur.event.MouseEventControl;
 public class NavState extends AbstractNavState {
 
     private static final Logger LOG = LoggerFactory.getLogger(NavState.class.getName());
-    
+
     //This is unused in recast4j so setting it here rather than using reflection.
     private static final int DT_TILECACHE_WALKABLE_AREA = 63;
-    
+
     private Node worldMap, doorNode, offMeshCon;
     private NavMesh navMesh;
     private NavMeshQuery query;
     private List<Node> characters;
-    private List<Geometry> pathGeometries;
     private Map<String, org.recast4j.detour.OffMeshConnection> mapOffMeshCon;
-    private PartitionType m_partitionType = PartitionType.WATERSHED;   
-    private float maxClimb = .3f; //Should add getter for this.
-    private float radius = 0.4f; //Should add getter for this.
-    private float height = 1.7f; //Should add getter for this.
-    
+    private PartitionType m_partitionType = PartitionType.WATERSHED;
+    private float maxClimb = .3f; // Should add getter for this.
+    private float radius = 0.4f;  // Should add getter for this.
+    private float height = 1.7f;  // Should add getter for this.
+
     public NavState() {
-        pathGeometries = new ArrayList<>(64);
-        characters = new ArrayList<>(64);  
+        characters = new ArrayList<>(64);
         mapOffMeshCon = new HashMap<>();
     }
     
@@ -188,59 +184,15 @@ public class NavState extends AbstractNavState {
         buildTileCache();
         //====================================================================
         
-        MouseEventControl.addListenersToSpatial(worldMap, new DefaultMouseListener() {
-            @Override
-            protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
-                super.click(event, target, capture);
-                
-                // First clear existing pathGeometries from the old path finding:
-                pathGeometries.forEach(Geometry::removeFromParent);
-                
-                // Clicked on the map, so params a path to:
-                Vector3f locOnMap = getLocationOnMap(); // Don'from calculate three times
-                
-                LOG.info("Will walk from {} to {}", getCharacters().get(0).getWorldTranslation(), locOnMap);
-                rootNode.attachChild(createBoxPath(ColorRGBA.Green, getCharacters().get(0).getWorldTranslation().add(0f, 0.5f, 0f)));
-                rootNode.attachChild(createBoxPath(ColorRGBA.Yellow, locOnMap.add(0f, 0.5f, 0f)));
-                
-                if (getCharacters().size() == 1) {
-                    DefaultQueryFilter filter = new BetterDefaultQueryFilter();
-                    
-                    int includeFlags = POLYFLAGS_WALK | POLYFLAGS_DOOR | POLYFLAGS_SWIM | POLYFLAGS_JUMP;
-                    filter.setIncludeFlags(includeFlags);
-
-                    int excludeFlags = POLYFLAGS_DISABLED;
-                    filter.setExcludeFlags(excludeFlags);
-                    
-                    Node character = getCharacters().get(0);
-                    
-                    Result<FindNearestPolyResult> startPoly = query.findNearestPoly(character.getWorldTranslation().toArray(null), new float[]{1.0f, 1.0f, 1.0f}, filter);
-                    Result<FindNearestPolyResult> endPoly = query.findNearestPoly(DetourUtils.toFloatArray(locOnMap), new float[]{1.0f, 1.0f, 1.0f}, filter);
-                    
-                    // Note: not isFailure() here, because isSuccess guarantees us, that the result isn't "RUNNING", which it could be if we only check it's not failure.
-                    if (!startPoly.status.isSuccess() || !endPoly.status.isSuccess() 
-                    		|| startPoly.result.getNearestRef() == 0 || endPoly.result.getNearestRef() == 0) {
-                        LOG.error("Character findNearestPoly unsuccessful or getNearestRef is not > 0.");
-                        LOG.error("findNearestPoly startPoly [{}] getNearestRef [{}]", startPoly.status.isSuccess(), startPoly.result.getNearestRef());
-                        LOG.error("findNearestPoly endPoly [{}] getNearestRef [{}].", endPoly.status.isSuccess(), endPoly.result.getNearestRef());
-
-                        pathGeometries.forEach(Geometry::removeFromParent);
-                        
-                    } else {
-                        if (event.getButtonIndex() == MouseInput.BUTTON_LEFT) {
-                            findPathImmediately(character, filter, startPoly.result, endPoly.result);
-                            
-                        } else if (event.getButtonIndex() == MouseInput.BUTTON_RIGHT) {
-                            findPathSlicedPartial(character, filter, startPoly.result, endPoly.result);
-                        }
-                    }
-                }
-            }
-        });
+        initMouseListener();
         
+        setupDoors();
+    }
+
+    private void setupDoors() {
         //If the doorNode in DemoApplication is not null, we will create doors.
         doorNode = (Node) rootNode.getChild("doorNode");
-        
+
         /**
          * This check will set any doors found in the doorNode open/closed flags
          * by adding a lemur MouseEventControl to each door found that has a 
@@ -253,18 +205,18 @@ public class NavState extends AbstractNavState {
          * closed. 
          */
         if (doorNode != null) {
-                        
+
             //Gather all doors from the doorNode.
-            List<Spatial> children = doorNode.getChildren();
-            
+            List < Spatial > children = doorNode.getChildren();
+
             /**
              * Cycle through the list and add a MouseEventControl to each door
              * with a DoorSwingControl.
              */
             for (Spatial child: children) {
 
-                DoorSwingControl swingControl = getState(UtilState.class).findControl(child, DoorSwingControl.class);
-                
+                DoorSwingControl swingControl = GameObject.getComponentInChild(child, DoorSwingControl.class);
+
                 if (swingControl != null) {
                     /**
                      * We are adding the MouseEventControl to the doors hitBox not 
@@ -273,166 +225,222 @@ public class NavState extends AbstractNavState {
                      * throws an exception when doing so. The hitBox is attached 
                      * to the root bones attachment node. 
                      */
-                    SkeletonControl skelCont = getState(UtilState.class).findControl(child, SkeletonControl.class);
-                    String name = skelCont.getSkeleton().getBone(0).getName();
-                    Spatial hitBox = skelCont.getAttachmentsNode(name).getChild(0);
+                    SkeletonControl skelControl = GameObject.getComponentInChild(child, SkeletonControl.class);
+                    String name = skelControl.getSkeleton().getBone(0).getName();
+                    Spatial hitBox = skelControl.getAttachmentsNode(name).getChild(0);
 
-                    MouseEventControl.addListenersToSpatial(hitBox, new DefaultMouseListener() {
-
-                        @Override
-                        protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
-
-                            LOG.info("<========== BEGIN Door MouseEventControl ==========>");
-
-                            /**
-                             * We have the worldmap and the doors using 
-                             * MouseEventControl. In certain circumstances, usually
-                             * when moving and clicking, click will return target as 
-                             * worldmap so we have to then use capture to get the 
-                             * proper spatial.
-                             */
-                            if (!target.equals(hitBox)) {
-                                LOG.info("Wrong target found [{}] parentName [{}].", target.getName(), target.getParent().getName());
-                                LOG.info("Switching to capture [{}] capture parent [{}].",capture.getName(), capture.getParent().getName());
-                                target = capture;
-                            }
-
-                            //The filter to use for this search.
-                            DefaultQueryFilter filter = new BetterDefaultQueryFilter();
-
-                            //Limit the search to only door flags.
-                            int includeFlags = POLYFLAGS_DOOR;
-                            filter.setIncludeFlags(includeFlags);
-
-                            //Include everything.
-                            int excludeFlags = 0;                   
-                            filter.setExcludeFlags(excludeFlags);
-
-                            /**
-                             * Look for the largest radius to search for. This will 
-                             * make it possible to grab only one of a double door. 
-                             * The width of the door is preferred over thickness. 
-                             * The idea is to only return polys within the width of 
-                             * the door so in cases where there are double doors, 
-                             * only the selected door will open/close. This means 
-                             * doors with large widths should not be in range of 
-                             * other doors or the other doors polys will be included.
-                             * 
-                             * Searches take place from the origin of the attachment
-                             * node which should be the same as the doors origin.
-                             */
-                            BoundingBox bounds = (BoundingBox) target.getWorldBound();
-                            //Width of door opening.
-                            float maxXZ = Math.max(bounds.getXExtent(), bounds.getZExtent()) * 2;
-
-                            Result<FindNearestPolyResult> findNearestPoly = query.findNearestPoly(target.getWorldTranslation().toArray(null), new float[] {maxXZ, maxXZ, maxXZ}, filter);
-                            
-                            //No obj, no go. Fail most likely result of filter setting.
-                            if (!findNearestPoly.status.isSuccess() || findNearestPoly.result.getNearestRef() == 0) {
-                                LOG.error("Door findNearestPoly unsuccessful or getNearestRef is not > 0.");
-                                LOG.error("findNearestPoly [{}] getNearestRef [{}].", findNearestPoly.status, findNearestPoly.result.getNearestRef());
-                                return;
-                            }
-                            
-                            Result<FindPolysAroundResult> findPolysAroundCircle = query.findPolysAroundCircle(findNearestPoly.result.getNearestRef(), findNearestPoly.result.getNearestPos(), maxXZ, filter);
-
-                            //Success
-                            if (findPolysAroundCircle.status.isSuccess()) {
-                                List<Long> m_polys = findPolysAroundCircle.result.getRefs();
-
-    //                            //May need these for something else eventually.
-    //                            List<Long> m_parent = result.result.getParentRefs();
-    //                            List<Float> m_costs = result.result.getCosts();
-
-                                /**
-                                 * Store each poly and flag in a single object and 
-                                 * add it to this list so we can later check they 
-                                 * all have the same flag.
-                                 */
-                                List<PolyAndFlag> listPolyAndFlag = new ArrayList<>();
-
-                                //The flags that say this door is open.
-                                int open = POLYFLAGS_WALK | POLYFLAGS_DOOR ;
-
-                                //The flags that say this door is closed, i.e. open
-                                // flags and POLYFLAGS_DISABLED
-                                int closed = open | POLYFLAGS_DISABLED;
-
-                                /**
-                                 * We iterate through the polys looking for the open
-                                 * or closed flags.
-                                 */
-                                for (long poly: m_polys) {
-
-                                    LOG.info("<========== PRE flag set Poly ID [{}] Flags [{}] ==========>", poly, navMesh.getPolyFlags(poly).result);
-                                    printFlags(poly);
-
-                                    /**
-                                     * We look for closed or open doors and add the 
-                                     * poly id and flag to set for the poly to the 
-                                     * list. We will later check to see if all poly 
-                                     * flags are the same and act accordingly. If 
-                                     * the door is closed, we add the open flags, if 
-                                     * open, add the closed flags. 
-                                     */
-                                    if (isBitSet(closed, navMesh.getPolyFlags(poly).result)) {
-                                        listPolyAndFlag.add(new PolyAndFlag(poly, open));
-                                    } else if (isBitSet(open, navMesh.getPolyFlags(poly).result)) {
-                                        listPolyAndFlag.add(new PolyAndFlag(poly, closed));
-                                    }
-                                }
-
-                                /**
-                                 * Check that all poly flags for the door are either 
-                                 * all open or all closed. This prevents changing 
-                                 * door flags in circumstances where a user may be 
-                                 * allowed to block open or closed doors with in 
-                                 * game objects through tile caching. If the object 
-                                 * was placed in such a way that not all polys in a 
-                                 * door opening were blocked by the object, not 
-                                 * checking if all polys had the same flag would 
-                                 * allow bypassing the blocking object flag setting. 
-                                 */
-                                boolean same = false;
-                                for (PolyAndFlag obj: listPolyAndFlag) {
-                                    //If any flag does not match, were done.
-                                    if (obj.getFlag() != listPolyAndFlag.get(0).getFlag()) {
-                                        LOG.info("All poly flags are not the same listPolyAndFlag.");
-                                        same = false;
-                                        break;
-                                    }
-                                    same = true;
-                                }
-
-                                //If all flags match set door open/closed.
-                                if (same) {                                    
-                                    //Set all obj flags.
-                                    for (PolyAndFlag obj: listPolyAndFlag) {
-                                        navMesh.setPolyFlags(obj.getPoly(), obj.getFlag());
-                                        LOG.info("<========== POST flag set Poly ID [{}] Flags [{}] ==========>", obj.getPoly(), navMesh.getPolyFlags(obj.getPoly()).result);
-                                        printFlags(obj.getPoly());
-                                    }
-
-                                    /**
-                                     * All flags are the same so we only 
-                                     * need the first object.
-                                     */
-                                    if (listPolyAndFlag.get(0).getFlag() == (open)) {
-                                        //Open doorControl.
-                                        swingControl.setOpen(true);
-                                    } else {
-                                        //Close doorControl.
-                                        swingControl.setOpen(false);
-                                    }
-                                }
-                            }
-                            LOG.info("<========== END Door MouseEventControl Add ==========>");
-                        }
-                    });
+                    addDoorMouseListener(swingControl, hitBox);
                 }
             }
         }
-        
+    }
+
+	private void addDoorMouseListener(DoorSwingControl swingControl, Spatial hitBox) {
+		MouseEventControl.addListenersToSpatial(hitBox, new DefaultMouseListener() {
+
+		    @Override
+		    protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
+
+		        LOG.info("<========== BEGIN Door MouseEventControl ==========>");
+
+		        /**
+		         * We have the worldmap and the doors using 
+		         * MouseEventControl. In certain circumstances, usually
+		         * when moving and clicking, click will return target as 
+		         * worldmap so we have to then use capture to get the 
+		         * proper spatial.
+		         */
+		        if (!target.equals(hitBox)) {
+		            LOG.info("Wrong target found [{}] parentName [{}].", target.getName(), target.getParent().getName());
+		            LOG.info("Switching to capture [{}] capture parent [{}].",capture.getName(), capture.getParent().getName());
+		            target = capture;
+		        }
+
+		        //The filter to use for this search.
+		        DefaultQueryFilter filter = new BetterDefaultQueryFilter();
+
+		        //Limit the search to only door flags.
+		        int includeFlags = POLYFLAGS_DOOR;
+		        filter.setIncludeFlags(includeFlags);
+
+		        //Include everything.
+		        int excludeFlags = 0;                   
+		        filter.setExcludeFlags(excludeFlags);
+
+		        /**
+		         * Look for the largest radius to search for. This will 
+		         * make it possible to grab only one of a double door. 
+		         * The width of the door is preferred over thickness. 
+		         * The idea is to only return polys within the width of 
+		         * the door so in cases where there are double doors, 
+		         * only the selected door will open/close. This means 
+		         * doors with large widths should not be in range of 
+		         * other doors or the other doors polys will be included.
+		         * 
+		         * Searches take place from the origin of the attachment
+		         * node which should be the same as the doors origin.
+		         */
+		        BoundingBox bounds = (BoundingBox) target.getWorldBound();
+		        //Width of door opening.
+		        float maxXZ = Math.max(bounds.getXExtent(), bounds.getZExtent()) * 2;
+
+		        Result<FindNearestPolyResult> findNearestPoly = query.findNearestPoly(target.getWorldTranslation().toArray(null), new float[] {maxXZ, maxXZ, maxXZ}, filter);
+		        
+		        //No obj, no go. Fail most likely result of filter setting.
+		        if (!findNearestPoly.status.isSuccess() || findNearestPoly.result.getNearestRef() == 0) {
+		            LOG.error("Door findNearestPoly unsuccessful or getNearestRef is not > 0.");
+		            LOG.error("findNearestPoly [{}] getNearestRef [{}].", findNearestPoly.status, findNearestPoly.result.getNearestRef());
+		            return;
+		        }
+		        
+		        Result<FindPolysAroundResult> findPolysAroundCircle = query.findPolysAroundCircle(findNearestPoly.result.getNearestRef(), findNearestPoly.result.getNearestPos(), maxXZ, filter);
+
+		        //Success
+		        if (findPolysAroundCircle.status.isSuccess()) {
+		            List<Long> m_polys = findPolysAroundCircle.result.getRefs();
+
+   //                            //May need these for something else eventually.
+   //                            List<Long> m_parent = result.result.getParentRefs();
+   //                            List<Float> m_costs = result.result.getCosts();
+
+		            /**
+		             * Store each poly and flag in a single object and 
+		             * add it to this list so we can later check they 
+		             * all have the same flag.
+		             */
+		            List<PolyAndFlag> listPolyAndFlag = new ArrayList<>();
+
+		            //The flags that say this door is open.
+		            int open = POLYFLAGS_WALK | POLYFLAGS_DOOR ;
+
+		            //The flags that say this door is closed, i.e. open
+		            // flags and POLYFLAGS_DISABLED
+		            int closed = open | POLYFLAGS_DISABLED;
+
+		            /**
+		             * We iterate through the polys looking for the open
+		             * or closed flags.
+		             */
+		            for (long poly: m_polys) {
+
+		                LOG.info("<========== PRE flag set Poly ID [{}] Flags [{}] ==========>", poly, navMesh.getPolyFlags(poly).result);
+		                printFlags(poly);
+
+		                /**
+		                 * We look for closed or open doors and add the 
+		                 * poly id and flag to set for the poly to the 
+		                 * list. We will later check to see if all poly 
+		                 * flags are the same and act accordingly. If 
+		                 * the door is closed, we add the open flags, if 
+		                 * open, add the closed flags. 
+		                 */
+		                if (isBitSet(closed, navMesh.getPolyFlags(poly).result)) {
+		                    listPolyAndFlag.add(new PolyAndFlag(poly, open));
+		                } else if (isBitSet(open, navMesh.getPolyFlags(poly).result)) {
+		                    listPolyAndFlag.add(new PolyAndFlag(poly, closed));
+		                }
+		            }
+
+		            /**
+		             * Check that all poly flags for the door are either 
+		             * all open or all closed. This prevents changing 
+		             * door flags in circumstances where a user may be 
+		             * allowed to block open or closed doors with in 
+		             * game objects through tile caching. If the object 
+		             * was placed in such a way that not all polys in a 
+		             * door opening were blocked by the object, not 
+		             * checking if all polys had the same flag would 
+		             * allow bypassing the blocking object flag setting. 
+		             */
+		            boolean same = false;
+		            for (PolyAndFlag obj: listPolyAndFlag) {
+		                //If any flag does not match, were done.
+		                if (obj.getFlag() != listPolyAndFlag.get(0).getFlag()) {
+		                    LOG.info("All poly flags are not the same listPolyAndFlag.");
+		                    same = false;
+		                    break;
+		                }
+		                same = true;
+		            }
+
+		            //If all flags match set door open/closed.
+		            if (same) {                                    
+		                //Set all obj flags.
+		                for (PolyAndFlag obj: listPolyAndFlag) {
+		                    navMesh.setPolyFlags(obj.getPoly(), obj.getFlag());
+		                    LOG.info("<========== POST flag set Poly ID [{}] Flags [{}] ==========>", obj.getPoly(), navMesh.getPolyFlags(obj.getPoly()).result);
+		                    printFlags(obj.getPoly());
+		                }
+
+		                /**
+		                 * All flags are the same so we only 
+		                 * need the first object.
+		                 */
+		                if (listPolyAndFlag.get(0).getFlag() == (open)) {
+		                    //Open doorControl.
+		                    swingControl.setOpen(true);
+		                } else {
+		                    //Close doorControl.
+		                    swingControl.setOpen(false);
+		                }
+		            }
+		        }
+		        LOG.info("<========== END Door MouseEventControl Add ==========>");
+		    }
+		});
+	}
+
+    private void initMouseListener() {
+        MouseEventControl.addListenersToSpatial(worldMap, new DefaultMouseListener() {
+            @Override
+            protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
+                super.click(event, target, capture);
+
+                // First clear existing pathGeometries from the old path finding:
+                pathViewer.clearPath();
+
+                // Clicked on the map, so params a path to:
+                Vector3f locOnMap = getLocationOnMap(); // Don'from calculate three times
+
+                if (getCharacters().size() == 1) {
+                    DefaultQueryFilter filter = new BetterDefaultQueryFilter();
+
+                    int includeFlags = POLYFLAGS_WALK | POLYFLAGS_DOOR | POLYFLAGS_SWIM | POLYFLAGS_JUMP;
+                    filter.setIncludeFlags(includeFlags);
+
+                    int excludeFlags = POLYFLAGS_DISABLED;
+                    filter.setExcludeFlags(excludeFlags);
+
+                    Node character = getCharacters().get(0);
+
+                    Result<FindNearestPolyResult> startPoly = query.findNearestPoly(character.getWorldTranslation().toArray(null), new float[] {1.0f, 1.0f, 1.0f}, filter);
+                    Result<FindNearestPolyResult> endPoly = query.findNearestPoly(DetourUtils.toFloatArray(locOnMap), new float[] {1.0f, 1.0f, 1.0f}, filter);
+
+                    // Note: not isFailure() here, because isSuccess guarantees us, that the result isn't "RUNNING", which it could be if we only check it's not failure.
+                    if (!startPoly.status.isSuccess() || !endPoly.status.isSuccess() ||
+                        startPoly.result.getNearestRef() == 0 || endPoly.result.getNearestRef() == 0) {
+                    	
+                        LOG.error("Character findNearestPoly unsuccessful or getNearestRef is not > 0.");
+                        LOG.error("findNearestPoly startPoly [{}] getNearestRef [{}]", startPoly.status.isSuccess(), startPoly.result.getNearestRef());
+                        LOG.error("findNearestPoly endPoly [{}] getNearestRef [{}].", endPoly.status.isSuccess(), endPoly.result.getNearestRef());
+
+                    } else {
+                        LOG.info("Will walk from {} to {}", character.getWorldTranslation(), locOnMap);
+
+                        float yOffset = .5f;
+                        pathViewer.putBox(ColorRGBA.Green, character.getWorldTranslation().add(0, yOffset, 0));
+                        pathViewer.putBox(ColorRGBA.Yellow, locOnMap.add(0, yOffset, 0));
+
+                        if (event.getButtonIndex() == MouseInput.BUTTON_LEFT) {
+                            findPathImmediately(character, filter, startPoly.result, endPoly.result);
+
+                        } else if (event.getButtonIndex() == MouseInput.BUTTON_RIGHT) {
+                            findPathSlicedPartial(character, filter, startPoly.result, endPoly.result);
+                        }
+                    }
+                }
+            }
+        });
     }
         
     /**
@@ -558,14 +566,15 @@ public class NavState extends AbstractNavState {
 
         List<Vector3f> wayPoints = new ArrayList<>(straightPath.size());
         Vector3f oldPos = character.getWorldTranslation();
+        Vector3f offset = new Vector3f(0, .5f, 0);
 
         for (StraightPathItem spi : straightPath) {
 
             Vector3f waypoint = DetourUtils.toVector3f(spi.getPos());
-            rootNode.attachChild(createLinePath(ColorRGBA.Orange, oldPos.add(0, .5f, 0), waypoint.add(0, .5f, 0)));
+            pathViewer.putLine(ColorRGBA.Orange, oldPos.add(offset), waypoint.add(offset));
 
             if (spi.getRef() != 0) { // if ref is 0, it's the linkB.
-                rootNode.attachChild(createBoxPath(ColorRGBA.Blue, waypoint.add(0, .5f, 0)));
+            	pathViewer.putBox(ColorRGBA.Blue, waypoint.add(offset));
             }
 
             wayPoints.add(waypoint);
@@ -604,43 +613,6 @@ public class NavState extends AbstractNavState {
 		Ray ray = new Ray(click3d, dir);
 		return ray;
 	}
-
-    /**
-     * Helper method to place a colored box at a specific location and fill the pathGeometries list with it,
-     * so that later on we can remove all existing pathGeometries (from a previous path finding)
-     *
-     * @param color The color the box should have
-     * @param position The position where the box will be placed
-     * @return the box
-     */
-    private Geometry createBoxPath(ColorRGBA color, Vector3f position) {
-        Geometry result = new Geometry("Box", new Box(0.25f, 0.25f, 0.25f));
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", color);
-        result.setMaterial(mat);
-        result.setLocalTranslation(position);
-        pathGeometries.add(result);
-        return result;
-    }
-    
-    /**
-     * Helper method to place a colored line between two specific locations and fill the pathGeometries list with it,
-     * so that later on we can remove all existing pathGeometries (from a previous path finding)
-     *
-     * @param color The color the box should have
-     * @param from The position where the line starts
-     * @param to The position where the line is finished.
-     * @return the line
-     */
-    private Geometry createLinePath(ColorRGBA color, Vector3f from, Vector3f to) {
-        Geometry result = new Geometry("Line", new Line(from, to));
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", color);
-        mat.getAdditionalRenderState().setLineWidth(2f);
-        result.setMaterial(mat);
-        pathGeometries.add(result);
-        return result;
-    }
 
     /**
      * @return the characters
@@ -704,7 +676,7 @@ public class NavState extends AbstractNavState {
     	//Build merged mesh.
         JmeInputGeomProvider geomProvider = new GeometryProviderBuilder2(worldMap).build();
         
-		configureAreaMod(geomProvider);
+	configureAreaMod(geomProvider);
         
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
@@ -977,9 +949,9 @@ public class NavState extends AbstractNavState {
                  */
                 if (!spat.getName().equals(offMeshCon.getName())) {
 
-                    SkeletonControl skelCont = getState(UtilState.class).findControl(spat, SkeletonControl.class);
+                    SkeletonControl skelControl = GameObject.getComponentInChild(spat, SkeletonControl.class);
 
-                    if (skelCont != null) {
+                    if (skelControl != null) {
                         /**
                         * Offmesh connections require two connections, a 
                         * start/end vector3f and must connect to a surrounding 
@@ -1024,7 +996,7 @@ public class NavState extends AbstractNavState {
                         * offmesh.1.a
                         * offmesh.1.b
                         */
-                        Bone[] roots = skelCont.getSkeleton().getRoots();
+                        Bone[] roots = skelControl.getSkeleton().getRoots();
                         for (Bone b: roots) {
                             /**
                              * Split the name up using delimiter. 
@@ -1355,28 +1327,28 @@ public class NavState extends AbstractNavState {
             }
         }
         
-		try {
-			// Native format using tiles.
-			MeshSetWriter msw = new MeshSetWriter();
-			msw.write(new FileOutputStream(new File("test.nm")), navMesh, ByteOrder.BIG_ENDIAN, false);
+	    try {
+		// Native format using tiles.
+		MeshSetWriter msw = new MeshSetWriter();
+		msw.write(new FileOutputStream(new File("test.nm")), navMesh, ByteOrder.BIG_ENDIAN, false);
 
-			// Read in saved NavMesh.
-			MeshSetReader msr = new MeshSetReader();
-			navMesh = msr.read(new FileInputStream("test.nm"), cfg.maxVertsPerPoly);
+		// Read in saved NavMesh.
+		MeshSetReader msr = new MeshSetReader();
+		navMesh = msr.read(new FileInputStream("test.nm"), cfg.maxVertsPerPoly);
 
-			query = new NavMeshQuery(navMesh);
-			int maxTiles = navMesh.getMaxTiles();
+		query = new NavMeshQuery(navMesh);
+		int maxTiles = navMesh.getMaxTiles();
 
-			// Tile data can be null since maxTiles is not an exact science.
-			for (int i = 0; i < maxTiles; i++) {
-				MeshData meshData = navMesh.getTile(i).data;
-				if (meshData != null) {
-					showDebugByArea(meshData, true);
-				}
-			}
-		}  catch (IOException ex) {
-            LOG.info("{} {}", CrowdBuilderState.class.getName(), ex);
-        }
+		// Tile data can be null since maxTiles is not an exact science.
+		for (int i = 0; i < maxTiles; i++) {
+		    MeshData meshData = navMesh.getTile(i).data;
+		    if (meshData != null) {
+			showDebugByArea(meshData, true);
+		    }
+		}
+	    } catch (IOException ex) {
+		LOG.info("{} {}", CrowdBuilderState.class.getName(), ex);
+	    }
     }  
  
     private void buildTileCache() {
@@ -1384,7 +1356,7 @@ public class NavState extends AbstractNavState {
     	//Build merged mesh.
         JmeInputGeomProvider geomProvider = new GeometryProviderBuilder2(worldMap).build();
         
-		configureAreaMod(geomProvider);
+	configureAreaMod(geomProvider);
         
         //Set offmesh connections.
         offMeshCon.depthFirstTraversal(new SceneGraphVisitorAdapter() {
@@ -1401,7 +1373,7 @@ public class NavState extends AbstractNavState {
                  */
                 if (!node.getName().equals(offMeshCon.getName())) {
 
-                    SkeletonControl skelControl = getState(UtilState.class).findControl(node, SkeletonControl.class);
+                    SkeletonControl skelControl = GameObject.getComponentInChild(node, SkeletonControl.class);
 
                     if (skelControl != null) {
                         /**
@@ -1481,7 +1453,7 @@ public class NavState extends AbstractNavState {
                                  * link1 is bone (a), it becomes the link start.
                                  * If (b), the link end.
                                  */
-								System.arraycopy(linkPos, 0, pos, arg[2].equals("a") ? 0 : 3, 3);
+					System.arraycopy(linkPos, 0, pos, arg[2].equals("a") ? 0 : 3, 3);
 
                                 //Set link1 to new array.
                                 link1.pos = pos;
@@ -1502,26 +1474,26 @@ public class NavState extends AbstractNavState {
                                  * offmesh.anything."a" or "b" so we set the 
                                  * search to whatever link1 arg[2] isn't.
                                  */
-								String link2 = String.join(".", arg[0], arg[1], arg[2].equals("a") ? "b" : "a");
+					String link2 = String.join(".", arg[0], arg[1], arg[2].equals("a") ? "b" : "a");
 
                                 /**
                                  * If the paired bone has already been added to 
                                  * map, set start or end determined by link1 arg[2].
                                  */
                                 if (mapOffMeshCon.containsKey(link2)) {
-									/**
-									 * Copy link1 pos to link2 pos. If link1 is start(a) of link, copy link1 start
-									 * to link2 start. If link1 is the end(b) of link, copy link1 end to link2 end.
-									 */
-									System.arraycopy(link1.pos, arg[2].equals("a") ? 0 : 3,
-											mapOffMeshCon.get(link2).pos, arg[2].equals("a") ? 0 : 3, 3);
+					/**
+					 * Copy link1 pos to link2 pos. If link1 is start(a) of link, copy link1 start
+					 * to link2 start. If link1 is the end(b) of link, copy link1 end to link2 end.
+					 */
+					System.arraycopy(link1.pos, arg[2].equals("a") ? 0 : 3,
+							mapOffMeshCon.get(link2).pos, arg[2].equals("a") ? 0 : 3, 3);
 
-									/**
-									 * Copy link2 pos to link1 pos. If link1 is the start(a) of link, copy link2 end
-									 * to link1 end. If link1 is end(b) of link, copy link2 start to link1 start.
-									 */
-									System.arraycopy(mapOffMeshCon.get(link2).pos, arg[2].equals("a") ? 3 : 0,
-											link1.pos, arg[2].equals("a") ? 3 : 0, 3);
+					/**
+					 * Copy link2 pos to link1 pos. If link1 is the start(a) of link, copy link2 end
+					 * to link1 end. If link1 is end(b) of link, copy link2 start to link1 start.
+					 */
+					System.arraycopy(mapOffMeshCon.get(link2).pos, arg[2].equals("a") ? 3 : 0,
+							link1.pos, arg[2].equals("a") ? 3 : 0, 3);
 
                                     /**
                                      * OffMeshconnections with id of 0 don't get 
@@ -1729,11 +1701,11 @@ public class NavState extends AbstractNavState {
                                     : NavMeshBuilder.classifyOffMeshPoint(new VectorPtr(next.getValue().pos, 3),
                                             startTile.header.bmin, startTile.header.bmax);
                             //Create new OffMeshConnection array.
-							if (startTile.offMeshCons == null) {
-								startTile.offMeshCons = new org.recast4j.detour.OffMeshConnection[1];
-							} else {
-								startTile.offMeshCons = Arrays.copyOf(startTile.offMeshCons, startTile.offMeshCons.length + 1);
-							}
+				if (startTile.offMeshCons == null) {
+					startTile.offMeshCons = new org.recast4j.detour.OffMeshConnection[1];
+				} else {
+					startTile.offMeshCons = Arrays.copyOf(startTile.offMeshCons, startTile.offMeshCons.length + 1);
+				}
 
                             //Add this connection.
                             startTile.offMeshCons[startTile.offMeshCons.length - 1] = next.getValue();
@@ -1817,31 +1789,32 @@ public class NavState extends AbstractNavState {
      * This is a mandatory class otherwise the tile cache build will not set
      * the areas. This gets call from the tc.buildNavMeshTile(ref) method.
      */
-	private class JmeTileCacheMeshProcess implements TileCacheMeshProcess {
+    private class JmeTileCacheMeshProcess implements TileCacheMeshProcess {
 
-		@Override
-		public void process(NavMeshDataCreateParams params) {
-			// Update poly flags from areas.
-			for (int i = 0; i < params.polyCount; ++i) {
-				Poly p = new Poly(i, 6);
+        @Override
+        public void process(NavMeshDataCreateParams params) {
+            // Update poly flags from areas.
+            for (int i = 0; i < params.polyCount; ++i) {
+                Poly p = new Poly(i, 6);
 
-				if (params.polyAreas[i] == DT_TILECACHE_WALKABLE_AREA) {
-					params.polyAreas[i] = POLYAREA_TYPE_GROUND;
-				}
+                if (params.polyAreas[i] == DT_TILECACHE_WALKABLE_AREA) {
+                    params.polyAreas[i] = POLYAREA_TYPE_GROUND;
+                }
 
-				if (params.polyAreas[i] == POLYAREA_TYPE_GROUND 
-						|| params.polyAreas[i] == POLYAREA_TYPE_GRASS
-						|| params.polyAreas[i] == POLYAREA_TYPE_ROAD) {
-					params.polyFlags[i] = POLYFLAGS_WALK;
-				} else if (params.polyAreas[i] == POLYAREA_TYPE_WATER) {
-					params.polyFlags[i] = POLYFLAGS_SWIM;
-				} else if (params.polyAreas[i] == POLYAREA_TYPE_DOOR) {
-					params.polyFlags[i] = POLYFLAGS_WALK | POLYFLAGS_DOOR;
-				}
-			}
-		}
-
-	}
+                if (params.polyAreas[i] == POLYAREA_TYPE_GROUND ||
+                    params.polyAreas[i] == POLYAREA_TYPE_GRASS ||
+                    params.polyAreas[i] == POLYAREA_TYPE_ROAD) {
+                    params.polyFlags[i] = POLYFLAGS_WALK;
+                    
+                } else if (params.polyAreas[i] == POLYAREA_TYPE_WATER) {
+                    params.polyFlags[i] = POLYFLAGS_SWIM;
+                    
+                } else if (params.polyAreas[i] == POLYAREA_TYPE_DOOR) {
+                    params.polyFlags[i] = POLYFLAGS_WALK | POLYFLAGS_DOOR;
+                }
+            }
+        }
+    }
 
     //Build the tile cache.
     private TileCache getTileCache(JmeInputGeomProvider geom, RecastConfig rcfg) {
