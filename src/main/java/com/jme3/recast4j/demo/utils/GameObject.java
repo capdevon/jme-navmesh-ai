@@ -22,7 +22,7 @@ public class GameObject {
      * @param clazz
      * @return
      */
-    public static < T extends Control > T[] getComponents(Spatial spatial, Class < T > clazz) {
+    public static <T extends Control> T[] getComponents(Spatial spatial, Class <T> clazz) {
         final List < Node > lst = new ArrayList < > (10);
         spatial.breadthFirstTraversal(new SceneGraphVisitorAdapter() {
             @Override
@@ -43,7 +43,7 @@ public class GameObject {
      * @param clazz
      * @return
      */
-    public static < T extends Control > T getComponent(Spatial spatial, Class < T > clazz) {
+    public static <T extends Control> T getComponent(Spatial spatial, Class <T> clazz) {
         T control = spatial.getControl(clazz);
         return control;
     }
@@ -57,7 +57,7 @@ public class GameObject {
      * @param clazz
      * @return
      */
-    public static < T extends Control > T getComponentInChild(Spatial spatial, final Class < T > clazz) {
+    public static <T extends Control> T getComponentInChild(Spatial spatial, final Class <T> clazz) {
         T control = spatial.getControl(clazz);
         if (control != null) {
             return control;
@@ -84,7 +84,7 @@ public class GameObject {
      * @param clazz
      * @return
      */
-    public static < T extends Control > T getComponentInParent(Spatial spatial, Class < T > clazz) {
+    public static <T extends Control> T getComponentInParent(Spatial spatial, Class <T> clazz) {
         Node parent = spatial.getParent();
         while (parent != null) {
             T control = parent.getControl(clazz);
