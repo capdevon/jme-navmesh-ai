@@ -22,13 +22,13 @@ import com.jme3.scene.shape.Line;
  */
 public class PathViewer {
 
-	// Asset manager
-	private AssetManager assetManager;
-	// Node for attaching debug geometries
+    // Asset manager
+    private AssetManager assetManager;
+    // Node for attaching debug geometries
     private Node debugNode = new Node("Debug Node");
 
     public PathViewer(AssetManager assetManager) {
-    	this.assetManager = assetManager;
+        this.assetManager = assetManager;
     }
 
     /**
@@ -48,7 +48,7 @@ public class PathViewer {
         debugNode.attachChild(result);
         return result;
     }
-    
+
     /**
      * Helper method to place a colored line between two specific locations and fill the pathGeometries list with it,
      * so that later on we can remove all existing pathGeometries (from a previous path finding)
@@ -69,16 +69,16 @@ public class PathViewer {
     }
 
     public void clearPath() {
-    	debugNode.detachAllChildren();
+        debugNode.detachAllChildren();
     }
-    
+
     /**
      * Render all the debug geometries to the specified view port.
      */
-	public void show(RenderManager rm, ViewPort vp) {
-		debugNode.updateLogicalState(0f);
+    public void show(RenderManager rm, ViewPort vp) {
+        debugNode.updateLogicalState(0f);
         debugNode.updateGeometricState();
         rm.renderScene(debugNode, vp);
-	}
+    }
 
 }
