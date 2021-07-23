@@ -412,9 +412,12 @@ public class NavState extends AbstractNavState {
                     filter.setExcludeFlags(excludeFlags);
 
                     Node character = getCharacters().get(0);
+			
+		    //Extents can be anything you determine is appropriate.
+                    float[] extents = new float[] { 1.0f, 1.0f, 1.0f };
 
-                    Result<FindNearestPolyResult> startPoly = query.findNearestPoly(character.getWorldTranslation().toArray(null), new float[] {1.0f, 1.0f, 1.0f}, filter);
-                    Result<FindNearestPolyResult> endPoly = query.findNearestPoly(DetourUtils.toFloatArray(locOnMap), new float[] {1.0f, 1.0f, 1.0f}, filter);
+                    Result<FindNearestPolyResult> startPoly = query.findNearestPoly(character.getWorldTranslation().toArray(null), extents, filter);
+                    Result<FindNearestPolyResult> endPoly = query.findNearestPoly(DetourUtils.toFloatArray(locOnMap), extents, filter);
 
                     // Note: not isFailure() here, because isSuccess guarantees us, that the result isn't "RUNNING", which it could be if we only check it's not failure.
                     if (!startPoly.status.isSuccess() || !endPoly.status.isSuccess() ||
@@ -455,7 +458,7 @@ public class NavState extends AbstractNavState {
         Result<List<Long>> path = query.findPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter);
         if (path.succeeded()) {
 
-            // Get the proper path from the rough polygon listing
+            //Set the parameters for straight path. Paths cannot exceed 256 polygons.
             int maxStraightPath = 256;
             int options = 0;
 
