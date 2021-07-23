@@ -23,7 +23,7 @@ public class GameObject {
      * @return
      */
     public static <T extends Control> T[] getComponents(Spatial spatial, Class <T> clazz) {
-        final List < Node > lst = new ArrayList < > (10);
+        final List<Node> lst = new ArrayList<>(10);
         spatial.breadthFirstTraversal(new SceneGraphVisitorAdapter() {
             @Override
             public void visit(Node node) {
