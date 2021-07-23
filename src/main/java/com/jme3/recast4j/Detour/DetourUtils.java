@@ -72,4 +72,18 @@ public class DetourUtils {
         arr[1] = v.y;
         arr[2] = v.z;
     }
+    
+    /**
+     * 
+     * @param straightPath
+     * @return
+     */
+    public static List<Vector3f> toVector3f(List<StraightPathItem> straightPath) {
+        List<Vector3f> wayPoints = new ArrayList<>(straightPath.size());
+        for (StraightPathItem spi : straightPath) {
+            Vector3f waypoint = toVector3f(spi.getPos());
+            wayPoints.add(waypoint);
+        }
+        return wayPoints;
+    }
 }
