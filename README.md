@@ -1,5 +1,5 @@
 # jme3-recast4j-test-1
-This is a demonstration Application to show how to use [recast4j](https://github.com/ppiastucki/recast4j) (a java only port of recast+detour) with jMonkeyEngine3.
+This project is the union of projects **jme3-recast4j** and **jme-recast4j-demo**. It contains a number of useful classes that show how to use the [recast4j](https://github.com/ppiastucki/recast4j) library with jMonkeyEngine3.
 
 Updated Libraries:
 
