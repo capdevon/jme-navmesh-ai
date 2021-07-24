@@ -178,8 +178,7 @@ public class NavState extends AbstractNavState {
 //        buildSoloModified();
 //        //Solo build using recast4j methods. Implements area and flag types.
 //        buildSoloRecast4j();
-//        //Tile build using recast4j methods. Implements area and flag types plus
-//        //offmesh connections.
+//        //Tile build using recast4j methods. Implements area and flag types plus offmesh connections.
 //        buildTiledRecast4j();
         buildTileCache();
         //====================================================================
@@ -412,10 +411,10 @@ public class NavState extends AbstractNavState {
                     filter.setExcludeFlags(excludeFlags);
 
                     Node character = getCharacters().get(0);
-			
-		    //Extents can be anything you determine is appropriate.
-                    float[] extents = new float[] { 1.0f, 1.0f, 1.0f };
 
+                    //Extents can be anything you determine is appropriate.
+                    float[] extents = new float[] { 1.0f, 1.0f, 1.0f };
+                    
                     Result<FindNearestPolyResult> startPoly = query.findNearestPoly(character.getWorldTranslation().toArray(null), extents, filter);
                     Result<FindNearestPolyResult> endPoly = query.findNearestPoly(DetourUtils.toFloatArray(locOnMap), extents, filter);
 
@@ -458,7 +457,7 @@ public class NavState extends AbstractNavState {
         Result<List<Long>> path = query.findPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter);
         if (path.succeeded()) {
 
-            //Set the parameters for straight path. Paths cannot exceed 256 polygons.
+        	//Set the parameters for straight path. Paths cannot exceed 256 polygons.
             int maxStraightPath = 256;
             int options = 0;
 
@@ -566,23 +565,26 @@ public class NavState extends AbstractNavState {
     }
 
     private List<Vector3f> drawPath(List<StraightPathItem> straightPath, Node character) {
+    	
+    	List<Vector3f> wayPoints = DetourUtils.toVector3f(straightPath);
+    	pathViewer.drawPath(wayPoints);
 
-        List<Vector3f> wayPoints = new ArrayList<>(straightPath.size());
-        Vector3f oldPos = character.getWorldTranslation();
-        Vector3f offset = new Vector3f(0, .5f, 0);
-
-        for (StraightPathItem spi : straightPath) {
-
-            Vector3f waypoint = DetourUtils.toVector3f(spi.getPos());
-            pathViewer.putLine(ColorRGBA.Orange, oldPos.add(offset), waypoint.add(offset));
-
-            if (spi.getRef() != 0) { // if ref is 0, it's the linkB.
-            	pathViewer.putBox(ColorRGBA.Blue, waypoint.add(offset));
-            }
-
-            wayPoints.add(waypoint);
-            oldPos = waypoint;
-        }
+//        List<Vector3f> wayPoints = new ArrayList<>(straightPath.size());
+//        Vector3f oldPos = character.getWorldTranslation();
+//        Vector3f offset = new Vector3f(0, .5f, 0);
+//        
+//        for (StraightPathItem spi : straightPath) {
+//
+//            Vector3f waypoint = DetourUtils.toVector3f(spi.getPos());
+//            pathViewer.putLine(ColorRGBA.Orange, oldPos.add(offset), waypoint.add(offset));
+//
+//            if (spi.getRef() != 0) { // if ref is 0, it's the linkB.
+//            	pathViewer.putBox(ColorRGBA.Blue, waypoint.add(offset));
+//            }
+//
+//            wayPoints.add(waypoint);
+//            oldPos = waypoint;
+//        }
 
         return wayPoints;
     }
@@ -630,46 +632,46 @@ public class NavState extends AbstractNavState {
     private void buildSolo() {
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
-        
+
         System.out.println("Building Nav Mesh, this may freeze your computer for a few seconds, please stand by");
         long time = System.currentTimeMillis(); // Never do real benchmarking with currentTimeMillis!
-        RecastBuilderConfig bcfg = new RecastBuilderConfigBuilder(worldMap).
-                build(new RecastConfigBuilder()
-                        .withAgentRadius(.3f)           // r
-                        .withAgentHeight(1.7f)          // h
-                        //cs and ch should probably be .1 at min.
-                        .withCellSize(.1f)              // cs=r/3
-                        .withCellHeight(.1f)            // ch=cs 
-                        .withAgentMaxClimb(.3f)         // > 2*ch
-                        .withAgentMaxSlope(45f)         
-                        .withEdgeMaxLen(2.4f)           // r*8
-                        .withEdgeMaxError(1.3f)         // 1.1 - 1.5
-                        .withDetailSampleDistance(8.0f) // increase if exception
-                        .withDetailSampleMaxError(8.0f) // increase if exception
-                        .withVertsPerPoly(3).build());
-        
+        RecastBuilderConfig builderCfg = new RecastBuilderConfigBuilder(worldMap).
+        build(new RecastConfigBuilder()
+            .withAgentRadius(.3f) 		// r
+            .withAgentHeight(1.7f) 		// h
+            //cs and ch should probably be .1 at min.
+            .withCellSize(.1f) 			// cs=r/3
+            .withCellHeight(.1f) 		// ch=cs 
+            .withAgentMaxClimb(.3f) 		// > 2*ch
+            .withAgentMaxSlope(45f)
+            .withEdgeMaxLen(2.4f) 		// r*8
+            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+            .withDetailSampleDistance(8.0f) 	// increase if exception
+            .withDetailSampleMaxError(8.0f) 	// increase if exception
+            .withVertsPerPoly(3).build());
+
         //Split up for testing.
         JmeInputGeomProvider geom = new GeometryProviderBuilder2(worldMap).build();
         RecastBuilder rcBuilder = new RecastBuilder();
         RecastBuilderResult result = rcBuilder.build(geom, builderCfg);
-        
+
         NavMeshDataCreateParams params = new NavMeshDataCreateParamsBuilder(result).build(builderCfg);
         MeshData meshData = NavMeshBuilder.createNavMeshData(params);
-        
+
         navMesh = new NavMesh(meshData, builderCfg.cfg.maxVertsPerPoly, 0);
         query = new NavMeshQuery(navMesh);
-        
+
         try {
-        	saveToFile(meshData);
-        	saveToFile(navMesh);
-        	
+            saveToFile(meshData);
+            saveToFile(navMesh);
+
         } catch (Exception ex) {
             LOG.error("[{}]", ex);
         }
 
         //Show wireframe. Helps with param tweaks. false = solid color.
         showDebugMeshes(meshData, true);
-        
+
         System.out.println("Building succeeded after " + (System.currentTimeMillis() - time) + " ms");
     }
     
@@ -679,79 +681,78 @@ public class NavState extends AbstractNavState {
      * jme3-recast4j wrapper methods. 
      */
     private void buildSoloModified() {
-    	
-    	//Build merged mesh.
+
+        //Build merged mesh.
         JmeInputGeomProvider geomProvider = new GeometryProviderBuilder2(worldMap).build();
-        
-	configureAreaMod(geomProvider);
-        
+
+        configureAreaMod(geomProvider);
+
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
-        
+
         RecastBuilderConfig bcfg = new RecastBuilderConfigBuilder(worldMap).withDetailMesh(true).
-                build(new RecastConfigBuilder()
-                        .withAgentRadius(.3f)           // r
-                        .withAgentHeight(1.7f)          // h
-                        //cs and ch should probably be .1 at min.
-                        .withCellSize(.1f)              // cs=r/3
-                        .withCellHeight(.1f)            // ch=cs 
-                        .withAgentMaxClimb(.3f)         // > 2*ch
-                        .withAgentMaxSlope(45f)         
-                        .withEdgeMaxLen(2.4f)             // r*8
-                        .withEdgeMaxError(1.3f)         // 1.1 - 1.5
-                        .withDetailSampleDistance(8.0f) // increase to 8 if exception on level model
-                        .withDetailSampleMaxError(8.0f) // increase to 8 if exception on level model
-                        .withVertsPerPoly(3).build());
-        
+        build(new RecastConfigBuilder()
+            .withAgentRadius(.3f) 		// r
+            .withAgentHeight(1.7f) 		// h
+            //cs and ch should probably be .1 at min.
+            .withCellSize(.1f) 			// cs=r/3
+            .withCellHeight(.1f) 		// ch=cs 
+            .withAgentMaxClimb(.3f) 		// > 2*ch
+            .withAgentMaxSlope(45f)
+            .withEdgeMaxLen(2.4f) 		// r*8
+            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+            .withDetailSampleDistance(8.0f) 	// increase to 8 if exception on level model
+            .withDetailSampleMaxError(8.0f) 	// increase to 8 if exception on level model
+            .withVertsPerPoly(3).build());
+
         //Split up for testing.
         RecastBuilderResult result = new RecastBuilder().build(geomProvider, bcfg);
-        
+
         NavMeshDataCreateParamsBuilder paramsBuilder = new NavMeshDataCreateParamsBuilder(result);
         PolyMesh m_pmesh = result.getMesh();
-        
+
         //Set Ability flags. 
-		for (int i = 0; i < m_pmesh.npolys; ++i) {
-			if (m_pmesh.areas[i] == POLYAREA_TYPE_GROUND 
-					|| m_pmesh.areas[i] == POLYAREA_TYPE_GRASS
-					|| m_pmesh.areas[i] == POLYAREA_TYPE_ROAD) {
-				paramsBuilder.withPolyFlag(i, POLYFLAGS_WALK);
-			} else if (m_pmesh.areas[i] == POLYAREA_TYPE_WATER) {
-				paramsBuilder.withPolyFlag(i, POLYFLAGS_SWIM);
-			} else if (m_pmesh.areas[i] == POLYAREA_TYPE_DOOR) {
-				paramsBuilder.withPolyFlags(i, POLYFLAGS_WALK | POLYFLAGS_DOOR);
-			} else if (m_pmesh.areas[i] == POLYAREA_TYPE_JUMP) {
-				paramsBuilder.withPolyFlag(i, POLYFLAGS_JUMP);
-			}
-		}
-        
+        for (int i = 0; i < m_pmesh.npolys; ++i) {
+            if (m_pmesh.areas[i] == POLYAREA_TYPE_GROUND ||
+                m_pmesh.areas[i] == POLYAREA_TYPE_GRASS ||
+                m_pmesh.areas[i] == POLYAREA_TYPE_ROAD) {
+                paramsBuilder.withPolyFlag(i, POLYFLAGS_WALK);
+            } else if (m_pmesh.areas[i] == POLYAREA_TYPE_WATER) {
+                paramsBuilder.withPolyFlag(i, POLYFLAGS_SWIM);
+            } else if (m_pmesh.areas[i] == POLYAREA_TYPE_DOOR) {
+                paramsBuilder.withPolyFlags(i, POLYFLAGS_WALK | POLYFLAGS_DOOR);
+            } else if (m_pmesh.areas[i] == POLYAREA_TYPE_JUMP) {
+                paramsBuilder.withPolyFlag(i, POLYFLAGS_JUMP);
+            }
+        }
+
         NavMeshDataCreateParams params = paramsBuilder.build(bcfg);
-        
+
         /**
          * Must set variables for parameters walkableHeight, walkableRadius, 
          * walkableClimb manually for mesh data unless jme3-recast4j fixed.
          */
         params.walkableClimb = maxClimb; //Should add getter for this.
-        params.walkableHeight = height; //Should add getter for this.
-        params.walkableRadius = radius; //Should add getter for this.
-            
+        params.walkableHeight = height;  //Should add getter for this.
+        params.walkableRadius = radius;  //Should add getter for this.
+
         MeshData meshData = NavMeshBuilder.createNavMeshData(params);
         navMesh = new NavMesh(meshData, bcfg.cfg.maxVertsPerPoly, 0);
         query = new NavMeshQuery(navMesh);
-        
+
         //Create offmesh connections here.
 
         try {
-        	saveToFile(meshData);
-        	saveToFile(navMesh);
-        
+            saveToFile(meshData);
+            saveToFile(navMesh);
+
         } catch (Exception ex) {
             LOG.error("[{}]", ex);
         }
 
         //Show wireframe. Helps with param tweaks. false = solid color.
-//        showDebugMeshes(meshData, true);
+        //showDebugMeshes(meshData, true);
         showDebugByArea(meshData, true);
-
     }
     
     /**
@@ -763,7 +764,7 @@ public class NavState extends AbstractNavState {
         //Build merged mesh.
         JmeInputGeomProvider geomProvider = new GeometryProviderBuilder2(worldMap).build();
         
-		configureAreaMod(geomProvider);
+	configureAreaMod(geomProvider);
         
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
@@ -802,26 +803,26 @@ public class NavState extends AbstractNavState {
             //Separate individual triangles into a arrays so we can mark Area Type.
             List<int[]> listTris = new ArrayList<>();
             int fromIndex = 0;
-			for (Modification mod : geomProvider.getListMods()) {
-				int[] triangles = new int[mod.getGeomLength()];
-				System.arraycopy(tris, fromIndex, triangles, 0, mod.getGeomLength());
-				listTris.add(triangles);
-				fromIndex += mod.getGeomLength();
-			}
+		for (Modification mod : geomProvider.getListMods()) {
+			int[] triangles = new int[mod.getGeomLength()];
+			System.arraycopy(tris, fromIndex, triangles, 0, mod.getGeomLength());
+			listTris.add(triangles);
+			fromIndex += mod.getGeomLength();
+		}
             
             List<int[]> areas = new ArrayList<>();
             
-			for (Modification mod : geomProvider.getListMods()) {
-				int[] m_triareas = Recast.markWalkableTriangles(
-						m_ctx, 
-						cfg.walkableSlopeAngle, 
-						verts,
-						listTris.get(geomProvider.getListMods().indexOf(mod)),
-						listTris.get(geomProvider.getListMods().indexOf(mod)).length / 3, 
-						mod.getMod());
-				
-				areas.add(m_triareas);
-			}            
+		for (Modification mod : geomProvider.getListMods()) {
+			int[] m_triareas = Recast.markWalkableTriangles(
+					m_ctx, 
+					cfg.walkableSlopeAngle, 
+					verts,
+					listTris.get(geomProvider.getListMods().indexOf(mod)),
+					listTris.get(geomProvider.getListMods().indexOf(mod)).length / 3, 
+					mod.getMod());
+
+			areas.add(m_triareas);
+		}            
             
             //Prepare the new array for all areas.
             int[] m_triareasAll = new int[ntris];
@@ -916,8 +917,8 @@ public class NavState extends AbstractNavState {
         //Create offmesh connections here.
 
         try {
-        	saveToFile(meshData);
-        	saveToFile(navMesh);
+		saveToFile(meshData);
+		saveToFile(navMesh);
         
         } catch (Exception ex) {
             LOG.error("[{}]", ex);
@@ -939,172 +940,9 @@ public class NavState extends AbstractNavState {
     	//Build merged mesh.
         JmeInputGeomProvider geomProvider = new GeometryProviderBuilder2(worldMap).build();
         
-		configureAreaMod(geomProvider);
-        
-        //Set offmesh connections.
-        offMeshCon.depthFirstTraversal(new SceneGraphVisitorAdapter() {
-            //Id will be used for OffMeshConnections.
-            int id = 0;
-            
-            @Override
-            public void visit(Node spat) { 
-                /**
-                 * offMeshCon has no skeleton and is instance of node so the 
-                 * search will include its children. This will return with a 
-                 * child SkeletonControl because of this. Add check to skip 
-                 * offMeshCon.
-                 */
-                if (!spat.getName().equals(offMeshCon.getName())) {
+	configureAreaMod(geomProvider);
 
-                    SkeletonControl skelControl = GameObject.getComponentInChild(spat, SkeletonControl.class);
-
-                    if (skelControl != null) {
-                        /**
-                        * Offmesh connections require two connections, a 
-                        * start/end vector3f and must connect to a surrounding 
-                        * tile. To complete a connection, start and end must be 
-                        * the same for each. You can supply the Vector3f manually 
-                        * or for example, use bones from an armature. When using 
-                        * bones, they should be paired and use a naming convention. 
-                        * 
-                        * In our case, we used bones and this naming convention:
-                        * 
-                        * arg[0](delimiter)arg[1](delimiter)arg[2]
-                        * 
-                        * We set each bone origin to any vertices, in any mesh, 
-                        * as long as the same string for arg[0] and arg[1] are 
-                        * identical and they do not use the same vertices. We 
-                        * duplicate two polygons (triangles) in the mesh or 
-                        * separate meshes and add an armature(s) using a naming
-                        * convention.
-                        * 
-                        * Naming convention for two bones: 
-                        * 
-                        * Bone 1 naming: offmesh.anything.a
-                        * Bone 2 naming: offmesh.anything.b
-                        * 
-                        * arg[0]: offmesh   = same value all bones
-                        * arg[1]: anything  = same value paired bones
-                        * arg[2]: a or b    = one paired bone
-                        * 
-                        * The value of arg[0] applies to ALL bones and 
-                        * dictates these are link bones.
-                        * 
-                        * The value of arg[1] dictates these pair of bones 
-                        * belong together. 
-                        * 
-                        * The value of arg[2] distinguishes the paired bones 
-                        * from each other.
-                        * 
-                        * Examples: 
-                        * 
-                        * offmesh.pond.a
-                        * offmesh.pond.b
-                        * offmesh.1.a
-                        * offmesh.1.b
-                        */
-                        Bone[] roots = skelControl.getSkeleton().getRoots();
-                        for (Bone b: roots) {
-                            /**
-                             * Split the name up using delimiter. 
-                             */
-                            String[] arg = b.getName().split("\\.");
-
-                            if (arg[0].equals("offmesh")) {
-
-                                //New connection.
-                                org.recast4j.detour.OffMeshConnection link1 = new org.recast4j.detour.OffMeshConnection();
-
-                                /**
-                                 * The bones worldTranslation will be the start
-                                 * or end Vector3f of each OffMeshConnection 
-                                 * object.
-                                 */
-                                float[] linkPos = DetourUtils.toFloatArray(spat.localToWorld(b.getModelSpacePosition(), null));
-
-                                /**
-                                 * Prepare new position array. The endpoints of 
-                                 * the connection. 
-                                 * 
-                                 *  startPos    endPos
-                                 * [ax, ay, az, bx, by, bz]
-                                 */
-                                float[] pos = new float[6];
-
-                                /**
-                                 * Copy link1 current position to pos array. If
-                                 * link1 is bone (a), it becomes the link start.
-                                 * If (b), the link end.
-                                 */
-                                System.arraycopy(linkPos, 0, pos, arg[2].equals("a") ? 0:3, 3);
-
-                                //Set link1 to new array.
-                                link1.pos = pos;
-
-                                //Player (r)adius. Links fire at (r) * 2.25.
-                                link1.rad = radius;
-                                
-                                /**
-                                 * Move through link1 both directions. Only 
-                                 * works if both links have identical in start/end.
-                                 * Set to 0 for one direction link.
-                                 */
-                                link1.flags = NavMesh.DT_OFFMESH_CON_BIDIR;
-
-                                /**
-                                 * We need to look for the bones mate. Based off 
-                                 * our naming convention, this will be 
-                                 * offmesh.anything."a" or "b" so we set the 
-                                 * search to whatever link1 arg[2] isn't.
-                                 */
-                                String link2 = String.join(".", arg[0], arg[1], arg[2].equals("a") ? "b": "a");
-
-                                /**
-                                 * If the paired bone has already been added to 
-                                 * map, set start or end determined by link1 arg[2].
-                                 */
-                                if (mapOffMeshCon.containsKey(link2)) {
-                                    /**
-                                     * Copy link1 pos to link2 pos. If link1 is 
-                                     * start(a) of link, copy link1 start to 
-                                     * link2 start. If link1 is the end(b) of 
-                                     * link, copy link1 end to link2 end. 
-                                     */
-                                    System.arraycopy(link1.pos, arg[2].equals("a") ? 0:3, mapOffMeshCon.get(link2).pos, arg[2].equals("a") ? 0:3, 3);
-                                    
-                                    /**
-                                     * Copy link2 pos to link1 pos. If link1 is
-                                     * the start(a) of link, copy link2 end to
-                                     * link1 end. If link1 is end(b) of link, 
-                                     * copy link2 start to link1 start.
-                                     */
-                                    System.arraycopy(mapOffMeshCon.get(link2).pos, arg[2].equals("a") ? 3:0, link1.pos, arg[2].equals("a") ? 3:0, 3);
-
-                                    /**
-                                     * OffMeshconnections with id of 0 don't get 
-                                     * processed later if not set here.
-                                     */
-                                    if (arg[2].equals("a")) {
-                                        link1.userId = ++id;
-                                        LOG.info("OffMeshConnection [{}] id [{}]", b.getName(), link1.userId);
-                                        mapOffMeshCon.get(link2).userId = ++id;
-                                        LOG.info("OffMeshConnection [{}] id [{}]", link2, mapOffMeshCon.get(link2).userId);
-                                    } else {
-                                        mapOffMeshCon.get(link2).userId = ++id;
-                                        LOG.info("OffMeshConnection [{}] id [{}]", link2, mapOffMeshCon.get(link2).userId);
-                                        link1.userId = ++id;
-                                        LOG.info("OffMeshConnection [{}] id [{}]", b.getName(), link1.userId);
-                                    }
-
-                                }
-                                //Add this bone to map.
-                                mapOffMeshCon.put(b.getName(), link1);
-                            }
-                        }
-                    }
-                }
-            }
-        });        
+	setOffMeshConnections();
         
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
@@ -1334,28 +1172,28 @@ public class NavState extends AbstractNavState {
             }
         }
         
-	    try {
-		// Native format using tiles.
-		MeshSetWriter msw = new MeshSetWriter();
-		msw.write(new FileOutputStream(new File("test.nm")), navMesh, ByteOrder.BIG_ENDIAN, false);
+        try {
+            // Native format using tiles.
+            MeshSetWriter msw = new MeshSetWriter();
+            msw.write(new FileOutputStream(new File("test.nm")), navMesh, ByteOrder.BIG_ENDIAN, false);
 
-		// Read in saved NavMesh.
-		MeshSetReader msr = new MeshSetReader();
-		navMesh = msr.read(new FileInputStream("test.nm"), cfg.maxVertsPerPoly);
+            // Read in saved NavMesh.
+            MeshSetReader msr = new MeshSetReader();
+            navMesh = msr.read(new FileInputStream("test.nm"), cfg.maxVertsPerPoly);
 
-		query = new NavMeshQuery(navMesh);
-		int maxTiles = navMesh.getMaxTiles();
+            query = new NavMeshQuery(navMesh);
+            int maxTiles = navMesh.getMaxTiles();
 
-		// Tile data can be null since maxTiles is not an exact science.
-		for (int i = 0; i < maxTiles; i++) {
-		    MeshData meshData = navMesh.getTile(i).data;
-		    if (meshData != null) {
-			showDebugByArea(meshData, true);
-		    }
-		}
-	    } catch (IOException ex) {
-		LOG.error("[{}]", ex);
-	    }
+            // Tile data can be null since maxTiles is not an exact science.
+            for (int i = 0; i < maxTiles; i++) {
+                MeshData meshData = navMesh.getTile(i).data;
+                if (meshData != null) {
+                    showDebugByArea(meshData, true);
+                }
+            }
+        } catch (IOException ex) {
+            LOG.error("{} {}", NavState.class.getName(), ex);
+        }
     }  
  
     private void buildTileCache() {
@@ -1363,173 +1201,9 @@ public class NavState extends AbstractNavState {
     	//Build merged mesh.
         JmeInputGeomProvider geomProvider = new GeometryProviderBuilder2(worldMap).build();
         
-	configureAreaMod(geomProvider);
+		configureAreaMod(geomProvider);
         
-        //Set offmesh connections.
-        offMeshCon.depthFirstTraversal(new SceneGraphVisitorAdapter() {
-            //Id will be used for OffMeshConnections.
-            int id = 0;
-            
-            @Override
-            public void visit(Node node) { 
-                /**
-                 * offMeshCon has no skeleton and is instance of node so the 
-                 * search will include its children. This will return with a 
-                 * child SkeletonControl because of this. Add check to skip 
-                 * offMeshCon.
-                 */
-                if (!node.getName().equals(offMeshCon.getName())) {
-
-                    SkeletonControl skelControl = GameObject.getComponentInChild(node, SkeletonControl.class);
-
-                    if (skelControl != null) {
-                        /**
-                        * Offmesh connections require two connections, a 
-                        * start/end vector3f and must connect to a surrounding 
-                        * tile. To complete a connection, start and end must be 
-                        * the same for each. You can supply the Vector3f manually 
-                        * or for example, use bones from an armature. When using 
-                        * bones, they should be paired and use a naming convention. 
-                        * 
-                        * In our case, we used bones and this naming convention:
-                        * 
-                        * arg[0](delimiter)arg[1](delimiter)arg[2]
-                        * 
-                        * We set each bone origin to any vertices, in any mesh, 
-                        * as long as the same string for arg[0] and arg[1] are 
-                        * identical and they do not use the same vertices. We 
-                        * duplicate two polygons (triangles) in the mesh or 
-                        * separate meshes and add an armature(s) using a naming
-                        * convention.
-                        * 
-                        * Naming convention for two bones: 
-                        * 
-                        * Bone 1 naming: offmesh.anything.a
-                        * Bone 2 naming: offmesh.anything.b
-                        * 
-                        * arg[0]: offmesh   = same value all bones
-                        * arg[1]: anything  = same value paired bones
-                        * arg[2]: a or b    = one paired bone
-                        * 
-                        * The value of arg[0] applies to ALL bones and 
-                        * dictates these are link bones.
-                        * 
-                        * The value of arg[1] dictates these pair of bones 
-                        * belong together. 
-                        * 
-                        * The value of arg[2] distinguishes the paired bones 
-                        * from each other.
-                        * 
-                        * Examples: 
-                        * 
-                        * offmesh.pond.a
-                        * offmesh.pond.b
-                        * offmesh.1.a
-                        * offmesh.1.b
-                        */
-                        Bone[] roots = skelControl.getSkeleton().getRoots();
-                        for (Bone b: roots) {
-                            /**
-                             * Split the name up using delimiter. 
-                             */
-                            String[] arg = b.getName().split("\\.");
-
-                            if (arg[0].equals("offmesh")) {
-
-                                //New connection.
-                                org.recast4j.detour.OffMeshConnection link1 = new org.recast4j.detour.OffMeshConnection();
-
-                                /**
-                                 * The bones worldTranslation will be the start
-                                 * or end Vector3f of each OffMeshConnection 
-                                 * object.
-                                 */
-                                float[] linkPos = DetourUtils.toFloatArray(node.localToWorld(b.getModelSpacePosition(), null));
-
-                                /**
-                                 * Prepare new position array. The endpoints of 
-                                 * the connection. 
-                                 * 
-                                 *  startPos    endPos
-                                 * [ax, ay, az, bx, by, bz]
-                                 */
-                                float[] pos = new float[6];
-
-                                /**
-                                 * Copy link1 current position to pos array. If
-                                 * link1 is bone (a), it becomes the link start.
-                                 * If (b), the link end.
-                                 */
-					System.arraycopy(linkPos, 0, pos, arg[2].equals("a") ? 0 : 3, 3);
-
-                                //Set link1 to new array.
-                                link1.pos = pos;
-
-                                //Player (r)adius. Links fire at (r) * 2.25.
-                                link1.rad = radius;
-                                
-                                /**
-                                 * Move through link1 both directions. Only 
-                                 * works if both links have identical in start/end.
-                                 * Set to 0 for one direction link.
-                                 */
-                                link1.flags = NavMesh.DT_OFFMESH_CON_BIDIR;
-
-                                /**
-                                 * We need to look for the bones mate. Based off 
-                                 * our naming convention, this will be 
-                                 * offmesh.anything."a" or "b" so we set the 
-                                 * search to whatever link1 arg[2] isn't.
-                                 */
-					String link2 = String.join(".", arg[0], arg[1], arg[2].equals("a") ? "b" : "a");
-
-                                /**
-                                 * If the paired bone has already been added to 
-                                 * map, set start or end determined by link1 arg[2].
-                                 */
-                                if (mapOffMeshCon.containsKey(link2)) {
-					/**
-					 * Copy link1 pos to link2 pos. If link1 is start(a) of link, copy link1 start
-					 * to link2 start. If link1 is the end(b) of link, copy link1 end to link2 end.
-					 */
-					System.arraycopy(link1.pos, arg[2].equals("a") ? 0 : 3,
-							mapOffMeshCon.get(link2).pos, arg[2].equals("a") ? 0 : 3, 3);
-
-					/**
-					 * Copy link2 pos to link1 pos. If link1 is the start(a) of link, copy link2 end
-					 * to link1 end. If link1 is end(b) of link, copy link2 start to link1 start.
-					 */
-					System.arraycopy(mapOffMeshCon.get(link2).pos, arg[2].equals("a") ? 3 : 0,
-							link1.pos, arg[2].equals("a") ? 3 : 0, 3);
-
-                                    /**
-                                     * OffMeshconnections with id of 0 don't get 
-                                     * processed later if not set here.
-                                     */
-                                    if (arg[2].equals("a")) {
-                                        link1.userId = ++id;
-                                        LOG.info("OffMeshConnection [{}] id  [{}]", b.getName(), link1.userId);
-                                        LOG.info("OffMeshConnection [{}] pos {}", b.getName(), link1.pos);
-                                        mapOffMeshCon.get(link2).userId = ++id;
-                                        LOG.info("OffMeshConnection [{}] id  [{}]", link2, mapOffMeshCon.get(link2).userId);
-                                        LOG.info("OffMeshConnection [{}] pos {}", link2, mapOffMeshCon.get(link2).pos);
-                                    } else {
-                                        mapOffMeshCon.get(link2).userId = ++id;
-                                        LOG.info("OffMeshConnection [{}] id  [{}]", link2, mapOffMeshCon.get(link2).userId);
-                                        LOG.info("OffMeshConnection [{}] pos {}", link2, mapOffMeshCon.get(link2).pos);
-                                        link1.userId = ++id;
-                                        LOG.info("OffMeshConnection [{}] id  [{}]", b.getName(), link1.userId);
-                                        LOG.info("OffMeshConnection [{}] pos {}", b.getName(), link1.pos);
-                                    }
-                                }
-                                //Add this bone to map.
-                                mapOffMeshCon.put(b.getName(), link1);
-                            }
-                        }
-                    }
-                }
-            }
-        }); 
+        setOffMeshConnections(); 
         
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
@@ -1708,11 +1382,11 @@ public class NavState extends AbstractNavState {
                                     : NavMeshBuilder.classifyOffMeshPoint(new VectorPtr(next.getValue().pos, 3),
                                             startTile.header.bmin, startTile.header.bmax);
                             //Create new OffMeshConnection array.
-				if (startTile.offMeshCons == null) {
-					startTile.offMeshCons = new org.recast4j.detour.OffMeshConnection[1];
-				} else {
-					startTile.offMeshCons = Arrays.copyOf(startTile.offMeshCons, startTile.offMeshCons.length + 1);
-				}
+							if (startTile.offMeshCons == null) {
+								startTile.offMeshCons = new org.recast4j.detour.OffMeshConnection[1];
+							} else {
+								startTile.offMeshCons = Arrays.copyOf(startTile.offMeshCons, startTile.offMeshCons.length + 1);
+							}
 
                             //Add this connection.
                             startTile.offMeshCons[startTile.offMeshCons.length - 1] = next.getValue();
@@ -1748,6 +1422,177 @@ public class NavState extends AbstractNavState {
             LOG.error("{} {}", NavState.class.getName(), ex);
         }
         
+    }
+
+    private void setOffMeshConnections() {
+        //Set offmesh connections.
+        offMeshCon.depthFirstTraversal(new SceneGraphVisitorAdapter() {
+            //Id will be used for OffMeshConnections.
+            int id = 0;
+
+            @Override
+            public void visit(Node node) {
+                /**
+                 * offMeshCon has no skeleton and is instance of node so the 
+                 * search will include its children. This will return with a 
+                 * child SkeletonControl because of this. Add check to skip 
+                 * offMeshCon.
+                 */
+                if (!node.getName().equals(offMeshCon.getName())) {
+
+                    SkeletonControl skelControl = GameObject.getComponentInChild(node, SkeletonControl.class);
+
+                    if (skelControl != null) {
+                        /**
+                         * Offmesh connections require two connections, a 
+                         * start/end vector3f and must connect to a surrounding 
+                         * tile. To complete a connection, start and end must be 
+                         * the same for each. You can supply the Vector3f manually 
+                         * or for example, use bones from an armature. When using 
+                         * bones, they should be paired and use a naming convention. 
+                         * 
+                         * In our case, we used bones and this naming convention:
+                         * 
+                         * arg[0](delimiter)arg[1](delimiter)arg[2]
+                         * 
+                         * We set each bone origin to any vertices, in any mesh, 
+                         * as long as the same string for arg[0] and arg[1] are 
+                         * identical and they do not use the same vertices. We 
+                         * duplicate two polygons (triangles) in the mesh or 
+                         * separate meshes and add an armature(s) using a naming
+                         * convention.
+                         * 
+                         * Naming convention for two bones: 
+                         * 
+                         * Bone 1 naming: offmesh.anything.a
+                         * Bone 2 naming: offmesh.anything.b
+                         * 
+                         * arg[0]: offmesh   = same value all bones
+                         * arg[1]: anything  = same value paired bones
+                         * arg[2]: a or b    = one paired bone
+                         * 
+                         * The value of arg[0] applies to ALL bones and 
+                         * dictates these are link bones.
+                         * 
+                         * The value of arg[1] dictates these pair of bones 
+                         * belong together. 
+                         * 
+                         * The value of arg[2] distinguishes the paired bones 
+                         * from each other.
+                         * 
+                         * Examples: 
+                         * 
+                         * offmesh.pond.a
+                         * offmesh.pond.b
+                         * offmesh.1.a
+                         * offmesh.1.b
+                         */
+                        Bone[] roots = skelControl.getSkeleton().getRoots();
+                        for (Bone b: roots) {
+                            /**
+                             * Split the name up using delimiter. 
+                             */
+                            String[] arg = b.getName().split("\\.");
+
+                            if (arg[0].equals("offmesh")) {
+
+                                //New connection.
+                                org.recast4j.detour.OffMeshConnection link1 = new org.recast4j.detour.OffMeshConnection();
+
+                                /**
+                                 * The bones worldTranslation will be the start
+                                 * or end Vector3f of each OffMeshConnection 
+                                 * object.
+                                 */
+                                float[] linkPos = DetourUtils.toFloatArray(node.localToWorld(b.getModelSpacePosition(), null));
+
+                                /**
+                                 * Prepare new position array. The endpoints of 
+                                 * the connection. 
+                                 * 
+                                 *  startPos    endPos
+                                 * [ax, ay, az, bx, by, bz]
+                                 */
+                                float[] pos = new float[6];
+
+                                /**
+                                 * Copy link1 current position to pos array. If
+                                 * link1 is bone (a), it becomes the link start.
+                                 * If (b), the link end.
+                                 */
+                                System.arraycopy(linkPos, 0, pos, arg[2].equals("a") ? 0 : 3, 3);
+
+                                //Set link1 to new array.
+                                link1.pos = pos;
+
+                                //Player (r)adius. Links fire at (r) * 2.25.
+                                link1.rad = radius;
+
+                                /**
+                                 * Move through link1 both directions. Only 
+                                 * works if both links have identical in start/end.
+                                 * Set to 0 for one direction link.
+                                 */
+                                link1.flags = NavMesh.DT_OFFMESH_CON_BIDIR;
+
+                                /**
+                                 * We need to look for the bones mate. Based off 
+                                 * our naming convention, this will be 
+                                 * offmesh.anything."a" or "b" so we set the 
+                                 * search to whatever link1 arg[2] isn't.
+                                 */
+                                String link2 = String.join(".", arg[0], arg[1], arg[2].equals("a") ? "b" : "a");
+
+                                /**
+                                 * If the paired bone has already been added to 
+                                 * map, set start or end determined by link1 arg[2].
+                                 */
+                                if (mapOffMeshCon.containsKey(link2)) {
+                                    /**
+                                     * Copy link1 pos to link2 pos. If link1 is start(a) of link, copy link1 start
+                                     * to link2 start. If link1 is the end(b) of link, copy link1 end to link2 end.
+                                     */
+                                    System.arraycopy(link1.pos, arg[2].equals("a") ? 0 : 3,
+                                        mapOffMeshCon.get(link2).pos, arg[2].equals("a") ? 0 : 3, 3);
+
+                                    /**
+                                     * Copy link2 pos to link1 pos. If link1 is the start(a) of link, copy link2 end
+                                     * to link1 end. If link1 is end(b) of link, copy link2 start to link1 start.
+                                     */
+                                    System.arraycopy(mapOffMeshCon.get(link2).pos, arg[2].equals("a") ? 3 : 0,
+                                        link1.pos, arg[2].equals("a") ? 3 : 0, 3);
+
+                                    /**
+                                     * OffMeshconnections with id of 0 don't get 
+                                     * processed later if not set here.
+                                     */
+                                    if (arg[2].equals("a")) {
+                                        link1.userId = ++id;
+                                        LOG.info("OffMeshConnection [{}] id  [{}]", b.getName(), link1.userId);
+                                        LOG.info("OffMeshConnection [{}] pos {}", b.getName(), link1.pos);
+                                        
+                                        mapOffMeshCon.get(link2).userId = ++id;
+                                        LOG.info("OffMeshConnection [{}] id  [{}]", link2, mapOffMeshCon.get(link2).userId);
+                                        LOG.info("OffMeshConnection [{}] pos {}", link2, mapOffMeshCon.get(link2).pos);
+                                        
+                                    } else {
+                                        mapOffMeshCon.get(link2).userId = ++id;
+                                        LOG.info("OffMeshConnection [{}] id  [{}]", link2, mapOffMeshCon.get(link2).userId);
+                                        LOG.info("OffMeshConnection [{}] pos {}", link2, mapOffMeshCon.get(link2).pos);
+                                        
+                                        link1.userId = ++id;
+                                        LOG.info("OffMeshConnection [{}] id  [{}]", b.getName(), link1.userId);
+                                        LOG.info("OffMeshConnection [{}] pos {}", b.getName(), link1.pos);
+                                    }
+                                }
+                                //Add this bone to map.
+                                mapOffMeshCon.put(b.getName(), link1);
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
     
     private void saveToFile(MeshData md) throws Exception {
