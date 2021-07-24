@@ -649,10 +649,14 @@ public class NavState extends AbstractNavState {
                         .withVertsPerPoly(3).build());
         
         //Split up for testing.
-        NavMeshDataCreateParams build = new NavMeshDataCreateParamsBuilder(
-                new RecastBuilder().build(new GeometryProviderBuilder2(worldMap).build(), bcfg)).build(bcfg);
-        MeshData meshData = NavMeshBuilder.createNavMeshData(build);
-        navMesh = new NavMesh(meshData, bcfg.cfg.maxVertsPerPoly, 0);
+        JmeInputGeomProvider geom = new GeometryProviderBuilder2(worldMap).build();
+        RecastBuilder rcBuilder = new RecastBuilder();
+        RecastBuilderResult result = rcBuilder.build(geom, builderCfg);
+        
+        NavMeshDataCreateParams params = new NavMeshDataCreateParamsBuilder(result).build(builderCfg);
+        MeshData meshData = NavMeshBuilder.createNavMeshData(params);
+        
+        navMesh = new NavMesh(meshData, builderCfg.cfg.maxVertsPerPoly, 0);
         query = new NavMeshQuery(navMesh);
         
         try {
@@ -1350,7 +1354,7 @@ public class NavState extends AbstractNavState {
 		    }
 		}
 	    } catch (IOException ex) {
-		LOG.info("{} {}", NavState.class.getName(), ex);
+		LOG.error("[{}]", ex);
 	    }
     }  
  
