@@ -5,6 +5,8 @@
  */
 package com.jme3.recast4j.demo.utils;
 
+import java.util.List;
+
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
@@ -15,6 +17,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Line;
+import com.jme3.scene.shape.Sphere;
 
 /**
  *
@@ -26,9 +29,53 @@ public class PathViewer {
     private AssetManager assetManager;
     // Node for attaching debug geometries
     private Node debugNode = new Node("Debug Node");
+    private Material debugMat;
 
     public PathViewer(AssetManager assetManager) {
         this.assetManager = assetManager;
+        setupMaterial();
+    }
+    
+    /**
+     * Initialize debug material
+     */
+    private void setupMaterial() {
+    	debugMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+    	debugMat.getAdditionalRenderState().setWireframe(true);
+    	debugMat.setColor("Color", ColorRGBA.Orange);
+    }
+    
+    public void drawPathCycle(List<Vector3f> points) {
+        for (int i = 0; i < points.size(); i++) {
+            int nextIndex = (i + 1) % points.size();
+            drawLine(points.get(i), points.get(nextIndex), i);
+            drawSphere(points.get(i), 0.2f, i);
+        }
+    }
+    
+    public void drawPath(List<Vector3f> points) {
+        for (int i = 0; i < points.size(); i++) {
+        	int nextIndex = (i + 1);
+        	if (nextIndex < points.size()) {
+        		drawLine(points.get(i), points.get(nextIndex), i);
+        	}
+            drawSphere(points.get(i), 0.2f, i);
+        }
+    }
+    
+    private void drawLine(Vector3f start, Vector3f end, int i) {
+        Line line = new Line(start, end);
+        Geometry geo = new Geometry("PathLine-" + i, line);
+        geo.setMaterial(debugMat);
+        debugNode.attachChild(geo);
+    }
+    
+    private void drawSphere(Vector3f position, float radius, int i) {
+    	Sphere sphere = new Sphere(9, 9, 0.1f);
+        Geometry geo = new Geometry("PathSphere-" + i, sphere);
+        geo.setLocalTranslation(position);
+        geo.setMaterial(debugMat);
+        debugNode.attachChild(geo);
     }
 
     /**
