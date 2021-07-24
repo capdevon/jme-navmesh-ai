@@ -1350,7 +1350,7 @@ public class NavState extends AbstractNavState {
 		    }
 		}
 	    } catch (IOException ex) {
-		LOG.info("{} {}", CrowdBuilderState.class.getName(), ex);
+		LOG.info("{} {}", NavState.class.getName(), ex);
 	    }
     }  
  
