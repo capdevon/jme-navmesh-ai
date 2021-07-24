@@ -23,7 +23,10 @@
 package com.jme3.recast4j.Recast;
 
 import org.recast4j.detour.NavMeshDataCreateParams;
-import org.recast4j.recast.*;
+import org.recast4j.recast.PolyMesh;
+import org.recast4j.recast.PolyMeshDetail;
+import org.recast4j.recast.RecastBuilder;
+import org.recast4j.recast.RecastBuilderConfig;
 
 public class NavMeshDataCreateParamsBuilder {
 	
