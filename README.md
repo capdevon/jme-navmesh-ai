@@ -45,6 +45,7 @@ dependencies {
 # Documentation:
 - [jme3-recast4j](https://github.com/MeFisto94/jme3-recast4j-demo/wiki)
 - [Recast Navigation for JME](https://wiki.jmonkeyengine.org/docs/3.4/contributions/ai/recast.html)
+- [Building Process Slides](https://github.com/capdevon/jme3-recast4j-test-1/blob/main/docs/MikkoMononen_RecastSlides.pdf) - A series of slides that explain the build process of Recast.
 
 # Youtube videos:
 [Tiled NavMesh](https://youtu.be/rCZWPvcwktQ)
