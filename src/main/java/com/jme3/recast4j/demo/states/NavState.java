@@ -183,7 +183,7 @@ public class NavState extends AbstractNavState {
         buildTileCache();
         //====================================================================
         
-        initMouseListener();
+        initWorldMouseListener();
         
         setupDoors();
     }
@@ -389,7 +389,7 @@ public class NavState extends AbstractNavState {
 		});
 	}
 
-    private void initMouseListener() {
+    private void initWorldMouseListener() {
         MouseEventControl.addListenersToSpatial(worldMap, new DefaultMouseListener() {
             @Override
             protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
@@ -419,12 +419,12 @@ public class NavState extends AbstractNavState {
                     Result<FindNearestPolyResult> endPoly = query.findNearestPoly(DetourUtils.toFloatArray(locOnMap), extents, filter);
 
                     // Note: not isFailure() here, because isSuccess guarantees us, that the result isn't "RUNNING", which it could be if we only check it's not failure.
-                    if (!startPoly.status.isSuccess() || !endPoly.status.isSuccess() ||
+                    if (!startPoly.succeeded() || !endPoly.succeeded() ||
                         startPoly.result.getNearestRef() == 0 || endPoly.result.getNearestRef() == 0) {
                     	
                         LOG.error("Character findNearestPoly unsuccessful or getNearestRef is not > 0.");
-                        LOG.error("findNearestPoly startPoly [{}] getNearestRef [{}]", startPoly.status.isSuccess(), startPoly.result.getNearestRef());
-                        LOG.error("findNearestPoly endPoly [{}] getNearestRef [{}].", endPoly.status.isSuccess(), endPoly.result.getNearestRef());
+                        LOG.error("findNearestPoly startPoly [{}] getNearestRef [{}]", startPoly.succeeded(), startPoly.result.getNearestRef());
+                        LOG.error("findNearestPoly endPoly [{}] getNearestRef [{}].", endPoly.succeeded(), endPoly.result.getNearestRef());
 
                     } else {
                         LOG.info("Will walk from {} to {}", character.getWorldTranslation(), locOnMap);
