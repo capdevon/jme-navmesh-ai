@@ -43,12 +43,12 @@ import jme3tools.optimize.GeometryBatchFactory;
  * <b>Note: </b>This code has to be run from the MainThread, but once the Geometry is built, it can be run from every
  * thread
  */
-public class GeometryProviderBuilder2 {
+public class JmeGeomProviderBuilder {
     
     List<Geometry> geometryList;
     Mesh m;
 
-    private GeometryProviderBuilder2(List<Geometry> geometryList) {
+    private JmeGeomProviderBuilder(List<Geometry> geometryList) {
         this.geometryList = geometryList;
     }
 
@@ -72,7 +72,7 @@ public class GeometryProviderBuilder2 {
      * @param n The Node to use
      * @param filter A Filter (analogue to the Java 8 Stream API) which defines when a Spatial should be gathered
      */
-    public GeometryProviderBuilder2(Node n, Predicate<Spatial> filter) {
+    public JmeGeomProviderBuilder(Node n, Predicate<Spatial> filter) {
         this(findGeometries(n, new ArrayList<>(), filter));
     }
 
@@ -81,7 +81,7 @@ public class GeometryProviderBuilder2 {
      * This uses the default filter: If userData "no_collission" is set, ignore this spatial
      * @param n The Node to use
      */
-    public GeometryProviderBuilder2(Node n) {
+    public JmeGeomProviderBuilder(Node n) {
         this(n, spatial -> spatial.getUserData("no_collission") == null);
     }
 
@@ -96,7 +96,7 @@ public class GeometryProviderBuilder2 {
      * Provides this Geometry to the Builder
      * @param g The Geometry to use
      */
-    public GeometryProviderBuilder2(Geometry g) {
+    public JmeGeomProviderBuilder(Geometry g) {
         this(newAndAdd(g));
     }
 
@@ -107,7 +107,7 @@ public class GeometryProviderBuilder2 {
      * @see #GeometryProviderBuilder(Node, Predicate)
      * @param m The Mesh to use
      */
-    public GeometryProviderBuilder2(Mesh m) {
+    public JmeGeomProviderBuilder(Mesh m) {
         this.m = m;
     }
 
