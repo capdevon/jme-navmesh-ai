@@ -27,14 +27,14 @@
 
 package com.jme3.recast4j.demo.states.tutorial;
 
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYAREA_TYPE_DOOR;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYAREA_TYPE_GRASS;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYAREA_TYPE_GROUND;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYAREA_TYPE_ROAD;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYAREA_TYPE_WATER;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_DOOR;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_SWIM;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_WALK;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_DOOR;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_GRASS;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_GROUND;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_ROAD;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_WATER;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_DOOR;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_SWIM;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_WALK;
 import static org.recast4j.recast.RecastVectors.copy;
 
 import java.io.File;
