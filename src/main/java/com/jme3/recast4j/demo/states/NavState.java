@@ -27,22 +27,22 @@
 
 package com.jme3.recast4j.demo.states;
 
-import static com.jme3.recast4j.demo.SimpleAreaMod.AREAMOD_DOOR;
-import static com.jme3.recast4j.demo.SimpleAreaMod.AREAMOD_GRASS;
-import static com.jme3.recast4j.demo.SimpleAreaMod.AREAMOD_GROUND;
-import static com.jme3.recast4j.demo.SimpleAreaMod.AREAMOD_ROAD;
-import static com.jme3.recast4j.demo.SimpleAreaMod.AREAMOD_WATER;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYAREA_TYPE_DOOR;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYAREA_TYPE_GRASS;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYAREA_TYPE_GROUND;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYAREA_TYPE_JUMP;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYAREA_TYPE_ROAD;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYAREA_TYPE_WATER;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_DISABLED;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_DOOR;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_JUMP;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_SWIM;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_WALK;
+import static com.jme3.recast4j.demo.JmeAreaMods.AREAMOD_DOOR;
+import static com.jme3.recast4j.demo.JmeAreaMods.AREAMOD_GRASS;
+import static com.jme3.recast4j.demo.JmeAreaMods.AREAMOD_GROUND;
+import static com.jme3.recast4j.demo.JmeAreaMods.AREAMOD_ROAD;
+import static com.jme3.recast4j.demo.JmeAreaMods.AREAMOD_WATER;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_DOOR;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_GRASS;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_GROUND;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_JUMP;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_ROAD;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_WATER;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_DISABLED;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_DOOR;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_JUMP;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_SWIM;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_WALK;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -123,7 +123,7 @@ import com.jme3.recast4j.Detour.DetourUtils;
 import com.jme3.recast4j.Recast.NavMeshDataCreateParamsBuilder;
 import com.jme3.recast4j.Recast.RecastBuilderConfigBuilder;
 import com.jme3.recast4j.Recast.RecastConfigBuilder;
-import com.jme3.recast4j.demo.GeometryProviderBuilder2;
+import com.jme3.recast4j.demo.JmeGeomProviderBuilder;
 import com.jme3.recast4j.demo.JmeInputGeomProvider;
 import com.jme3.recast4j.demo.Modification;
 import com.jme3.recast4j.demo.MyBuilderProgressListener;
@@ -179,8 +179,8 @@ public class NavState extends AbstractNavState {
 //        //Solo build using recast4j methods. Implements area and flag types.
 //        buildSoloRecast4j();
 //        //Tile build using recast4j methods. Implements area and flag types plus offmesh connections.
-//        buildTiledRecast4j();
-        buildTileCache();
+        buildTiledRecast4j();
+//        buildTileCache();
         //====================================================================
         
         initWorldMouseListener();
@@ -638,21 +638,21 @@ public class NavState extends AbstractNavState {
         
         RecastBuilderConfig builderCfg = new RecastBuilderConfigBuilder(worldMap).
 		        build(new RecastConfigBuilder()
-		            .withAgentRadius(.3f) 		// r
-		            .withAgentHeight(1.7f) 		// h
+		            .withAgentRadius(.3f) 			// r
+		            .withAgentHeight(1.7f) 			// h
 		            //cs and ch should probably be .1 at min.
-		            .withCellSize(.1f) 			// cs=r/3
-		            .withCellHeight(.1f) 		// ch=cs 
+		            .withCellSize(.1f) 				// cs=r/3
+		            .withCellHeight(.1f) 			// ch=cs 
 		            .withAgentMaxClimb(.3f) 		// > 2*ch
 		            .withAgentMaxSlope(45f)
-		            .withEdgeMaxLen(2.4f) 		// r*8
+		            .withEdgeMaxLen(2.4f) 			// r*8
 		            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
-		            .withDetailSampleDistance(8.0f) 	// increase if exception
-		            .withDetailSampleMaxError(8.0f) 	// increase if exception
+		            .withDetailSampleDistance(8.0f) // increase if exception
+		            .withDetailSampleMaxError(8.0f) // increase if exception
 		            .withVertsPerPoly(3).build());
 
         //Split up for testing.
-        JmeInputGeomProvider geom = new GeometryProviderBuilder2(worldMap).build();
+        JmeInputGeomProvider geom = new JmeGeomProviderBuilder(worldMap).build();
         RecastBuilder rcBuilder = new RecastBuilder();
         RecastBuilderResult result = rcBuilder.build(geom, builderCfg);
 
@@ -671,7 +671,7 @@ public class NavState extends AbstractNavState {
         }
 
         //Show wireframe. Helps with param tweaks. false = solid color.
-        showDebugMeshes(meshData, true);
+        meshDebugViewer.showDebugMeshes(meshData, true);
 
         long endTime = System.currentTimeMillis();
         System.out.println("Building succeeded after " + (endTime - startTime) + " ms");
@@ -685,7 +685,7 @@ public class NavState extends AbstractNavState {
     private void buildSoloModified() {
 
         //Build merged mesh.
-        JmeInputGeomProvider geomProvider = new GeometryProviderBuilder2(worldMap).build();
+        JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
 
         configureAreaMod(geomProvider);
 
@@ -694,17 +694,17 @@ public class NavState extends AbstractNavState {
 
         RecastBuilderConfig builderCfg = new RecastBuilderConfigBuilder(worldMap).withDetailMesh(true).
 		        build(new RecastConfigBuilder()
-		            .withAgentRadius(.3f) 		// r
-		            .withAgentHeight(1.7f) 		// h
+		            .withAgentRadius(.3f) 			// r
+		            .withAgentHeight(1.7f) 			// h
 		            //cs and ch should probably be .1 at min.
-		            .withCellSize(.1f) 			// cs=r/3
-		            .withCellHeight(.1f) 		// ch=cs 
+		            .withCellSize(.1f) 				// cs=r/3
+		            .withCellHeight(.1f) 			// ch=cs 
 		            .withAgentMaxClimb(.3f) 		// > 2*ch
 		            .withAgentMaxSlope(45f)
-		            .withEdgeMaxLen(2.4f) 		// r*8
+		            .withEdgeMaxLen(2.4f) 			// r*8
 		            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
-		            .withDetailSampleDistance(8.0f) 	// increase to 8 if exception on level model
-		            .withDetailSampleMaxError(8.0f) 	// increase to 8 if exception on level model
+		            .withDetailSampleDistance(8.0f) // increase to 8 if exception on level model
+		            .withDetailSampleMaxError(8.0f) // increase to 8 if exception on level model
 		            .withVertsPerPoly(3).build());
 
         //Split up for testing.
@@ -754,8 +754,8 @@ public class NavState extends AbstractNavState {
         }
 
         //Show wireframe. Helps with param tweaks. false = solid color.
-        //showDebugMeshes(meshData, true);
-        showDebugByArea(meshData, true);
+        //meshDebugViewer.showDebugMeshes(meshData, true);
+        meshDebugViewer.showDebugByArea(meshData, true);
     }
     
     /**
@@ -765,7 +765,7 @@ public class NavState extends AbstractNavState {
     private void buildSoloRecast4j() {
 
         //Build merged mesh.
-        JmeInputGeomProvider geomProvider = new GeometryProviderBuilder2(worldMap).build();
+        JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
 
         configureAreaMod(geomProvider);
 
@@ -783,14 +783,14 @@ public class NavState extends AbstractNavState {
             .withAgentRadius(radius) 		// r
             .withAgentHeight(height) 		// h
             //cs and ch should be .1 at min.
-            .withCellSize(0.1f) 		// cs=r/2
-            .withCellHeight(0.1f) 		// ch=cs/2 but not < .1f
+            .withCellSize(0.1f) 			// cs=r/2
+            .withCellHeight(0.1f) 			// ch=cs/2 but not < .1f
             .withAgentMaxClimb(maxClimb) 	// > 2*ch
             .withAgentMaxSlope(45f)
-            .withEdgeMaxLen(2.4f) 		// r*8
+            .withEdgeMaxLen(2.4f) 			// r*8
             .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
-            .withDetailSampleDistance(8.0f) 	// increase if exception
-            .withDetailSampleMaxError(8.0f) 	// increase if exception
+            .withDetailSampleDistance(8.0f) // increase if exception
+            .withDetailSampleMaxError(8.0f) // increase if exception
             .withWalkableAreaMod(AREAMOD_GROUND)
             .withVertsPerPoly(3).build();
 
@@ -903,8 +903,8 @@ public class NavState extends AbstractNavState {
         params.detailVertsCount = m_dmesh.nverts;
         params.detailTris = m_dmesh.tris;
         params.detailTriCount = m_dmesh.ntris;
-        params.walkableHeight = height;  //Should add getter for this.
-        params.walkableRadius = radius;  //Should add getter for this.
+        params.walkableHeight = height; //Should add getter for this.
+        params.walkableRadius = radius; //Should add getter for this.
         params.walkableClimb = maxClimb; //Should add getter for this.
         params.bmin = m_pmesh.bmin;
         params.bmax = m_pmesh.bmax;
@@ -927,8 +927,8 @@ public class NavState extends AbstractNavState {
         }
 
         //Show wireframe. Helps with param tweaks. false = solid color.
-        //showDebugMeshes(meshData, true);
-        showDebugByArea(meshData, true);
+        //meshDebugViewer.showDebugMeshes(meshData, true);
+        meshDebugViewer.showDebugByArea(meshData, true);
     }
 
     /**
@@ -939,11 +939,11 @@ public class NavState extends AbstractNavState {
     private void buildTiledRecast4j() {
     	
     	//Build merged mesh.
-        JmeInputGeomProvider geomProvider = new GeometryProviderBuilder2(worldMap).build();
+        JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
         
-	configureAreaMod(geomProvider);
+		configureAreaMod(geomProvider);
         
-	setOffMeshConnections();
+		setOffMeshConnections();
         
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
@@ -952,8 +952,8 @@ public class NavState extends AbstractNavState {
         RecastConfigBuilder builder = new RecastConfigBuilder();
         //Instantiate the configuration parameters.
         RecastConfig cfg = builder
-                .withAgentRadius(.3f)      	// r
-                .withAgentHeight(1.7f)       	// h
+                .withAgentRadius(.3f)       		// r
+                .withAgentHeight(1.7f)       		// h
                 //cs and ch should be .1 at min.
                 .withCellSize(0.1f)                 // cs=r/2
                 .withCellHeight(0.1f)               // ch=cs/2 but not < .1f
@@ -1029,7 +1029,7 @@ public class NavState extends AbstractNavState {
                 params.buildBvTree = true;
                 
                 MeshData meshData = NavMeshBuilder.createNavMeshData(params);
-        	int flags = 0;
+        		int flags = 0;
                 long lastRef = 0;
                 navMesh.addTile(meshData, flags, lastRef);
             }
@@ -1191,7 +1191,7 @@ public class NavState extends AbstractNavState {
             for (int i = 0; i < maxTiles; i++) {
                 MeshData meshData = navMesh.getTile(i).data;
                 if (meshData != null) {
-                    showDebugByArea(meshData, true);
+                	meshDebugViewer.showDebugByArea(meshData, true);
                 }
             }
         } catch (IOException ex) {
@@ -1202,9 +1202,9 @@ public class NavState extends AbstractNavState {
     private void buildTileCache() {
     	
     	//Build merged mesh.
-        JmeInputGeomProvider geomProvider = new GeometryProviderBuilder2(worldMap).build();
+        JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
         
-	configureAreaMod(geomProvider);
+		configureAreaMod(geomProvider);
         
         setOffMeshConnections(); 
         
@@ -1418,7 +1418,7 @@ public class NavState extends AbstractNavState {
                 MeshTile tile = tc.getNavMesh().getTile(i);
                 MeshData meshData = tile.data;
                 if (meshData != null ) {
-                    showDebugByArea(meshData, true);
+                	meshDebugViewer.showDebugByArea(meshData, true);
                 }
             }
         } catch (IOException ex) {
