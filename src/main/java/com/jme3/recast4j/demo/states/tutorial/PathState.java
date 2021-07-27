@@ -31,7 +31,7 @@ import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.math.Vector3f;
 import com.jme3.recast4j.Detour.DetourUtils;
-import static com.jme3.recast4j.demo.SimpleAreaMod.*;
+import static com.jme3.recast4j.demo.JmeAreaMods.*;
 import com.jme3.scene.Spatial;
 import java.util.ArrayList;
 import java.util.List;
