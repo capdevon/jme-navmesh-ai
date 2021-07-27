@@ -27,12 +27,12 @@
 
 package com.jme3.recast4j.demo.states;
 
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_ALL;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_DISABLED;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_DOOR;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_JUMP;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_SWIM;
-import static com.jme3.recast4j.demo.SimpleAreaMod.POLYFLAGS_WALK;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_ALL;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_DISABLED;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_DOOR;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_JUMP;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_SWIM;
+import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_WALK;
 
 import java.io.FileInputStream;
 import java.io.IOException;
