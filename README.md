@@ -1,7 +1,7 @@
 # jme3-recast4j-test-1
 This project is the union of projects **jme3-recast4j** and **jme-recast4j-demo**. It contains a number of useful classes that show how to use the **recast4j** library with jMonkeyEngine3.
 
-# Requirements:
+# Requirements
 The individual projects and their respective requirements used in this demo can be found by following these links.
 
 - [jmonkeyengine](https://github.com/jMonkeyEngine/jmonkeyengine) - A complete 3D game development suite written purely in Java.
@@ -42,12 +42,12 @@ dependencies {
 }
 ```
 
-# Documentation:
+# Documentation
 - [jme3-recast4j](https://github.com/MeFisto94/jme3-recast4j-demo/wiki)
 - [Recast Navigation for JME](https://wiki.jmonkeyengine.org/docs/3.4/contributions/ai/recast.html)
 - [Building Process Slides](https://github.com/capdevon/jme3-recast4j-test-1/blob/main/docs/MikkoMononen_RecastSlides.pdf) - A series of slides that explain the build process of Recast.
 
-# Youtube videos:
+# Youtube videos
 [Tiled NavMesh](https://youtu.be/rCZWPvcwktQ)
 
 
@@ -59,3 +59,9 @@ buildSoloModified
 buildTileCache
 ![Screenshot](images/buildTileCache.jpg)
 
+# Credits
+Huge thanks to MeFisto94 ad mitm001 for writing the original project this is based on.
+
+If you like the project just let me know by leaving a star.
+
+Good luck, and I hope you make something great!
