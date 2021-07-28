@@ -6,89 +6,86 @@ import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class AbstractNavMeshControl extends AbstractControl {
 
-	protected BetterCharacterControl characterControl;
-	protected List<Vector3f> pathList;
-	protected int currentIndex;
-	protected AnimChannel walkChannel;
-	protected static final float walkspeed = 2f;
-	protected boolean startWalking;
+    protected BetterCharacterControl characterControl;
+    protected AnimControl animControl;
+    protected AnimChannel animChannel;
+    protected float moveSpeed = 2f;
+    protected boolean startWalking;
+    protected int currPathIndex;
+    protected List<Vector3f> pathList = new ArrayList<>();
 
-	public AbstractNavMeshControl() {
-		this.pathList = new ArrayList<>();
-	}
+    @Override
+    public void setSpatial(Spatial spatial) {
+        super.setSpatial(spatial);
+        if (spatial != null) {
 
-	@Override
-	protected void controlUpdate(float tpf) {
-		if (characterControl == null) {
-			characterControl = spatial.getControl(BetterCharacterControl.class);
-		}
+            this.characterControl = spatial.getControl(BetterCharacterControl.class);
+            Objects.requireNonNull(characterControl, "BetterCharacterControl not found: " + spatial);
 
-		if (characterControl == null) {
-			/**
-			 * While we could automatically use .move() without BCC, it's a potential source
-			 * of bugs as people might want a Character but forgot about the Control.
-			 */
-			throw new IllegalStateException("Cannot be used without a BetterCharacterControl");
-		}
+            this.animControl = spatial.getControl(AnimControl.class);
+            Objects.requireNonNull(animControl, "AnimControl not found: " + spatial);
 
-		if (walkChannel == null && spatial.getControl(AnimControl.class) != null) {
-			walkChannel = spatial.getControl(AnimControl.class).createChannel();
-		}
+            animChannel = animControl.createChannel();
+            walk(false);
+        }
+    }
 
-		if (startWalking) {
-			moveToWaypoint(); // Start walking for the first time
-			startWalking = false;
-		}
-	}
+    @Override
+    protected void controlUpdate(float tpf) {
+        if (startWalking) {
+            moveToWaypoint(); // Start walking for the first time
+            startWalking = false;
+        }
+    }
 
-	protected void moveToWaypoint() {
-		Vector3f dir = pathList.get(currentIndex).subtract(spatial.getWorldTranslation()).setY(0f).normalizeLocal();
-		System.out.println("Approaching " + pathList.get(currentIndex) + " Direction: " + dir);
-		characterControl.setViewDirection(dir);
-		characterControl.setWalkDirection(dir.multLocal(walkspeed));
-		walk(true);
-	}
+    protected void moveToWaypoint() {
+        Vector3f dir = pathList.get(currPathIndex).subtract(spatial.getWorldTranslation()).setY(0);
+        dir.normalizeLocal();
+        System.out.println("Approaching " + pathList.get(currPathIndex) + " Direction: " + dir);
+        characterControl.setViewDirection(dir);
+        characterControl.setWalkDirection(dir.multLocal(moveSpeed));
+        walk(true);
+    }
 
-	public void followPath(List<Vector3f> pathList) {
-		this.pathList = pathList;
-		currentIndex = 0;
-		if (!pathList.isEmpty()) {
-			startWalking = true; // This assures walking will start.
-//            moveToWaypoint(); // Start walking for the first time
-		}
-	}
+    public void followPath(List<Vector3f> pathList) {
+        this.pathList = pathList;
+        currPathIndex = 0;
+        if (!pathList.isEmpty()) {
+            startWalking = true; // This assures walking will start.
+            //moveToWaypoint(); // Start walking for the first time
+        }
+    }
 
-	public void stopFollowing() {
-		System.out.println("Stop Walking");
-		characterControl.setWalkDirection(Vector3f.ZERO);
-		walk(false);
-		pathList.clear();
-	}
+    public void stopFollowing() {
+        System.out.println("Stop Walking");
+        characterControl.setWalkDirection(Vector3f.ZERO);
+        walk(false);
+        pathList.clear();
+    }
 
-	@Override
-	protected void controlRender(RenderManager rm, ViewPort vp) {
-	}
+    @Override
+    protected void controlRender(RenderManager rm, ViewPort vp) {}
 
-	public void walk(boolean walking) {
-		if (walkChannel != null) {
-			if (walking) {
-				walkChannel.setAnim("Walk");
-				walkChannel.setSpeed(walkspeed);
-			} else {
-				walkChannel.reset(true);
-			}
-		}
-	}
+    protected void walk(boolean walking) {
+        if (walking) {
+            animChannel.setAnim("Walk");
+            animChannel.setSpeed(moveSpeed);
+        } else {
+            animChannel.setAnim("Idle");
+        }
+    }
 
-	protected boolean isPathListDone() {
-		// e.g. index 2 -> size >= 3
-		return currentIndex + 1 > pathList.size();
-	}
+    protected boolean isPathListDone() {
+        // e.g. index 2 -> size >= 3
+        return currPathIndex + 1 > pathList.size();
+    }
 }
