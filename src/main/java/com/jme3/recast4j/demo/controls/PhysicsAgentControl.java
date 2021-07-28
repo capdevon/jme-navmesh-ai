@@ -8,10 +8,6 @@ public class PhysicsAgentControl extends AbstractNavMeshControl {
      */
     protected static final float epsilon = 0.3f;
 
-    public PhysicsAgentControl() {
-        super();
-    }
-
     @Override
     protected void controlUpdate(float tpf) {
         super.controlUpdate(tpf);
