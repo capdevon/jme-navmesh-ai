@@ -23,6 +23,8 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.FXAAFilter;
 import com.jme3.recast4j.Detour.Crowd.CrowdManager;
 import com.jme3.recast4j.Detour.Crowd.Impl.CrowdManagerAppState;
 import com.jme3.recast4j.demo.controls.DoorSwingControl;
@@ -36,10 +38,12 @@ import com.jme3.recast4j.demo.states.ThirdPersonCamState;
 import com.jme3.recast4j.demo.states.UtilState;
 import com.jme3.recast4j.demo.states.tutorial.CrowdState;
 import com.jme3.recast4j.demo.utils.GameObject;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
+import com.jme3.shadow.DirectionalLightShadowFilter;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture2D;
 import com.jme3.water.WaterFilter;
@@ -47,7 +51,7 @@ import com.jme3.water.WaterFilter;
 
 public class DemoApplication extends SimpleApplication {
 	
-	private static final Logger LOG = LoggerFactory.getLogger(DemoApplication.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(DemoApplication.class.getName());
     
     private final Quaternion YAW180 = new Quaternion().fromAngleAxis(FastMath.PI, new Vector3f(0,1,0));
     private Node worldMap, doorNode, offMeshCon;
@@ -70,24 +74,22 @@ public class DemoApplication extends SimpleApplication {
      * 
      * @param args
      */
-	public static void main(String[] args) {
-		DemoApplication app = new DemoApplication();
-		
-		AppSettings settings = new AppSettings(true);
-		settings.setTitle("jme3-recast4j -DemoApplication");
-		settings.setResolution(1280, 720);
-		settings.setGammaCorrection(true);
-		
-		app.setSettings(settings);
-		app.setLostFocusBehavior(LostFocusBehavior.Disabled);
-		app.setPauseOnLostFocus(false);
-		app.start();
-	}
+    public static void main(String[] args) {
+        DemoApplication app = new DemoApplication();
+        AppSettings settings = new AppSettings(true);
+        settings.setTitle("jme3-recast4j - DemoApplication");
+        settings.setResolution(1280, 720);
+        settings.setGammaCorrection(true);
+
+        app.setSettings(settings);
+        app.setPauseOnLostFocus(false);
+        app.start();
+    }
 
     @Override
     public void simpleInitApp() {  
         initKeys();
-        //Set the atmosphere of the world, lights, camera, post processing, physics.
+        initPhysics();
         setupWorld();
 //        loadNavMeshBox();
 //        loadNavMeshDune();
@@ -98,48 +100,52 @@ public class DemoApplication extends SimpleApplication {
 //        loadCrate();
         bullet.setDebugEnabled(false);
     }
+    
+    private void initPhysics() {
+   	 bullet = new BulletAppState();
+        // Performance is better when threading in parallel
+        bullet.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
+        stateManager.attach(bullet);
+   }
 
     private void setupWorld() {
-    	
+    	//Set the atmosphere of the world, lights, camera, post processing.
     	viewPort.setBackgroundColor(new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f));
     	
         worldMap = new Node("worldmap");
+        worldMap.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         rootNode.attachChild(worldMap);
 
         offMeshCon = new Node("offMeshCon");
         rootNode.attachChild(offMeshCon);
-
         
-        bullet = new BulletAppState();
-        // Performance is better when threading in parallel
-        bullet.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
-        stateManager.attach(bullet);
-        
-        /* A white, directional light source */
         DirectionalLight sun = new DirectionalLight();
-        sun.setDirection((new Vector3f(0.5f, -0.5f, -0.5f)).normalizeLocal());
-        sun.setColor(ColorRGBA.White);
-        rootNode.addLight(sun); 
-        
-        /* A white, directional light source */
-        DirectionalLight sun2 = new DirectionalLight();
-        sun2.setDirection((new Vector3f(-0.5f, -0.5f, 0.5f)).normalizeLocal());
-        sun2.setColor(ColorRGBA.White);
-        rootNode.addLight(sun2); 
-        
-        /* A white ambient light source. */
+        sun.setDirection(new Vector3f(-0.2f, -1, -0.3f).normalizeLocal());
+        sun.setName("sun");
+        rootNode.addLight(sun);
+
         AmbientLight ambient = new AmbientLight();
-        ambient.setColor(ColorRGBA.White.mult(.8f));
-        rootNode.addLight(ambient); 
+        ambient.setColor(new ColorRGBA(0.25f, 0.25f, 0.25f, 1));
+        ambient.setName("ambient");
+        rootNode.addLight(ambient);
+
+        DirectionalLightShadowFilter shadowFilter = new DirectionalLightShadowFilter(assetManager, 4096, 2);
+        shadowFilter.setLight(sun);
+        shadowFilter.setShadowIntensity(0.4f);
+        shadowFilter.setShadowZExtend(256);
+
+        FXAAFilter fxaa = new FXAAFilter();
+
+        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+        fpp.addFilter(shadowFilter);
+        fpp.addFilter(fxaa);
+//        fpp.addFilter(setupWater());
+        viewPort.addProcessor(fpp);
 
         cam.setLocation(new Vector3f(0f, 40f, 0f));
         cam.lookAtDirection(new Vector3f(0f, -1f, 0f), Vector3f.UNIT_Z);
-        
-//        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-//        getViewPort().addProcessor(fpp);
-//        fpp.addFilter(setupWater());
     }
-
+    
     private void initKeys() {
         inputManager.addMapping("crowd builder", new KeyTrigger(KeyInput.KEY_F1));
         inputManager.addMapping("crowd pick", new KeyTrigger(KeyInput.KEY_LSHIFT));
@@ -293,6 +299,7 @@ public class DemoApplication extends SimpleApplication {
         
     private void loadJaime() {
         Node player = (Node) assetManager.loadModel("Models/Jaime/Jaime.j3o");
+        player.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         player.setName("jaime");
 //        player.setLocalTranslation(-5f, 5,0);
         player.addControl(new BetterCharacterControl(0.3f, 1.5f, 20f)); // values taken from recast defaults
