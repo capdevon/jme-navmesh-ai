@@ -52,11 +52,9 @@ dependencies {
 
 
 # 
-buildSolo
-![Screenshot](images/buildSolo.jpg)
-buildSoloModified
+Solo NavMesh
 ![Screenshot](images/buildSoloModified.jpg)
-buildTileCache
+Tile NavMesh
 ![Screenshot](images/buildTileCache.jpg)
 
 # Credits
