@@ -28,7 +28,7 @@ public class PathViewer {
     // Asset manager
     private AssetManager assetManager;
     // Node for attaching debug geometries
-    private Node debugNode = new Node("Debug Node");
+    private Node debugNode = new Node("PathViewer");
     private Material debugMat;
 
     public PathViewer(AssetManager assetManager) {
