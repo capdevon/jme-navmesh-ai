@@ -8,10 +8,14 @@ import java.util.ArrayList;
 
 import org.recast4j.detour.MeshData;
 import org.recast4j.detour.Poly;
+import org.recast4j.recast.geom.InputGeomProvider;
 
 import com.jme3.asset.AssetManager;
+import com.jme3.bounding.BoundingBox;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
+import com.jme3.recast4j.Detour.DetourUtils;
 import com.jme3.recast4j.Recast.Utils.RecastUtils;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -19,6 +23,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
+import com.jme3.scene.debug.WireBox;
 import com.jme3.util.BufferUtils;
 
 /**
@@ -27,14 +32,14 @@ import com.jme3.util.BufferUtils;
  */
 public class MeshDataDebugViewer {
 	
-	// Asset manager
+    // Asset manager
     private AssetManager assetManager;
     // Node for attaching debug geometries
-    private Node debugNode = new Node("Debug Node");
-	
-	public MeshDataDebugViewer(AssetManager assetManager) {
-		this.assetManager = assetManager;
-	}
+    private Node debugNode = new Node("MeshDataDebugViewer");
+
+    public MeshDataDebugViewer(AssetManager assetManager) {
+        this.assetManager = assetManager;
+    }
 	
     public void clear() {
         debugNode.detachAllChildren();
@@ -48,21 +53,33 @@ public class MeshDataDebugViewer {
         debugNode.updateGeometricState();
         rm.renderScene(debugNode, vp);
     }
-	
-	/**
-	 * Displays a debug mesh
-	 * 
-	 * @param meshData
-	 * @param wireframe
-	 */
-	public void showDebugMeshes(MeshData meshData, boolean wireframe) {
-        
+    
+    public void drawMeshBounds(InputGeomProvider geomProvider) {
+        Vector3f bmin = DetourUtils.toVector3f(geomProvider.getMeshBoundsMin());
+        Vector3f bmax = DetourUtils.toVector3f(geomProvider.getMeshBoundsMax());
+
+        BoundingBox bbox = new BoundingBox(bmin, bmax);
+        Geometry geo = WireBox.makeGeometry(bbox);
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", ColorRGBA.White);
+        geo.setMaterial(mat);
+        debugNode.attachChild(geo);
+    }
+
+    /**
+     * Displays a debug mesh
+     * 
+     * @param meshData
+     * @param wireframe
+     */
+    public void showDebugMeshes(MeshData meshData, boolean wireframe) {
+
         Geometry dgeom = new Geometry("DebugMeshDetailed", RecastUtils.getDebugMesh(meshData.detailMeshes, meshData.detailVerts, meshData.detailTris));
         Material matGreen = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matGreen.setColor("Color", ColorRGBA.Green);
         dgeom.setMaterial(matGreen);
         dgeom.move(0, 0.25f, 0);
-        
+
         Geometry sgeom = new Geometry("DebugMeshSimple", RecastUtils.getDebugMesh(meshData));
         Material matRed = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matRed.setColor("Color", ColorRGBA.Red);
@@ -71,10 +88,7 @@ public class MeshDataDebugViewer {
         }
         sgeom.setMaterial(matRed);
         sgeom.move(0, 0.125f, 0);
-        
-        //		System.out.println("VertCount Regular Mesh: " + sgeom.getVertexCount());
-        //		System.out.println("VertCount Detailed Mesh: " + dgeom.getVertexCount());
-        
+
         debugNode.attachChild(sgeom);
         debugNode.attachChild(dgeom);
     }
