@@ -24,7 +24,6 @@
  * MODELS/DUNE.J3O:
  * Converted from http://quadropolis.us/node/2584 [Public Domain according to the Tags of this Map]
  */
-
 package com.jme3.recast4j.demo.states;
 
 import static com.jme3.recast4j.demo.JmeAreaMods.AREAMOD_DOOR;
@@ -143,6 +142,7 @@ import com.simsilica.lemur.event.MouseEventControl;
 /**
  *
  * @author Robert
+ * @author capdevon
  */
 public class NavState extends AbstractNavState {
 
@@ -153,13 +153,13 @@ public class NavState extends AbstractNavState {
 
     private Node worldMap, doorNode, offMeshCon;
     private NavMesh navMesh;
-    private NavMeshQuery query;
+    private NavMeshQuery navQuery;
     private List<Node> characters;
     private Map<String, org.recast4j.detour.OffMeshConnection> mapOffMeshCon;
     private PartitionType m_partitionType = PartitionType.WATERSHED;
-    private float maxClimb = .3f; // Should add getter for this.
-    private float radius = 0.4f;  // Should add getter for this.
-    private float height = 1.7f;  // Should add getter for this.
+    private float agentMaxClimb = .3f; // Should add getter for this.
+    private float agentRadius = 0.4f;  // Should add getter for this.
+    private float agentHeight = 1.7f;  // Should add getter for this.
 
     public NavState() {
         characters = new ArrayList<>(64);
@@ -179,8 +179,8 @@ public class NavState extends AbstractNavState {
 //        //Solo build using recast4j methods. Implements area and flag types.
 //        buildSoloRecast4j();
 //        //Tile build using recast4j methods. Implements area and flag types plus offmesh connections.
-        buildTiledRecast4j();
-//        buildTileCache();
+//        buildTiledRecast4j();
+        buildTileCache();
         //====================================================================
         
         initWorldMouseListener();
@@ -283,7 +283,7 @@ public class NavState extends AbstractNavState {
 		        //Width of door opening.
 		        float maxXZ = Math.max(bounds.getXExtent(), bounds.getZExtent()) * 2;
 
-		        Result<FindNearestPolyResult> findNearestPoly = query.findNearestPoly(target.getWorldTranslation().toArray(null), new float[] {maxXZ, maxXZ, maxXZ}, filter);
+		        Result<FindNearestPolyResult> findNearestPoly = navQuery.findNearestPoly(target.getWorldTranslation().toArray(null), new float[] {maxXZ, maxXZ, maxXZ}, filter);
 		        
 		        //No obj, no go. Fail most likely result of filter setting.
 		        if (!findNearestPoly.status.isSuccess() || findNearestPoly.result.getNearestRef() == 0) {
@@ -292,7 +292,7 @@ public class NavState extends AbstractNavState {
 		            return;
 		        }
 		        
-		        Result<FindPolysAroundResult> findPolysAroundCircle = query.findPolysAroundCircle(findNearestPoly.result.getNearestRef(), findNearestPoly.result.getNearestPos(), maxXZ, filter);
+		        Result<FindPolysAroundResult> findPolysAroundCircle = navQuery.findPolysAroundCircle(findNearestPoly.result.getNearestRef(), findNearestPoly.result.getNearestPos(), maxXZ, filter);
 
 		        //Success
 		        if (findPolysAroundCircle.status.isSuccess()) {
@@ -398,9 +398,6 @@ public class NavState extends AbstractNavState {
                 // First clear existing pathGeometries from the old path finding:
                 pathViewer.clearPath();
 
-                // Clicked on the map, so params a path to:
-                Vector3f locOnMap = getLocationOnMap(); // Don'from calculate three times
-
                 if (getCharacters().size() == 1) {
                     DefaultQueryFilter filter = new BetterDefaultQueryFilter();
 
@@ -411,34 +408,32 @@ public class NavState extends AbstractNavState {
                     filter.setExcludeFlags(excludeFlags);
 
                     Node character = getCharacters().get(0);
+                    Vector3f locOnMap = getLocationOnMap();
+                    float[] m_spos = character.getWorldTranslation().toArray(null);
+            		float[] m_epos = DetourUtils.toFloatArray(locOnMap);
 
                     //Extents can be anything you determine is appropriate.
                     float[] extents = new float[] { 1.0f, 1.0f, 1.0f };
                     
-                    Result<FindNearestPolyResult> startPoly = query.findNearestPoly(character.getWorldTranslation().toArray(null), extents, filter);
-                    Result<FindNearestPolyResult> endPoly = query.findNearestPoly(DetourUtils.toFloatArray(locOnMap), extents, filter);
+                    Result<FindNearestPolyResult> startPoly = navQuery.findNearestPoly(m_spos, extents, filter);
+                    Result<FindNearestPolyResult> endPoly = navQuery.findNearestPoly(m_epos, extents, filter);
 
-                    // Note: not isFailure() here, because isSuccess guarantees us, that the result isn't "RUNNING", which it could be if we only check it's not failure.
-                    if (!startPoly.succeeded() || !endPoly.succeeded() ||
-                        startPoly.result.getNearestRef() == 0 || endPoly.result.getNearestRef() == 0) {
+                    if (startPoly.result.getNearestRef() != 0 && endPoly.result.getNearestRef() != 0) {
                     	
-                        LOG.error("Character findNearestPoly unsuccessful or getNearestRef is not > 0.");
-                        LOG.error("findNearestPoly startPoly [{}] getNearestRef [{}]", startPoly.succeeded(), startPoly.result.getNearestRef());
-                        LOG.error("findNearestPoly endPoly [{}] getNearestRef [{}].", endPoly.succeeded(), endPoly.result.getNearestRef());
-
-                    } else {
-                        LOG.info("Will walk from {} to {}", character.getWorldTranslation(), locOnMap);
+                    	System.out.printf("Will walk from %s to %s %n", character.getWorldTranslation(), locOnMap);
 
                         float yOffset = .5f;
                         pathViewer.putBox(ColorRGBA.Green, character.getWorldTranslation().add(0, yOffset, 0));
                         pathViewer.putBox(ColorRGBA.Yellow, locOnMap.add(0, yOffset, 0));
 
                         if (event.getButtonIndex() == MouseInput.BUTTON_LEFT) {
-                            findPathImmediately(character, filter, startPoly.result, endPoly.result);
+                            findPathStraight(character, filter, startPoly.result, endPoly.result);
 
                         } else if (event.getButtonIndex() == MouseInput.BUTTON_RIGHT) {
-                            findPathSlicedPartial(character, filter, startPoly.result, endPoly.result);
+//                            findPathFollow(character, filter, startPoly.result, endPoly.result);
                         }
+                    } else {
+                        System.err.println("Unable to find path");
                     }
                 }
             }
@@ -452,16 +447,18 @@ public class NavState extends AbstractNavState {
      * @param startPoly
      * @param endPoly
      */
-    private void findPathImmediately(Node character, QueryFilter filter, FindNearestPolyResult startPoly, FindNearestPolyResult endPoly) {
+    private void findPathStraight(Node character, QueryFilter filter, FindNearestPolyResult startPoly, FindNearestPolyResult endPoly) {
+    	
+    	boolean success = false;
 
-        Result<List<Long>> path = query.findPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter);
+        Result<List<Long>> path = navQuery.findPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter);
         if (path.succeeded()) {
 
         	//Set the parameters for straight path. Paths cannot exceed 256 polygons.
             int maxStraightPath = 256;
             int options = 0;
 
-            Result<List<StraightPathItem>> straightPath = query.findStraightPath(startPoly.getNearestPos(), endPoly.getNearestPos(), path.result, maxStraightPath, options);
+            Result<List<StraightPathItem>> straightPath = navQuery.findStraightPath(startPoly.getNearestPos(), endPoly.getNearestPos(), path.result, maxStraightPath, options);
 
             if (!straightPath.result.isEmpty()) {
 
@@ -469,99 +466,12 @@ public class NavState extends AbstractNavState {
 
                 character.getControl(PhysicsAgentControl.class).stopFollowing();
                 character.getControl(PhysicsAgentControl.class).followPath(wayPoints);
-
-            } else {
-                System.err.println("Unable to find straight paths");
+                
+                success = true;
             }
-        } else {
-            System.err.println("I'm sorry, unable to find a path.....");
         }
-    }
-
-    /**
-     * 
-     * @param character
-     * @param filter
-     * @param startPoly
-     * @param endPoly
-     */
-    private void findPathSliced(Node character, QueryFilter filter, FindNearestPolyResult startPoly, FindNearestPolyResult endPoly) {
-
-        query.initSlicedFindPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter, 0);
-
-        Result<Integer> res;
-        do {
-            // typically called from a control or appstate, so simulate it with a loop and sleep.
-            res = query.updateSlicedFindPath(1);
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-            }
-        } while (res.status == Status.IN_PROGRESS);
-
-        Result<List<Long>> slicedPath = query.finalizeSlicedFindPath();
-
-        // @TODO: Use NavMeshSliceControl (but then how to do the Debug Graphics?)
-        // @TODO: Try Partial. How would one make this logic with controls etc so it's easy?
-        //query.finalizeSlicedFindPathPartial();
-
-        if (slicedPath.succeeded()) {
-            // Get the proper path from the rough polygon listing
-            Result<List<StraightPathItem>> straightPath = query.findStraightPath(startPoly.getNearestPos(), endPoly.getNearestPos(), slicedPath.result, Integer.MAX_VALUE, 0);
-
-            if (!straightPath.result.isEmpty()) {
-
-                List<Vector3f> wayPoints = drawPath(straightPath.result, character);
-
-                character.getControl(PhysicsAgentControl.class).stopFollowing();
-                character.getControl(PhysicsAgentControl.class).followPath(wayPoints);
-
-            } else {
-                System.err.println("Unable to find straight paths");
-            }
-        } else {
-            System.err.println("I'm sorry, unable to find a path.....");
-        }
-    }
-
-    /**
-     * Partial means canceling before being finished
-     * @param character
-     * @param filter
-     * @param startPoly
-     * @param endPoly
-     */
-    private void findPathSlicedPartial(Node character, QueryFilter filter, FindNearestPolyResult startPoly, FindNearestPolyResult endPoly) {
-
-        query.initSlicedFindPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter, 0);
-        Result<Integer> res = query.updateSlicedFindPath(1);
-        Result<List<Long>> slicedPath = query.finalizeSlicedFindPath();
-
-        query.initSlicedFindPath(startPoly.getNearestRef(), endPoly.getNearestRef(), startPoly.getNearestPos(), endPoly.getNearestPos(), filter, 0);
-        Result<List<Long>> slicedPathPartial = query.finalizeSlicedFindPathPartial(slicedPath.result);
-
-        // @TODO: Use NavMeshSliceControl (but then how to do the Debug Graphics?)
-        // @TODO: Try Partial. How would one make this logic with controls etc so it's easy?
-        //query.finalizeSlicedFindPathPartial();
-
-        if (slicedPathPartial.succeeded()) {
-            // Get the proper path from the rough polygon listing
-            Result<List<StraightPathItem>> straightPath = query.findStraightPath(startPoly.getNearestPos(), endPoly.getNearestPos(), slicedPathPartial.result, Integer.MAX_VALUE, 0);
-
-            if (!straightPath.result.isEmpty()) {
-
-                List<Vector3f> wayPoints = drawPath(straightPath.result, character);
-
-                character.getControl(PhysicsAgentControl.class).stopFollowing();
-                character.getControl(PhysicsAgentControl.class).followPath(wayPoints);
-
-            } else {
-                System.err.println("Unable to find straight paths");
-            }
-        } else {
-            System.err.println("I'm sorry, unable to find a path.....");
-        }
+        
+        System.out.println("Compute path: " + success);
     }
 
     private List<Vector3f> drawPath(List<StraightPathItem> straightPath, Node character) {
@@ -660,7 +570,7 @@ public class NavState extends AbstractNavState {
         MeshData meshData = NavMeshBuilder.createNavMeshData(params);
 
         navMesh = new NavMesh(meshData, builderCfg.cfg.maxVertsPerPoly, 0);
-        query = new NavMeshQuery(navMesh);
+        navQuery = new NavMeshQuery(navMesh);
 
         try {
             saveToFile(meshData);
@@ -735,13 +645,13 @@ public class NavState extends AbstractNavState {
          * Must set variables for parameters walkableHeight, walkableRadius, 
          * walkableClimb manually for mesh data unless jme3-recast4j fixed.
          */
-        params.walkableClimb = maxClimb; //Should add getter for this.
-        params.walkableHeight = height;  //Should add getter for this.
-        params.walkableRadius = radius;  //Should add getter for this.
+        params.walkableClimb = agentMaxClimb; //Should add getter for this.
+        params.walkableHeight = agentHeight;  //Should add getter for this.
+        params.walkableRadius = agentRadius;  //Should add getter for this.
 
         MeshData meshData = NavMeshBuilder.createNavMeshData(params);
         navMesh = new NavMesh(meshData, builderCfg.cfg.maxVertsPerPoly, 0);
-        query = new NavMeshQuery(navMesh);
+        navQuery = new NavMeshQuery(navMesh);
 
         //Create offmesh connections here.
 
@@ -780,12 +690,12 @@ public class NavState extends AbstractNavState {
         //We could use multiple configs here based off area type list.
         RecastConfigBuilder builder = new RecastConfigBuilder();
         RecastConfig cfg = builder
-            .withAgentRadius(radius) 		// r
-            .withAgentHeight(height) 		// h
+            .withAgentRadius(agentRadius) 		// r
+            .withAgentHeight(agentHeight) 		// h
             //cs and ch should be .1 at min.
             .withCellSize(0.1f) 			// cs=r/2
             .withCellHeight(0.1f) 			// ch=cs/2 but not < .1f
-            .withAgentMaxClimb(maxClimb) 	// > 2*ch
+            .withAgentMaxClimb(agentMaxClimb) 	// > 2*ch
             .withAgentMaxSlope(45f)
             .withEdgeMaxLen(2.4f) 			// r*8
             .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
@@ -804,18 +714,18 @@ public class NavState extends AbstractNavState {
             int ntris = tris.length / 3;
 
             //Separate individual triangles into a arrays so we can mark Area Type.
-            List < int[] > listTris = new ArrayList < > ();
+            List<int[]> listTris = new ArrayList<>();
             int fromIndex = 0;
-            for (Modification mod: geomProvider.getListMods()) {
+            for (Modification mod : geomProvider.getListMods()) {
                 int[] triangles = new int[mod.getGeomLength()];
                 System.arraycopy(tris, fromIndex, triangles, 0, mod.getGeomLength());
                 listTris.add(triangles);
                 fromIndex += mod.getGeomLength();
             }
 
-            List < int[] > areas = new ArrayList < > ();
+            List<int[]> areas = new ArrayList<>();
 
-            for (Modification mod: geomProvider.getListMods()) {
+            for (Modification mod : geomProvider.getListMods()) {
                 int[] m_triareas = Recast.markWalkableTriangles(
                     m_ctx,
                     cfg.walkableSlopeAngle,
@@ -831,7 +741,7 @@ public class NavState extends AbstractNavState {
             int[] m_triareasAll = new int[ntris];
             int length = 0;
             //Copy all flagged areas into new array.
-            for (int[] area: areas) {
+            for (int[] area : areas) {
                 System.arraycopy(area, 0, m_triareasAll, length, area.length);
                 length += area.length;
             }
@@ -903,9 +813,9 @@ public class NavState extends AbstractNavState {
         params.detailVertsCount = m_dmesh.nverts;
         params.detailTris = m_dmesh.tris;
         params.detailTriCount = m_dmesh.ntris;
-        params.walkableHeight = height; //Should add getter for this.
-        params.walkableRadius = radius; //Should add getter for this.
-        params.walkableClimb = maxClimb; //Should add getter for this.
+        params.walkableHeight = agentHeight; //Should add getter for this.
+        params.walkableRadius = agentRadius; //Should add getter for this.
+        params.walkableClimb = agentMaxClimb; //Should add getter for this.
         params.bmin = m_pmesh.bmin;
         params.bmax = m_pmesh.bmax;
         params.cs = cfg.cs;
@@ -914,7 +824,7 @@ public class NavState extends AbstractNavState {
 
         MeshData meshData = NavMeshBuilder.createNavMeshData(params);
         navMesh = new NavMesh(meshData, params.nvp, 0);
-        query = new NavMeshQuery(navMesh);
+        navQuery = new NavMeshQuery(navMesh);
 
         //Create offmesh connections here.
 
@@ -1017,9 +927,9 @@ public class NavState extends AbstractNavState {
                 params.detailVertsCount = dmesh.nverts;
                 params.detailTris = dmesh.tris;
                 params.detailTriCount = dmesh.ntris;
-                params.walkableHeight = height;
-                params.walkableRadius = radius;
-                params.walkableClimb = maxClimb;
+                params.walkableHeight = agentHeight;
+                params.walkableRadius = agentRadius;
+                params.walkableClimb = agentMaxClimb;
                 params.bmin = m_pmesh.bmin;
                 params.bmax = m_pmesh.bmax;
                 params.cs = cfg.cs;
@@ -1035,7 +945,7 @@ public class NavState extends AbstractNavState {
             }
         }
         
-        query = new NavMeshQuery(navMesh);
+        navQuery = new NavMeshQuery(navMesh);
         
         /**
          * Process OffMeshConnections. 
@@ -1073,8 +983,8 @@ public class NavState extends AbstractNavState {
                 System.arraycopy(next.getValue().pos, 3, endPos, 0, 3);
 
                 //Find the nearest polys to start/end.
-                Result<FindNearestPolyResult> startPoly = query.findNearestPoly(startPos, new float[] {radius,radius,radius}, filter);
-                Result<FindNearestPolyResult> endPoly = query.findNearestPoly(endPos, new float[] {radius,radius,radius}, filter);
+                Result<FindNearestPolyResult> startPoly = navQuery.findNearestPoly(startPos, new float[] {agentRadius,agentRadius,agentRadius}, filter);
+                Result<FindNearestPolyResult> endPoly = navQuery.findNearestPoly(endPos, new float[] {agentRadius,agentRadius,agentRadius}, filter);
 
                 /**
                  * Note: not isFailure() here, because isSuccess guarantees us, 
@@ -1184,7 +1094,7 @@ public class NavState extends AbstractNavState {
             MeshSetReader msr = new MeshSetReader();
             navMesh = msr.read(new FileInputStream("test.nm"), cfg.maxVertsPerPoly);
 
-            query = new NavMeshQuery(navMesh);
+            navQuery = new NavMeshQuery(navMesh);
             int maxTiles = navMesh.getMaxTiles();
 
             // Tile data can be null since maxTiles is not an exact science.
@@ -1215,12 +1125,12 @@ public class NavState extends AbstractNavState {
         RecastConfigBuilder builder = new RecastConfigBuilder();
         //Instantiate the configuration parameters.
         RecastConfig rcConfig = builder
-                .withAgentRadius(radius)            // r
-                .withAgentHeight(height)            // h
+                .withAgentRadius(agentRadius)            // r
+                .withAgentHeight(agentHeight)            // h
                 //cs and ch should be .1 at min.
                 .withCellSize(0.1f)                 // cs=r/2
                 .withCellHeight(0.1f)               // ch=cs/2 but not < .1f
-                .withAgentMaxClimb(maxClimb)        // > 2*ch
+                .withAgentMaxClimb(agentMaxClimb)        // > 2*ch
                 .withAgentMaxSlope(45f)
                 .withEdgeMaxLen(3.2f)               // r*8
                 .withEdgeMaxError(1.3f)             // 1.1 - 1.5
@@ -1269,7 +1179,7 @@ public class NavState extends AbstractNavState {
 
             //Get the navMesh and build a querry object.
             navMesh = tc.getNavMesh();
-            query = new NavMeshQuery(navMesh); 
+            navQuery = new NavMeshQuery(navMesh); 
 
             /**
              * Process OffMeshConnections. Since we are reading this in we do it 
@@ -1309,8 +1219,8 @@ public class NavState extends AbstractNavState {
                     System.arraycopy(next.getValue().pos, 3, endPos, 0, 3);
 
                     //Find the nearest polys to start/end.
-                    Result<FindNearestPolyResult> startPoly = query.findNearestPoly(startPos, new float[] {radius,radius,radius}, filter);
-                    Result<FindNearestPolyResult> endPoly = query.findNearestPoly(endPos, new float[] {radius,radius,radius}, filter);
+                    Result<FindNearestPolyResult> startPoly = navQuery.findNearestPoly(startPos, new float[] {agentRadius,agentRadius,agentRadius}, filter);
+                    Result<FindNearestPolyResult> endPoly = navQuery.findNearestPoly(endPos, new float[] {agentRadius,agentRadius,agentRadius}, filter);
 
                     /**
                      * Note: not isFailure() here, because isSuccess guarantees us, 
@@ -1417,14 +1327,13 @@ public class NavState extends AbstractNavState {
             for (int i = 0; i < maxTiles; i++) {
                 MeshTile tile = tc.getNavMesh().getTile(i);
                 MeshData meshData = tile.data;
-                if (meshData != null ) {
+                if (meshData != null) {
                 	meshDebugViewer.showDebugByArea(meshData, true);
                 }
             }
         } catch (IOException ex) {
             LOG.error("{} {}", NavState.class.getName(), ex);
         }
-        
     }
 
     private void setOffMeshConnections() {
@@ -1529,7 +1438,7 @@ public class NavState extends AbstractNavState {
                                 link1.pos = pos;
 
                                 //Player (r)adius. Links fire at (r) * 2.25.
-                                link1.rad = radius;
+                                link1.rad = agentRadius;
 
                                 /**
                                  * Move through link1 both directions. Only 
@@ -1651,9 +1560,9 @@ public class NavState extends AbstractNavState {
         DetourCommon.vCopy(params.orig, geom.getMeshBoundsMin());
         params.height = rcfg.tileSize;
         params.width = rcfg.tileSize;
-        params.walkableHeight = height;
-        params.walkableRadius = radius;
-        params.walkableClimb = maxClimb;
+        params.walkableHeight = agentHeight;
+        params.walkableRadius = agentRadius;
+        params.walkableClimb = agentMaxClimb;
         params.maxSimplificationError = rcfg.maxSimplificationError;
         params.maxTiles = twh[0] * twh[1] * EXPECTED_LAYERS_PER_TILE;
         params.maxObstacles = 128;
@@ -1680,7 +1589,7 @@ public class NavState extends AbstractNavState {
         public void process(NavMeshDataCreateParams params) {
             // Update poly flags from areas.
             for (int i = 0; i < params.polyCount; ++i) {
-                Poly p = new Poly(i, 6);
+                Poly poly = new Poly(i, 6);
 
                 if (params.polyAreas[i] == DT_TILECACHE_WALKABLE_AREA) {
                     params.polyAreas[i] = POLYAREA_TYPE_GROUND;
