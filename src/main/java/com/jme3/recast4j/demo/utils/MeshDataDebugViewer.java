@@ -83,9 +83,7 @@ public class MeshDataDebugViewer {
         Geometry sgeom = new Geometry("DebugMeshSimple", RecastUtils.getDebugMesh(meshData));
         Material matRed = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matRed.setColor("Color", ColorRGBA.Red);
-        if (wireframe) {
-            matRed.getAdditionalRenderState().setWireframe(true);
-        }
+        matRed.getAdditionalRenderState().setWireframe(wireframe);
         sgeom.setMaterial(matRed);
         sgeom.move(0, 0.125f, 0);
 
