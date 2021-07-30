@@ -46,9 +46,9 @@ public class NavMeshSliceControl extends AbstractNavMeshControl {
                 stopFollowing(); // We've reached our goal!
             }
         } else { // Regular Path Walking
-            if (getSpatial().getWorldTranslation().distance(pathList.get(currentIndex)) < epsilon) {
+            if (getSpatial().getWorldTranslation().distance(pathList.get(currPathIndex)) < epsilon) {
                 // reached a target, increase the index, that's all
-                currentIndex++;
+                currPathIndex++;
 
                 if (isPathListDone()) { // still in the list?
                     moveToWaypoint();
@@ -94,6 +94,6 @@ public class NavMeshSliceControl extends AbstractNavMeshControl {
         //query.finalizeSlicedFindPathPartial();
         pathList.clear();
         //pathList.add(all results)
-        currentIndex = 0;
+        currPathIndex = 0;
     }
 }
