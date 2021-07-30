@@ -13,9 +13,9 @@ public class PhysicsAgentControl extends AbstractNavMeshControl {
         super.controlUpdate(tpf);
         
         if (!isPathListDone()) {
-            if (spatial.getWorldTranslation().distance(pathList.get(currentIndex)) < epsilon) {
+            if (spatial.getWorldTranslation().distance(pathList.get(currPathIndex)) < epsilon) {
                 // reached a target, increase the index, that's all
-                currentIndex++;
+                currPathIndex++;
 
                 if (!isPathListDone()) { // still in the list?
                     moveToWaypoint();
