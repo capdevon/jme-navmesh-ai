@@ -24,7 +24,6 @@
  * MODELS/DUNE.J3O:
  * Converted from http://quadropolis.us/node/2584 [Public Domain according to the Tags of this Map]
  */
-
 package com.jme3.recast4j.demo.states.tutorial;
 
 import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_DOOR;
@@ -42,7 +41,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteOrder;
-import java.util.concurrent.TimeUnit;
 
 import org.recast4j.detour.MeshData;
 import org.recast4j.detour.NavMesh;
@@ -70,6 +68,7 @@ import org.slf4j.LoggerFactory;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
+import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -101,25 +100,26 @@ public class CrowdState extends BaseAppState {
 
     private static final Logger LOG = LoggerFactory.getLogger(CrowdState.class.getName());
     
+    private AssetManager assetManager;
+    private Node debugNode = new Node("Debug Node");
     private NavMeshQuery query;
     private Crowd crowd;
     
     @Override
     protected void initialize(Application app) {   
+    	this.assetManager = app.getAssetManager();
+    	getRootNode().attachChild(debugNode);
         buildSolo();
 //        buildTiled();
 //        buildCrowd();
     }
     
+    private Node getRootNode() {
+    	return ((SimpleApplication) getApplication()).getRootNode();
+    }
+    
     private void buildSolo() {
-        Box boxMesh = new Box(20f,.1f,20f); 
-        Geometry boxGeo = new Geometry("Colored Box", boxMesh); 
-        Material boxMat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md"); 
-        boxMat.setBoolean("UseMaterialColors", true); 
-        boxMat.setColor("Ambient", ColorRGBA.LightGray); 
-        boxMat.setColor("Diffuse", ColorRGBA.LightGray); 
-        boxGeo.setMaterial(boxMat); 
-        ((SimpleApplication) getApplication()).getRootNode().attachChild(boxGeo);
+        Geometry boxGeo = createFloor();
         
         //Step 1. Gather our geometry.
         InputGeomProvider geomProvider = new GeometryProviderBuilder(boxGeo).build();
@@ -189,14 +189,7 @@ public class CrowdState extends BaseAppState {
         float agentRadius = 0.4f;
         float agentMaxClimb = 0.3f;
                 
-        Box boxMesh = new Box(20f,.1f,20f); 
-        Geometry boxGeo = new Geometry("Colored Box", boxMesh); 
-        Material boxMat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md"); 
-        boxMat.setBoolean("UseMaterialColors", true); 
-        boxMat.setColor("Ambient", ColorRGBA.LightGray); 
-        boxMat.setColor("Diffuse", ColorRGBA.LightGray); 
-        boxGeo.setMaterial(boxMat); 
-        ((SimpleApplication) getApplication()).getRootNode().attachChild(boxGeo);
+        Geometry boxGeo = createFloor();
         
         //Step 1. Gather our geometry.
         InputGeomProvider geomProvider = new GeometryProviderBuilder(boxGeo).build();
@@ -360,12 +353,8 @@ public class CrowdState extends BaseAppState {
 
     @Override
     protected void cleanup(Application app) {
-        
     }
 
-    //onEnable()/onDisable() can be used for managing things that should 
-    //only exist while the state is enabled. Prime examples would be scene 
-    //graph attachment or input listener attachment.
     @Override
     protected void onEnable() {      
 //        addAgent(new Vector3f(-5, 0, 0));
@@ -379,7 +368,6 @@ public class CrowdState extends BaseAppState {
     
     @Override
     public void update(float tpf) {
-
     }
     
     /**
@@ -388,7 +376,6 @@ public class CrowdState extends BaseAppState {
      * @param target The target to set.
      */
     public void setTarget(Vector3f target) {
-
         /*
         //Get the query extent for this crowd.
         float[] ext = crowd.getQueryExtents();
@@ -408,7 +395,7 @@ public class CrowdState extends BaseAppState {
     private void addAgent(Vector3f location) {
         
         //Load the spatial that will represent the agent.
-        Node agent = (Node) getApplication().getAssetManager().loadModel("Models/Jaime/Jaime.j3o");
+        Node agent = (Node) assetManager.loadModel("Models/Jaime/Jaime.j3o");
         //Set translation prior to adding controls.
         agent.setLocalTranslation(location);
         //If we have a physics Crowd we need a physics compatible control to apply
@@ -417,7 +404,7 @@ public class CrowdState extends BaseAppState {
         //getState(BulletAppState.class).getPhysicsSpace().add(agent);
         
         //Add agent to the scene.
-        ((SimpleApplication) getApplication()).getRootNode().attachChild(agent);
+        getRootNode().attachChild(agent);
         
         int updateFlags = CrowdAgentParams.DT_CROWD_OPTIMIZE_TOPO | CrowdAgentParams.DT_CROWD_OPTIMIZE_VIS;
         //Build the params object.
@@ -435,7 +422,7 @@ public class CrowdState extends BaseAppState {
         //Were going to use a debug move control so setup geometry for later use.
         Torus halo = new Torus(16, 16, 0.1f, 0.3f);
         Geometry haloGeom = new Geometry("halo", halo);
-        Material haloMat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        Material haloMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         haloGeom.setMaterial(haloMat);
         haloGeom.setLocalTranslation(0, ap.height + 0.5f, 0);
         Quaternion pitch90 = new Quaternion();
@@ -453,78 +440,37 @@ public class CrowdState extends BaseAppState {
         agent.addControl(dmc);
     }
     
+    private Geometry createFloor() {
+    	Box boxMesh = new Box(20f,.1f,20f); 
+        Geometry boxGeo = new Geometry("Colored Box", boxMesh); 
+        Material boxMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md"); 
+        boxMat.setBoolean("UseMaterialColors", true); 
+        boxMat.setColor("Ambient", ColorRGBA.LightGray); 
+        boxMat.setColor("Diffuse", ColorRGBA.LightGray); 
+        boxGeo.setMaterial(boxMat); 
+        getRootNode().attachChild(boxGeo);
+        return boxGeo;
+    }
     
     private void showDebugMeshes(MeshData meshData, boolean wireframe) {
-        Material matRed = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        matRed.setColor("Color", ColorRGBA.Red);
-        
-        if (wireframe) {
-            matRed.getAdditionalRenderState().setWireframe(true);
-        }
-
-        Material matGreen = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        Geometry dgeom = new Geometry("DebugMeshDetailed", RecastUtils.getDebugMesh(meshData.detailMeshes, meshData.detailVerts, meshData.detailTris));
+        Material matGreen = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matGreen.setColor("Color", ColorRGBA.Green);
+        dgeom.setMaterial(matGreen);
+        dgeom.move(0, 0.25f, 0);
 
-        // navMesh.getTile(0).data == meshData (in this particular case)
-        Geometry gDetailed = new Geometry("DebugMeshDetailed", RecastUtils.getDebugMesh(meshData.detailMeshes, meshData.detailVerts, meshData.detailTris));
-        Geometry g = new Geometry("DebugMeshSimple", RecastUtils.getDebugMesh(meshData));
-        g.setMaterial(matRed);
-        gDetailed.setMaterial(matGreen);
-        System.out.println("VertCount Regular Mesh: " + g.getVertexCount());
-        System.out.println("VertCount Detailed Mesh: " + gDetailed.getVertexCount());
-        g.move(0f, 0.125f, 0f);
-        gDetailed.move(0f, 0.25f, 0f);
+        Geometry sgeom = new Geometry("DebugMeshSimple", RecastUtils.getDebugMesh(meshData));
+        Material matRed = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matRed.setColor("Color", ColorRGBA.Red);
+        matRed.getAdditionalRenderState().setWireframe(wireframe);
+        sgeom.setMaterial(matRed);
+        sgeom.move(0, 0.125f, 0);
 
-        ((SimpleApplication) getApplication()).getRootNode().attachChild(g);
-        ((SimpleApplication) getApplication()).getRootNode().attachChild(gDetailed);
+        debugNode.attachChild(sgeom);
+        debugNode.attachChild(dgeom);
+        
+        System.out.println("VertCount Regular Mesh: " + sgeom.getVertexCount());
+        System.out.println("VertCount Detailed Mesh: " + dgeom.getVertexCount());
     }
     
-    private class ProgressListen implements RecastBuilder.RecastBuilderProgressListener {
-
-        private long time = System.nanoTime();
-        private long elapsedTime;
-        private long avBuildTime;
-        private long estTotalTime;
-        private long estTimeRemain;
-        private long buildTimeNano;
-        private long elapsedTimeHr;
-        private long elapsedTimeMin;
-        private long elapsedTimeSec;
-        private long totalTimeHr;
-        private long totalTimeMin;
-        private long totalTimeSec;
-        private long timeRemainHr;
-        private long timeRemainMin;
-        private long timeRemainSec;
-
-        @Override
-        public void onProgress(int completed, int total) {
-            elapsedTime += System.nanoTime() - time;
-            avBuildTime = elapsedTime/(long)completed;
-            estTotalTime = avBuildTime * (long)total;
-            estTimeRemain = estTotalTime - elapsedTime;
-
-            buildTimeNano = TimeUnit.MILLISECONDS.convert(avBuildTime, TimeUnit.NANOSECONDS);
-            System.out.printf("Completed %d[%d] Average [%dms] ", completed, total, buildTimeNano);
-
-            elapsedTimeHr = TimeUnit.HOURS.convert(elapsedTime, TimeUnit.NANOSECONDS) % 24;
-            elapsedTimeMin = TimeUnit.MINUTES.convert(elapsedTime, TimeUnit.NANOSECONDS) % 60;
-            elapsedTimeSec = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS) % 60;
-            System.out.printf("Elapsed Time [%02d:%02d:%02d] ", elapsedTimeHr, elapsedTimeMin, elapsedTimeSec);
-
-            totalTimeHr = TimeUnit.HOURS.convert(estTotalTime, TimeUnit.NANOSECONDS) % 24;
-            totalTimeMin = TimeUnit.MINUTES.convert(estTotalTime, TimeUnit.NANOSECONDS) % 60;
-            totalTimeSec = TimeUnit.SECONDS.convert(estTotalTime, TimeUnit.NANOSECONDS) % 60;
-            System.out.printf("Estimated Total [%02d:%02d:%02d] ", totalTimeHr, totalTimeMin, totalTimeSec);
-
-            timeRemainHr = TimeUnit.HOURS.convert(estTimeRemain, TimeUnit.NANOSECONDS) % 24;
-            timeRemainMin = TimeUnit.MINUTES.convert(estTimeRemain, TimeUnit.NANOSECONDS) % 60;
-            timeRemainSec = TimeUnit.SECONDS.convert(estTimeRemain, TimeUnit.NANOSECONDS) % 60;
-            System.out.printf("Remaining Time [%02d:%02d:%02d]%n", timeRemainHr, timeRemainMin, timeRemainSec);
-
-            //reset time
-            time = System.nanoTime();
-        }
-        
-    }
 }
