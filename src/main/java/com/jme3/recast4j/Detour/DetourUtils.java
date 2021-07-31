@@ -22,6 +22,11 @@
  */
 package com.jme3.recast4j.Detour;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.recast4j.detour.StraightPathItem;
+
 import com.jme3.math.Vector3f;
 
 /**
