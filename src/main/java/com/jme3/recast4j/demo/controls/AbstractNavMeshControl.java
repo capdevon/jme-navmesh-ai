@@ -57,7 +57,7 @@ public abstract class AbstractNavMeshControl extends AbstractControl {
     }
 
     public void followPath(List<Vector3f> pathList) {
-        this.pathList = pathList;
+        this.pathList = new ArrayList<>(pathList);
         currPathIndex = 0;
         if (!pathList.isEmpty()) {
             startWalking = true; // This assures walking will start.
