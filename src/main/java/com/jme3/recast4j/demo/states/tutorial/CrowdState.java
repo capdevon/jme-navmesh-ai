@@ -77,7 +77,6 @@ import com.jme3.recast4j.Detour.Crowd.MovementApplicationType;
 import com.jme3.recast4j.Detour.Crowd.Impl.CrowdManagerAppState;
 import com.jme3.recast4j.Recast.GeometryProviderBuilder;
 import com.jme3.recast4j.Recast.NavMeshDataCreateParamsBuilder;
-import com.jme3.recast4j.Recast.RecastBuilderConfigBuilder;
 import com.jme3.recast4j.Recast.RecastConfigBuilder;
 import com.jme3.recast4j.Recast.Utils.RecastUtils;
 import com.jme3.recast4j.demo.controls.CrowdDebugControl;
@@ -120,10 +119,7 @@ public class CrowdState extends BaseAppState {
         InputGeomProvider geomProvider = new GeometryProviderBuilder(boxGeo).build();
         
         //Step 2. Create a Recast configuration object.
-        RecastConfigBuilder builder = new RecastConfigBuilder();
-        
-        //Instantiate the configuration parameters.
-        RecastConfig cfg = builder
+        RecastConfig cfg = new RecastConfigBuilder()
                 .withAgentRadius(0.4f)              // r
                 .withAgentHeight(2.0f)              // h
                 //cs and ch should be .1 at min.
@@ -135,13 +131,13 @@ public class CrowdState extends BaseAppState {
                 .withEdgeMaxError(1.3f)             // 1.1 - 1.5
                 .withDetailSampleDistance(6.0f)     // increase if exception
                 .withDetailSampleMaxError(5.0f)     // increase if exception
-                .withVertsPerPoly(3).build();       
+                .withVertsPerPoly(3)
+                .build();       
         
         //Create a RecastBuilderConfig builder with world bounds of our geometry.
-        RecastBuilderConfigBuilder rcb = new RecastBuilderConfigBuilder(boxGeo);
-        
-        //Build the configuration object using our cfg. 
-        RecastBuilderConfig builderCfg = rcb.withDetailMesh(true).build(cfg);
+        float[] bmin = geomProvider.getMeshBoundsMin();
+        float[] bmax = geomProvider.getMeshBoundsMax();
+        RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, bmin, bmax);
         
         //Step 3. Build our Navmesh data using our gathered geometry and configuration.
         RecastBuilder rcBuilder = new RecastBuilder();
@@ -198,10 +194,7 @@ public class CrowdState extends BaseAppState {
         InputGeomProvider geomProvider = new GeometryProviderBuilder(boxGeo).build();
         
         //Step 2. Create a Recast configuration object.
-        RecastConfigBuilder builder = new RecastConfigBuilder();
-        
-        //Instantiate the configuration parameters.
-        RecastConfig cfg = builder
+        RecastConfig cfg = new RecastConfigBuilder()
                 .withAgentRadius(agentRadius)       // r
                 .withAgentHeight(agentHeight)       // h
                 //cs and ch should be .1 at min.
@@ -213,8 +206,9 @@ public class CrowdState extends BaseAppState {
                 .withEdgeMaxError(1.3f)             // 1.1 - 1.5
                 .withDetailSampleDistance(6.0f)     // increase if exception
                 .withDetailSampleMaxError(5.0f)     // increase if exception
-                .withVertsPerPoly(3)
-                .withTileSize(32).build();          // set tile size
+                .withVertsPerPoly(3)				// set verts per poly
+                .withTileSize(32)					// set tile size
+                .build();          
 
         //Build all tiles
         RecastBuilder rcBuilder = new RecastBuilder();
