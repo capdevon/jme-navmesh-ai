@@ -26,10 +26,11 @@ import com.jme3.scene.shape.Sphere;
 public class PathViewer {
 
     // Asset manager
-    private AssetManager assetManager;
+    protected AssetManager assetManager;
     // Node for attaching debug geometries
-    private Node debugNode = new Node("PathViewer");
-    private Material debugMat;
+    public Node debugNode = new Node("PathViewer");
+    // Unshaded material
+    public Material debugMat;
 
     public PathViewer(AssetManager assetManager) {
         this.assetManager = assetManager;
