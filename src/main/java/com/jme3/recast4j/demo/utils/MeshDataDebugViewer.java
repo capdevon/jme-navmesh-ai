@@ -33,9 +33,9 @@ import com.jme3.util.BufferUtils;
 public class MeshDataDebugViewer {
 	
     // Asset manager
-    private AssetManager assetManager;
+    protected AssetManager assetManager;
     // Node for attaching debug geometries
-    private Node debugNode = new Node("MeshDataDebugViewer");
+    public Node debugNode = new Node("MeshDataDebugViewer");
 
     public MeshDataDebugViewer(AssetManager assetManager) {
         this.assetManager = assetManager;
