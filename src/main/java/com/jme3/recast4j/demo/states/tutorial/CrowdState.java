@@ -62,8 +62,6 @@ import org.recast4j.recast.RecastBuilderConfig;
 import org.recast4j.recast.RecastConfig;
 import org.recast4j.recast.RecastVectors;
 import org.recast4j.recast.geom.InputGeomProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -77,13 +75,12 @@ import com.jme3.math.Vector3f;
 import com.jme3.recast4j.Detour.Crowd.Crowd;
 import com.jme3.recast4j.Detour.Crowd.MovementApplicationType;
 import com.jme3.recast4j.Detour.Crowd.Impl.CrowdManagerAppState;
-import com.jme3.recast4j.Recast.DefaultGeomProviderBuilder;
+import com.jme3.recast4j.Recast.GeometryProviderBuilder;
 import com.jme3.recast4j.Recast.NavMeshDataCreateParamsBuilder;
 import com.jme3.recast4j.Recast.RecastBuilderConfigBuilder;
 import com.jme3.recast4j.Recast.RecastConfigBuilder;
 import com.jme3.recast4j.Recast.Utils.RecastUtils;
 import com.jme3.recast4j.demo.controls.CrowdDebugControl;
-import com.jme3.recast4j.demo.states.CrowdBuilderState;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
@@ -120,7 +117,7 @@ public class CrowdState extends BaseAppState {
         Geometry boxGeo = createFloor();
         
         //Step 1. Gather our geometry.
-        InputGeomProvider geomProvider = new DefaultGeomProviderBuilder(boxGeo).build();
+        InputGeomProvider geomProvider = new GeometryProviderBuilder(boxGeo).build();
         
         //Step 2. Create a Recast configuration object.
         RecastConfigBuilder builder = new RecastConfigBuilder();
@@ -167,7 +164,6 @@ public class CrowdState extends BaseAppState {
                 paramBuilder.withPolyFlags(i, POLYFLAGS_WALK | POLYFLAGS_DOOR);
             }
         }
-        
         //Build the parameter object. 
         NavMeshDataCreateParams params = paramBuilder.build(builderCfg);
         //Step 4. Generate MeshData using our parameters object.
@@ -199,7 +195,7 @@ public class CrowdState extends BaseAppState {
         Geometry boxGeo = createFloor();
         
         //Step 1. Gather our geometry.
-        InputGeomProvider geomProvider = new DefaultGeomProviderBuilder(boxGeo).build();
+        InputGeomProvider geomProvider = new GeometryProviderBuilder(boxGeo).build();
         
         //Step 2. Create a Recast configuration object.
         RecastConfigBuilder builder = new RecastConfigBuilder();
@@ -239,58 +235,58 @@ public class CrowdState extends BaseAppState {
         NavMesh navMesh = new NavMesh(navMeshParams, cfg.maxVertsPerPoly);
         
         //Add tiles to nav mesh
-		for (int y = 0; y < th; y++) {
-			for (int x = 0; x < tw; x++) {
-				PolyMesh pmesh = rcResult[x][y].getMesh();
-				if (pmesh.npolys == 0) {
-					continue;
-				}
+        for (int y = 0; y < th; y++) {
+            for (int x = 0; x < tw; x++) {
+                PolyMesh pmesh = rcResult[x][y].getMesh();
+                if (pmesh.npolys == 0) {
+                    continue;
+                }
 
-				// Update poly flags from areas.
-				for (int i = 0; i < pmesh.npolys; ++i) {
-					if (pmesh.areas[i] == POLYAREA_TYPE_GROUND 
-							|| pmesh.areas[i] == POLYAREA_TYPE_GRASS
-							|| pmesh.areas[i] == POLYAREA_TYPE_ROAD) {
-						pmesh.flags[i] = POLYFLAGS_WALK;
-					} else if (pmesh.areas[i] == POLYAREA_TYPE_WATER) {
-						pmesh.flags[i] = POLYFLAGS_SWIM;
-					} else if (pmesh.areas[i] == POLYAREA_TYPE_DOOR) {
-						pmesh.flags[i] = POLYFLAGS_WALK | POLYFLAGS_DOOR;
-					}
-					if (pmesh.areas[i] > 0) {
-						pmesh.areas[i]--;
-					}
-				}
-				// Create empty parameters object to set params.
-				NavMeshDataCreateParams params = new NavMeshDataCreateParams();
-				params.verts = pmesh.verts;
-				params.vertCount = pmesh.nverts;
-				params.polys = pmesh.polys;
-				params.polyAreas = pmesh.areas;
-				params.polyFlags = pmesh.flags;
-				params.polyCount = pmesh.npolys;
-				params.nvp = pmesh.nvp;
-				// Save detail mesh data.
-				PolyMeshDetail dmesh = rcResult[x][y].getMeshDetail();
-				params.detailMeshes = dmesh.meshes;
-				params.detailVerts = dmesh.verts;
-				params.detailVertsCount = dmesh.nverts;
-				params.detailTris = dmesh.tris;
-				params.detailTriCount = dmesh.ntris;
-				params.walkableHeight = agentHeight;
-				params.walkableRadius = agentRadius;
-				params.walkableClimb = agentMaxClimb;
-				params.bmin = pmesh.bmin;
-				params.bmax = pmesh.bmax;
-				params.cs = cfg.cs;
-				params.ch = cfg.ch;
-				params.tileX = x;
-				params.tileY = y;
-				params.buildBvTree = true;
-				// add tile to navMesh.
-				navMesh.addTile(NavMeshBuilder.createNavMeshData(params), 0, 0);
-			}
-		}
+                // Update poly flags from areas.
+                for (int i = 0; i < pmesh.npolys; ++i) {
+                    if (pmesh.areas[i] == POLYAREA_TYPE_GROUND ||
+                        pmesh.areas[i] == POLYAREA_TYPE_GRASS ||
+                        pmesh.areas[i] == POLYAREA_TYPE_ROAD) {
+                        pmesh.flags[i] = POLYFLAGS_WALK;
+                    } else if (pmesh.areas[i] == POLYAREA_TYPE_WATER) {
+                        pmesh.flags[i] = POLYFLAGS_SWIM;
+                    } else if (pmesh.areas[i] == POLYAREA_TYPE_DOOR) {
+                        pmesh.flags[i] = POLYFLAGS_WALK | POLYFLAGS_DOOR;
+                    }
+                    if (pmesh.areas[i] > 0) {
+                        pmesh.areas[i]--;
+                    }
+                }
+                // Create empty parameters object to set params.
+                NavMeshDataCreateParams params = new NavMeshDataCreateParams();
+                params.verts = pmesh.verts;
+                params.vertCount = pmesh.nverts;
+                params.polys = pmesh.polys;
+                params.polyAreas = pmesh.areas;
+                params.polyFlags = pmesh.flags;
+                params.polyCount = pmesh.npolys;
+                params.nvp = pmesh.nvp;
+                // Save detail mesh data.
+                PolyMeshDetail dmesh = rcResult[x][y].getMeshDetail();
+                params.detailMeshes = dmesh.meshes;
+                params.detailVerts = dmesh.verts;
+                params.detailVertsCount = dmesh.nverts;
+                params.detailTris = dmesh.tris;
+                params.detailTriCount = dmesh.ntris;
+                params.walkableHeight = agentHeight;
+                params.walkableRadius = agentRadius;
+                params.walkableClimb = agentMaxClimb;
+                params.bmin = pmesh.bmin;
+                params.bmax = pmesh.bmax;
+                params.cs = cfg.cs;
+                params.ch = cfg.ch;
+                params.tileX = x;
+                params.tileY = y;
+                params.buildBvTree = true;
+                // add tile to navMesh.
+                navMesh.addTile(NavMeshBuilder.createNavMeshData(params), 0, 0);
+            }
+        }
         
         try {
             //Native format using tiles.
