@@ -1,56 +1,34 @@
-/*
- * The MIT License
- *
- * Copyright 2019 .
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * MODELS/DUNE.J3O:
- * Converted from http://quadropolis.us/node/2584 [Public Domain according to the Tags of this Map]
- */
-
 package com.jme3.recast4j.demo;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.recast4j.detour.OffMeshConnection;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import org.recast4j.recast.AreaModification;
 import org.recast4j.recast.ConvexVolume;
 import org.recast4j.recast.RecastVectors;
 import org.recast4j.recast.geom.InputGeomProvider;
 import org.recast4j.recast.geom.TriMesh;
 
+import com.jme3.recast4j.Recast.OffMeshConnection;
+
 /**
  *
- * @author Robert
+ * @author capdevon
  */
 public class JmeInputGeomProvider implements InputGeomProvider {
+	
+	public final float[] vertices;
+	public final int[] faces;
+	public final float[] normals;
 
-    private final List<ConvexVolume> volumes = new ArrayList<>();
-    private final List<OffMeshConnection> listOffMeshCons = new ArrayList<>();
-    private final List<Modification> listModifications = new ArrayList<>();
-    private final float[] vertices;
-    private final int[] faces;
-    private final float[] normals;
-    private final float[] bmin;
-    private final float[] bmax;
+    final float[] bmin;
+    final float[] bmax;
+    final List<ConvexVolume> convexVolumes = new ArrayList<>();
+    final List<OffMeshConnection> offMeshConnections = new ArrayList<>();
+    final List<Modification> listModifications = new ArrayList<>();
 
     /**
      * Constructor.
@@ -111,7 +89,7 @@ public class JmeInputGeomProvider implements InputGeomProvider {
 
     @Override
     public List<ConvexVolume> convexVolumes() {
-        return volumes;
+        return convexVolumes;
     }
     
     public void addConvexVolume(float[] verts, float minh, float maxh, AreaModification areaMod) {
@@ -120,7 +98,11 @@ public class JmeInputGeomProvider implements InputGeomProvider {
         vol.hmax = maxh;
         vol.verts = verts;
         vol.areaMod = areaMod;
-        volumes.add(vol);
+        convexVolumes.add(vol);
+    }
+    
+    public void clearConvexVolumes() {
+    	convexVolumes.clear();
     }
 
     @Override
@@ -150,8 +132,8 @@ public class JmeInputGeomProvider implements InputGeomProvider {
             }
         }
     }
-
-    public List < Modification > getListMods() {
+    
+    public List<Modification> getListMods() {
         return this.listModifications;
     }
 
@@ -159,19 +141,27 @@ public class JmeInputGeomProvider implements InputGeomProvider {
         this.listModifications.add(mod);
     }
 
-    public List < org.recast4j.detour.OffMeshConnection > getListOffMeshCons() {
-        return listOffMeshCons;
+//    public void addOffMeshCon(float[] start, float[] end, float radius, int bidir, int id) {
+//        org.recast4j.detour.OffMeshConnection con = new org.recast4j.detour.OffMeshConnection();
+//        float[] pos = new float[6];
+//        System.arraycopy(start, 0, pos, 0, start.length);
+//        System.arraycopy(end, 0, pos, 3, end.length);
+//        con.pos = pos;
+//        con.rad = radius;
+//        con.flags = bidir;
+//        con.userId = id;
+//        offMeshConnections.add(con);
+//    }
+    
+    public List<OffMeshConnection> getOffMeshConnections() {
+        return offMeshConnections;
     }
 
-    public void addOffMeshCon(float[] start, float[] end, float radius, int bidir, int id) {
-        org.recast4j.detour.OffMeshConnection con = new org.recast4j.detour.OffMeshConnection();
-        float[] pos = new float[6];
-        System.arraycopy(start, 0, pos, 0, start.length);
-        System.arraycopy(end, 0, pos, 3, end.length);
-        con.pos = pos;
-        con.rad = radius;
-        con.flags = bidir;
-        con.userId = id;
-        listOffMeshCons.add(con);
+    public void addOffMeshConnection(float[] start, float[] end, float radius, boolean bidir, int area, int flags, int userId) {
+        offMeshConnections.add(new OffMeshConnection(start, end, radius, bidir, area, flags, userId));
+    }
+
+    public void removeOffMeshConnections(Predicate<OffMeshConnection> filter) {
+        offMeshConnections.retainAll(offMeshConnections.stream().filter(c -> !filter.test(c)).collect(Collectors.toList()));
     }
 }
