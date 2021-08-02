@@ -30,14 +30,14 @@ import org.recast4j.recast.RecastBuilderConfig;
 
 public class NavMeshDataCreateParamsBuilder {
 	
-    NavMeshDataCreateParams params;
-    PolyMesh m_pmesh;
-    PolyMeshDetail m_dmesh;
+    protected NavMeshDataCreateParams params;
+    protected PolyMesh m_pmesh;
+    protected PolyMeshDetail m_dmesh;
 
-    public NavMeshDataCreateParamsBuilder(RecastBuilder.RecastBuilderResult result) {
+    public NavMeshDataCreateParamsBuilder(RecastBuilder.RecastBuilderResult rcResult) {
         params = new NavMeshDataCreateParams();
-        m_pmesh = result.getMesh();
-        m_dmesh = result.getMeshDetail();
+        m_pmesh = rcResult.getMesh();
+        m_dmesh = rcResult.getMeshDetail();
     }
 
     /**
@@ -99,7 +99,7 @@ public class NavMeshDataCreateParamsBuilder {
         return this;
     }
 
-    public NavMeshDataCreateParams build(RecastBuilderConfig rbc, OffMeshConnection... connections) {
+    public NavMeshDataCreateParams build(RecastBuilderConfig builderCfg, OffMeshConnection...connections) {
         params.verts = m_pmesh.verts;
         params.vertCount = m_pmesh.nverts;
         params.polys = m_pmesh.polys;
@@ -108,10 +108,10 @@ public class NavMeshDataCreateParamsBuilder {
         params.polyCount = m_pmesh.npolys;
         params.nvp = m_pmesh.nvp;
 
-        if (rbc.buildMeshDetail) {
+        if (builderCfg.buildMeshDetail) {
             if (m_dmesh == null) {
                 throw new IllegalStateException("Detail Mesh couldn't be built, this is a sign that the simple " +
-                        "mesh didn't consist of any polygons/verts");
+                    "mesh didn't consist of any polygons/verts");
             }
             params.detailMeshes = m_dmesh.meshes;
             params.detailVerts = m_dmesh.verts;
@@ -120,50 +120,39 @@ public class NavMeshDataCreateParamsBuilder {
             params.detailTriCount = m_dmesh.ntris;
         }
 
-        params.walkableHeight = rbc.cfg.walkableHeight;
-        params.walkableRadius = rbc.cfg.walkableRadius;
-        params.walkableClimb = rbc.cfg.walkableClimb;
+        params.walkableHeight = builderCfg.cfg.walkableHeight;
+        params.walkableRadius = builderCfg.cfg.walkableRadius;
+        params.walkableClimb = builderCfg.cfg.walkableClimb;
         params.bmin = m_pmesh.bmin;
         params.bmax = m_pmesh.bmax;
-        params.cs = rbc.cfg.cs;
-        params.ch = rbc.cfg.ch;
-        params.buildBvTree = true; // @TODO: Why? Documentation says not needed for layered thingy
+        params.cs = builderCfg.cfg.cs;
+        params.ch = builderCfg.cfg.ch;
+        params.buildBvTree = true;
 
         if (connections != null && connections.length > 0) {
-            params.offMeshConCount = connections.length;
-            params.offMeshConAreas = new int[connections.length];
-            params.offMeshConDir = new int[connections.length];
-            params.offMeshConFlags = new int[connections.length];
-            params.offMeshConRad = new float[connections.length];
-            params.offMeshConUserID = new int[connections.length];
-            params.offMeshConVerts = new float[connections.length * 6];
+            params.offMeshConCount 	= connections.length;
+            params.offMeshConVerts 	= new float[connections.length * 6];
+            params.offMeshConRad 	= new float[connections.length];
+            params.offMeshConDir 	= new int[connections.length];
+            params.offMeshConAreas 	= new int[connections.length];
+            params.offMeshConFlags 	= new int[connections.length];
+            params.offMeshConUserID 	= new int[connections.length];
 
             for (int i = 0; i < connections.length; ++i) {
-                OffMeshConnection con = connections[i];
-                params.offMeshConAreas[i] = con.getAreas();
-                params.offMeshConDir[i] = con.getDirection().getVal();
-                params.offMeshConFlags[i] = con.getFlags();
-                params.offMeshConRad[i] = con.getRadius();
-                params.offMeshConUserID[i] = con.getUserId();
-                params.offMeshConVerts[6 * i    ] = con.getA().x;
-                params.offMeshConVerts[6 * i + 1] = con.getA().y;
-                params.offMeshConVerts[6 * i + 2] = con.getA().z;
-                params.offMeshConVerts[6 * i + 3] = con.getB().x;
-                params.offMeshConVerts[6 * i + 4] = con.getB().y;
-                params.offMeshConVerts[6 * i + 5] = con.getB().z;
+                OffMeshConnection offMeshCon = connections[i];
+                for (int j = 0; j < 6; j++) {
+                    params.offMeshConVerts[6 * i + j] = offMeshCon.verts[j];
+                }
+
+                params.offMeshConRad[i] = offMeshCon.radius;
+                params.offMeshConDir[i] = offMeshCon.direction;
+                params.offMeshConAreas[i] = offMeshCon.areas;
+                params.offMeshConFlags[i] = offMeshCon.flags;
+                params.offMeshConUserID[i] = offMeshCon.userID;
             }
         }
-
-        // @TODO: userId, tileX, tileY..
 
         return params;
     }
 
-    public PolyMesh getPolyMesh() {
-        return m_pmesh;
-    }
-
-    public PolyMeshDetail getDetailMesh() {
-        return m_dmesh;
-    }
 }
