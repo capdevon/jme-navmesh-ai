@@ -409,27 +409,27 @@ public class NavState extends AbstractNavState {
                 pathViewer.clearPath();
 
                 if (getCharacters().size() == 1) {
-                	
-                	Node character = getCharacters().get(0);
-                	Vector3f locOnMap = getLocationOnMap();
-                	
-                	System.out.println("Compute path from " + character.getWorldTranslation() + " to " + locOnMap);
-                	boolean success = navTool.computePath(character.getWorldTranslation(), locOnMap);
-                	
-                	if (success) {
+
+                    Node character = getCharacters().get(0);
+                    Vector3f locOnMap = getLocationOnMap();
+
+                    System.out.println("Compute path from " + character.getWorldTranslation() + " to " + locOnMap);
+                    boolean success = navTool.computePath(character.getWorldTranslation(), locOnMap);
+
+                    if (success) {
                         float yOffset = .5f;
                         pathViewer.putBox(ColorRGBA.Green, character.getWorldTranslation().add(0, yOffset, 0));
                         pathViewer.putBox(ColorRGBA.Yellow, locOnMap.add(0, yOffset, 0));
-                        
-                        List<Vector3f> wayPoints = navTool.getPath();
-                    	pathViewer.drawPath(wayPoints);
-                    	
+
+                        List < Vector3f > wayPoints = navTool.getPath();
+                        pathViewer.drawPath(wayPoints);
+
                         character.getControl(PhysicsAgentControl.class).stopFollowing();
                         character.getControl(PhysicsAgentControl.class).followPath(wayPoints);
-                        
-                	} else {
-                		System.err.println("Unable to find path");
-                	}
+
+                    } else {
+                        System.err.println("Unable to find path");
+                    }
                 }
             }
         });
@@ -549,7 +549,7 @@ public class NavState extends AbstractNavState {
         MeshData meshData = NavMeshBuilder.createNavMeshData(params);
 
         //Build the NavMesh.
-        NavMesh navMesh = new NavMesh(meshData, builderCfg.cfg.maxVertsPerPoly, 0);
+        navMesh = new NavMesh(meshData, builderCfg.cfg.maxVertsPerPoly, 0);
         navQuery = new NavMeshQuery(navMesh);
 
         try {
@@ -583,17 +583,17 @@ public class NavState extends AbstractNavState {
         offMeshCon.detachAllChildren();
         
         RecastConfig cfg = new RecastConfigBuilder()
-	            .withAgentRadius(.3f) 			// r
-	            .withAgentHeight(1.7f) 			// h
+	            .withAgentRadius(.3f) 		// r
+	            .withAgentHeight(1.7f) 		// h
 	            //cs and ch should probably be .1 at min.
-	            .withCellSize(.1f) 				// cs=r/3
-	            .withCellHeight(.1f) 			// ch=cs 
+	            .withCellSize(.1f) 			// cs=r/3
+	            .withCellHeight(.1f) 		// ch=cs 
 	            .withAgentMaxClimb(.3f) 		// > 2*ch
 	            .withAgentMaxSlope(45f)
-	            .withEdgeMaxLen(2.4f) 			// r*8
+	            .withEdgeMaxLen(2.4f) 		// r*8
 	            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
-	            .withDetailSampleDistance(8.0f) // increase if exception
-	            .withDetailSampleMaxError(8.0f) // increase if exception
+	            .withDetailSampleDistance(8.0f) 	// increase if exception
+	            .withDetailSampleMaxError(8.0f) 	// increase if exception
 	            .withVertsPerPoly(3)
 	            .build();
         
@@ -670,19 +670,18 @@ public class NavState extends AbstractNavState {
         Context m_ctx = new Context();
 
         //We could use multiple configs here based off area type list.
-        RecastConfigBuilder builder = new RecastConfigBuilder();
-        RecastConfig cfg = builder
-            .withAgentRadius(agentRadius) 		// r
-            .withAgentHeight(agentHeight) 		// h
+        RecastConfig cfg = new RecastConfigBuilder()
+            .withAgentRadius(agentRadius) 	// r
+            .withAgentHeight(agentHeight) 	// h
             //cs and ch should be .1 at min.
-            .withCellSize(0.1f) 			// cs=r/2
-            .withCellHeight(0.1f) 			// ch=cs/2 but not < .1f
+            .withCellSize(0.1f) 		// cs=r/2
+            .withCellHeight(0.1f) 		// ch=cs/2 but not < .1f
             .withAgentMaxClimb(agentMaxClimb) 	// > 2*ch
             .withAgentMaxSlope(45f)
-            .withEdgeMaxLen(2.4f) 			// r*8
+            .withEdgeMaxLen(2.4f) 		// r*8
             .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
-            .withDetailSampleDistance(8.0f) // increase if exception
-            .withDetailSampleMaxError(8.0f) // increase if exception
+            .withDetailSampleDistance(8.0f) 	// increase if exception
+            .withDetailSampleMaxError(8.0f) 	// increase if exception
             .withWalkableAreaMod(AREAMOD_GROUND)
             .withVertsPerPoly(3).build();
 
@@ -829,43 +828,41 @@ public class NavState extends AbstractNavState {
      * offmesh connections. Uses recast4j methods for building.
      */
     private void buildTiledRecast4j() {
-    	
-    	//Build merged mesh.
+
+        //Build merged mesh.
         JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
-        
-		configureAreaMod(geomProvider);
-        
-		setOffMeshConnections();
-        
+
+        configureAreaMod(geomProvider);
+
+        setOffMeshConnections();
+
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
-        
+
         //Step 2. Create a Recast configuration object.
-        RecastConfigBuilder builder = new RecastConfigBuilder();
-        //Instantiate the configuration parameters.
-        RecastConfig cfg = builder
-                .withAgentRadius(.3f)       		// r
-                .withAgentHeight(1.7f)       		// h
-                //cs and ch should be .1 at min.
-                .withCellSize(0.1f)                 // cs=r/2
-                .withCellHeight(0.1f)               // ch=cs/2 but not < .1f
-                .withAgentMaxClimb(.3f)             // > 2*ch
-                .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(3.2f)               // r*8
-                .withEdgeMaxError(1.3f)             // 1.1 - 1.5
-                .withDetailSampleDistance(6.0f)     // increase if exception
-                .withDetailSampleMaxError(6.0f)     // increase if exception
-                .withVertsPerPoly(3)
-                .withTileSize(16)
-                .build(); 
-        
+        RecastConfig cfg = new RecastConfigBuilder()
+            .withAgentRadius(.3f) 		// r
+            .withAgentHeight(1.7f) 		// h
+            //cs and ch should be .1 at min.
+            .withCellSize(0.1f) 		// cs=r/2
+            .withCellHeight(0.1f) 		// ch=cs/2 but not < .1f
+            .withAgentMaxClimb(.3f) 		// > 2*ch
+            .withAgentMaxSlope(45f)
+            .withEdgeMaxLen(3.2f) 		// r*8
+            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+            .withDetailSampleDistance(6.0f) 	// increase if exception
+            .withDetailSampleMaxError(6.0f) 	// increase if exception
+            .withVertsPerPoly(3)
+            .withTileSize(16)
+            .build();
+
         // Build all tiles
         RecastBuilder rcBuilder = new RecastBuilder(new MyBuilderProgressListener());
         RecastBuilderResult[][] rcResult = rcBuilder.buildTiles(geomProvider, cfg, 1);
         // Add tiles to nav mesh
         int tw = rcResult.length;
         int th = rcResult[0].length;
-        
+
         // Create empty nav mesh
         NavMeshParams navMeshParams = new NavMeshParams();
         RecastVectors.copy(navMeshParams.orig, geomProvider.getMeshBoundsMin());
@@ -874,7 +871,7 @@ public class NavState extends AbstractNavState {
         navMeshParams.maxTiles = tw * th;
         navMeshParams.maxPolys = 32768;
         navMesh = new NavMesh(navMeshParams, cfg.maxVertsPerPoly);
-        
+
         for (int y = 0; y < th; y++) {
             for (int x = 0; x < tw; x++) {
                 PolyMesh m_pmesh = rcResult[x][y].getMesh();
@@ -884,17 +881,17 @@ public class NavState extends AbstractNavState {
 
                 // Update obj flags from areas. Including offmesh connections.
                 for (int i = 0; i < m_pmesh.npolys; ++i) {
-                    if (m_pmesh.areas[i] == POLYAREA_TYPE_GROUND
-                    ||  m_pmesh.areas[i] == POLYAREA_TYPE_GRASS
-                    ||  m_pmesh.areas[i] == POLYAREA_TYPE_ROAD) {
+                    if (m_pmesh.areas[i] == POLYAREA_TYPE_GROUND ||
+                        m_pmesh.areas[i] == POLYAREA_TYPE_GRASS ||
+                        m_pmesh.areas[i] == POLYAREA_TYPE_ROAD) {
                         m_pmesh.flags[i] = POLYFLAGS_WALK;
                     } else if (m_pmesh.areas[i] == POLYAREA_TYPE_WATER) {
                         m_pmesh.flags[i] = POLYFLAGS_SWIM;
                     } else if (m_pmesh.areas[i] == POLYAREA_TYPE_DOOR) {
                         m_pmesh.flags[i] = POLYFLAGS_WALK | POLYFLAGS_DOOR;
-                    }                     
+                    }
                 }
-                
+
                 NavMeshDataCreateParams params = new NavMeshDataCreateParams();
                 params.verts = m_pmesh.verts;
                 params.vertCount = m_pmesh.nverts;
@@ -919,14 +916,14 @@ public class NavState extends AbstractNavState {
                 params.tileX = x;
                 params.tileY = y;
                 params.buildBvTree = true;
-                
+
                 MeshData meshData = NavMeshBuilder.createNavMeshData(params);
                 navMesh.addTile(meshData, 0, 0);
             }
         }
-        
+
         navQuery = new NavMeshQuery(navMesh);
-        
+
         /**
          * Process OffMeshConnections. 
          * Basic flow: 
@@ -942,7 +939,7 @@ public class NavState extends AbstractNavState {
             /**
              * If the OffMeshConnection id is 0, there is no paired bone for the
              * link so skip.
-             */            
+             */
             if (next.getValue().userId > 0) {
                 //Create a new filter for findNearestPoly
                 DefaultQueryFilter filter = new DefaultQueryFilter();
@@ -962,23 +959,27 @@ public class NavState extends AbstractNavState {
                 float[] endPos = new float[3];
                 System.arraycopy(next.getValue().pos, 3, endPos, 0, 3);
 
+                float[] extents = new float[] {agentRadius, agentRadius, agentRadius};
+
                 //Find the nearest polys to start/end.
-                Result<FindNearestPolyResult> startPoly = navQuery.findNearestPoly(startPos, new float[] {agentRadius,agentRadius,agentRadius}, filter);
-                Result<FindNearestPolyResult> endPoly = navQuery.findNearestPoly(endPos, new float[] {agentRadius,agentRadius,agentRadius}, filter);
+                Result<FindNearestPolyResult> startPoly = navQuery.findNearestPoly(startPos, extents, filter);
+                Result<FindNearestPolyResult> endPoly = navQuery.findNearestPoly(endPos, extents, filter);
 
                 /**
                  * Note: not isFailure() here, because isSuccess guarantees us, 
                  * that the result isn't "RUNNING", which it could be if we only 
                  * check it's not failure.
                  */
-                if (!startPoly.status.isSuccess() 
-                ||  !endPoly.status.isSuccess() 
-                ||   startPoly.result.getNearestRef() == 0 
-                ||   endPoly.result.getNearestRef() == 0) {
+                if (!startPoly.status.isSuccess() ||
+                    !endPoly.status.isSuccess() ||
+                    startPoly.result.getNearestRef() == 0 ||
+                    endPoly.result.getNearestRef() == 0) {
+                	
                     LOG.error("offmeshCon findNearestPoly unsuccessful or getNearestRef is not > 0.");
                     LOG.error("Link [{}] pos {} id [{}]", next.getKey(), Arrays.toString(next.getValue().pos), next.getValue().userId);
                     LOG.error("findNearestPoly startPoly [{}] getNearestRef [{}]", startPoly.status.isSuccess(), startPoly.result.getNearestRef());
                     LOG.error("findNearestPoly endPoly [{}] getNearestRef [{}].", endPoly.status.isSuccess(), endPoly.result.getNearestRef());
+                    
                 } else {
                     //Get the tile and poly from reference.
                     Result<Tupple2<MeshTile, Poly>> startTileByRef = navMesh.getTileAndPolyByRef(startPoly.result.getNearestRef());
@@ -1033,18 +1034,20 @@ public class NavState extends AbstractNavState {
                         float[] start = startPoly.result.getNearestPos();
                         float[] end = endPoly.result.getNearestPos();
                         //Set the links position array values to nearest.
-                        next.getValue().pos = new float[] { start[0], start[1], start[2], end[0], end[1], end[2] };
+                        next.getValue().pos = new float[] {
+                            start[0], start[1], start[2], end[0], end[1], end[2]
+                        };
                         //Determine what side of the tile the vertx is on.
-                        next.getValue().side = startTile == endTile ? 0xFF
-                                : NavMeshBuilder.classifyOffMeshPoint(new VectorPtr(next.getValue().pos, 3),
-                                        startTile.header.bmin, startTile.header.bmax);
+                        next.getValue().side = startTile == endTile ? 0xFF :
+                            NavMeshBuilder.classifyOffMeshPoint(new VectorPtr(next.getValue().pos, 3),
+                                startTile.header.bmin, startTile.header.bmax);
                         //Create new OffMeshConnection array.
                         if (startTile.offMeshCons == null) {
-                                startTile.offMeshCons = new org.recast4j.detour.OffMeshConnection[1];
+                            startTile.offMeshCons = new org.recast4j.detour.OffMeshConnection[1];
                         } else {
-                                startTile.offMeshCons = Arrays.copyOf(startTile.offMeshCons, startTile.offMeshCons.length + 1);
+                            startTile.offMeshCons = Arrays.copyOf(startTile.offMeshCons, startTile.offMeshCons.length + 1);
                         }
-                        
+
                         //Add this connection.
                         startTile.offMeshCons[startTile.offMeshCons.length - 1] = next.getValue();
                         startTile.header.offMeshConCount++;
@@ -1061,10 +1064,10 @@ public class NavState extends AbstractNavState {
                         MeshData removeTile = navMesh.removeTile(navMesh.getTileRef(startTileByRef.result.first));
                         navMesh.addTile(removeTile, 0, navMesh.getTileRef(startTileByRef.result.first));
                     }
-                }       
+                }
             }
         }
-        
+
         try {
             // Native format using tiles.
             MeshSetWriter msw = new MeshSetWriter();
@@ -1081,57 +1084,56 @@ public class NavState extends AbstractNavState {
             for (int i = 0; i < maxTiles; i++) {
                 MeshData meshData = navMesh.getTile(i).data;
                 if (meshData != null) {
-                	meshDebugViewer.showDebugByArea(meshData, true);
+                    meshDebugViewer.showDebugByArea(meshData, true);
                 }
             }
         } catch (IOException ex) {
             LOG.error("{} {}", NavState.class.getName(), ex);
         }
-    }  
+    }
  
     private void buildTileCache() {
-    	
-    	//Build merged mesh.
+
+        //Build merged mesh.
         JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
-        
-		configureAreaMod(geomProvider);
-        
-        setOffMeshConnections(); 
-        
+
+        configureAreaMod(geomProvider);
+
+        setOffMeshConnections();
+
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
-                
+
         //Step 2. Create a Recast configuration object.
-        RecastConfigBuilder builder = new RecastConfigBuilder();
-        //Instantiate the configuration parameters.
-        RecastConfig rcConfig = builder
-                .withAgentRadius(agentRadius)            // r
-                .withAgentHeight(agentHeight)            // h
-                //cs and ch should be .1 at min.
-                .withCellSize(0.1f)                 // cs=r/2
-                .withCellHeight(0.1f)               // ch=cs/2 but not < .1f
-                .withAgentMaxClimb(agentMaxClimb)        // > 2*ch
-                .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(3.2f)               // r*8
-                .withEdgeMaxError(1.3f)             // 1.1 - 1.5
-                .withDetailSampleDistance(6.0f)     // increase if exception
-                .withDetailSampleMaxError(6.0f)     // increase if exception
-                .withVertsPerPoly(3)
-                .withPartitionType(PartitionType.MONOTONE)
-                .withTileSize(16).build();
+        RecastConfig cfg = new RecastConfigBuilder()
+            .withAgentRadius(agentRadius) 	// r
+            .withAgentHeight(agentHeight) 	// h
+            //cs and ch should be .1 at min.
+            .withCellSize(0.1f) 		// cs=r/2
+            .withCellHeight(0.1f) 		// ch=cs/2 but not < .1f
+            .withAgentMaxClimb(agentMaxClimb) 	// > 2*ch
+            .withAgentMaxSlope(45f)
+            .withEdgeMaxLen(3.2f) 		// r*8
+            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+            .withDetailSampleDistance(6.0f) 	// increase if exception
+            .withDetailSampleMaxError(6.0f) 	// increase if exception
+            .withVertsPerPoly(3)
+            .withPartitionType(PartitionType.MONOTONE)
+            .withTileSize(16)
+            .build();
 
         //Build the tile cache which also builds the navMesh.
-        TileCache tc = getTileCache(geomProvider, rcConfig);    
-            
+        TileCache tc = getTileCache(geomProvider, cfg);
+
         /**
          * Layers represent heights for the tile cache. For example, a bridge
          * with an underpass would have a layer for travel under the bridge and 
          * another for traveling over the bridge.
          */
-        TileLayerBuilder layerBuilder = new TileLayerBuilder(geomProvider, rcConfig);
+        TileLayerBuilder layerBuilder = new TileLayerBuilder(geomProvider, cfg);
 
         List<byte[]> layers = layerBuilder.build(ByteOrder.BIG_ENDIAN, false, 1);
-        
+
         for (byte[] data : layers) {
             try {
                 /**
@@ -1141,15 +1143,15 @@ public class NavState extends AbstractNavState {
                  */
                 long ref = tc.addTile(data, 0);
                 tc.buildNavMeshTile(ref);
-                
+
             } catch (IOException ex) {
                 LOG.error("{} {}" + NavState.class.getName(), ex);
             }
-        }  
-                    
+        }
+
         //Save and read back for testing.
-        TileCacheWriter writer = new TileCacheWriter(); 
-        TileCacheReader reader = new TileCacheReader();  
+        TileCacheWriter writer = new TileCacheWriter();
+        TileCacheReader reader = new TileCacheReader();
 
         try {
             //Write our file.
@@ -1159,7 +1161,7 @@ public class NavState extends AbstractNavState {
 
             //Get the navMesh and build a querry object.
             navMesh = tc.getNavMesh();
-            navQuery = new NavMeshQuery(navMesh); 
+            navQuery = new NavMeshQuery(navMesh);
 
             /**
              * Process OffMeshConnections. Since we are reading this in we do it 
@@ -1178,7 +1180,7 @@ public class NavState extends AbstractNavState {
                 /**
                  * If the OffMeshConnection id is 0, there is no paired bone for the
                  * link so skip.
-                 */            
+                 */
                 if (next.getValue().userId > 0) {
                     //Create a new filter for findNearestPoly
                     DefaultQueryFilter filter = new DefaultQueryFilter();
@@ -1197,24 +1199,28 @@ public class NavState extends AbstractNavState {
                     //Get the end position for the link.
                     float[] endPos = new float[3];
                     System.arraycopy(next.getValue().pos, 3, endPos, 0, 3);
+                    
+                    float[] extents = new float[] {agentRadius, agentRadius, agentRadius};
 
                     //Find the nearest polys to start/end.
-                    Result<FindNearestPolyResult> startPoly = navQuery.findNearestPoly(startPos, new float[] {agentRadius,agentRadius,agentRadius}, filter);
-                    Result<FindNearestPolyResult> endPoly = navQuery.findNearestPoly(endPos, new float[] {agentRadius,agentRadius,agentRadius}, filter);
+                    Result<FindNearestPolyResult> startPoly = navQuery.findNearestPoly(startPos, extents, filter);
+                    Result<FindNearestPolyResult> endPoly = navQuery.findNearestPoly(endPos, extents, filter);
 
                     /**
                      * Note: not isFailure() here, because isSuccess guarantees us, 
                      * that the result isn't "RUNNING", which it could be if we only 
                      * check it's not failure.
                      */
-					if (!startPoly.status.isSuccess() 
-							|| !endPoly.status.isSuccess()
-							|| startPoly.result.getNearestRef() == 0 
-							|| endPoly.result.getNearestRef() == 0) {
+                    if (!startPoly.status.isSuccess() ||
+                        !endPoly.status.isSuccess() ||
+                        startPoly.result.getNearestRef() == 0 ||
+                        endPoly.result.getNearestRef() == 0) {
+                    	
                         LOG.error("offmeshCon findNearestPoly unsuccessful or getNearestRef is not > 0.");
                         LOG.error("Link [{}] pos {} id [{}]", next.getKey(), Arrays.toString(next.getValue().pos), next.getValue().userId);
                         LOG.error("findNearestPoly startPoly [{}] getNearestRef [{}]", startPoly.status.isSuccess(), startPoly.result.getNearestRef());
                         LOG.error("findNearestPoly endPoly [{}] getNearestRef [{}].", endPoly.status.isSuccess(), endPoly.result.getNearestRef());
+                        
                     } else {
                         //Get the tile and poly from reference.
                         Result<Tupple2<MeshTile, Poly>> startTileByRef = navMesh.getTileAndPolyByRef(startPoly.result.getNearestRef());
@@ -1269,17 +1275,19 @@ public class NavState extends AbstractNavState {
                             float[] start = startPoly.result.getNearestPos();
                             float[] end = endPoly.result.getNearestPos();
                             //Set the links position array values to nearest.
-                            next.getValue().pos = new float[] { start[0], start[1], start[2], end[0], end[1], end[2] };
+                            next.getValue().pos = new float[] {
+                                start[0], start[1], start[2], end[0], end[1], end[2]
+                            };
                             //Determine what side of the tile the vertx is on.
-                            next.getValue().side = startTile == endTile ? 0xFF
-                                    : NavMeshBuilder.classifyOffMeshPoint(new VectorPtr(next.getValue().pos, 3),
-                                            startTile.header.bmin, startTile.header.bmax);
+                            next.getValue().side = startTile == endTile ? 0xFF :
+                                NavMeshBuilder.classifyOffMeshPoint(new VectorPtr(next.getValue().pos, 3),
+                                    startTile.header.bmin, startTile.header.bmax);
                             //Create new OffMeshConnection array.
-							if (startTile.offMeshCons == null) {
-								startTile.offMeshCons = new org.recast4j.detour.OffMeshConnection[1];
-							} else {
-								startTile.offMeshCons = Arrays.copyOf(startTile.offMeshCons, startTile.offMeshCons.length + 1);
-							}
+                            if (startTile.offMeshCons == null) {
+                                startTile.offMeshCons = new org.recast4j.detour.OffMeshConnection[1];
+                            } else {
+                                startTile.offMeshCons = Arrays.copyOf(startTile.offMeshCons, startTile.offMeshCons.length + 1);
+                            }
 
                             //Add this connection.
                             startTile.offMeshCons[startTile.offMeshCons.length - 1] = next.getValue();
@@ -1295,12 +1303,12 @@ public class NavState extends AbstractNavState {
                              * is : edges + portals * 2 + off-mesh con * 2.
                              */
                             MeshData removeTile = navMesh.removeTile(navMesh.getTileRef(startTileByRef.result.first));
-                            navMesh.addTile(removeTile, 0, navMesh.getTileRef(startTileByRef.result.first));                      
+                            navMesh.addTile(removeTile, 0, navMesh.getTileRef(startTileByRef.result.first));
                         }
-                    }       
+                    }
                 }
             }
-            
+
             int maxTiles = tc.getTileCount();
 
             //Tile data can be null since maxTiles is not an exact science.
@@ -1308,7 +1316,7 @@ public class NavState extends AbstractNavState {
                 MeshTile tile = tc.getNavMesh().getTile(i);
                 MeshData meshData = tile.data;
                 if (meshData != null) {
-                	meshDebugViewer.showDebugByArea(meshData, true);
+                    meshDebugViewer.showDebugByArea(meshData, true);
                 }
             }
         } catch (IOException ex) {
