@@ -99,7 +99,7 @@ public class NavMeshDataCreateParamsBuilder {
         return this;
     }
 
-    public NavMeshDataCreateParams build(RecastBuilderConfig builderCfg, OffMeshConnection...connections) {
+    public NavMeshDataCreateParams build(RecastBuilderConfig builderCfg, OffMeshLink... connections) {
         params.verts = m_pmesh.verts;
         params.vertCount = m_pmesh.nverts;
         params.polys = m_pmesh.polys;
@@ -139,7 +139,7 @@ public class NavMeshDataCreateParamsBuilder {
             params.offMeshConUserID 	= new int[connections.length];
 
             for (int i = 0; i < connections.length; ++i) {
-                OffMeshConnection offMeshCon = connections[i];
+                OffMeshLink offMeshCon = connections[i];
                 for (int j = 0; j < 6; j++) {
                     params.offMeshConVerts[6 * i + j] = offMeshCon.verts[j];
                 }
