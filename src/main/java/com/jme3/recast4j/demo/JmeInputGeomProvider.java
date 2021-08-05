@@ -12,22 +12,22 @@ import org.recast4j.recast.RecastVectors;
 import org.recast4j.recast.geom.InputGeomProvider;
 import org.recast4j.recast.geom.TriMesh;
 
-import com.jme3.recast4j.Recast.OffMeshConnection;
+import com.jme3.recast4j.Recast.OffMeshLink;
 
 /**
  *
- * @author capdevon
+ * @author Robert
  */
 public class JmeInputGeomProvider implements InputGeomProvider {
 	
-	public final float[] vertices;
-	public final int[] faces;
-	public final float[] normals;
+    public final float[] vertices;
+    public final int[] faces;
+    public final float[] normals;
 
     final float[] bmin;
     final float[] bmax;
     final List<ConvexVolume> convexVolumes = new ArrayList<>();
-    final List<OffMeshConnection> offMeshConnections = new ArrayList<>();
+    final List<OffMeshLink> offMeshConnections = new ArrayList<>();
     final List<Modification> listModifications = new ArrayList<>();
 
     /**
@@ -153,15 +153,15 @@ public class JmeInputGeomProvider implements InputGeomProvider {
 //        offMeshConnections.add(con);
 //    }
     
-    public List<OffMeshConnection> getOffMeshConnections() {
+    public List<OffMeshLink> getOffMeshConnections() {
         return offMeshConnections;
     }
 
-    public void addOffMeshConnection(float[] start, float[] end, float radius, boolean bidir, int area, int flags, int userId) {
-        offMeshConnections.add(new OffMeshConnection(start, end, radius, bidir, area, flags, userId));
+    public void addOffMeshConnection(OffMeshLink link) {
+        offMeshConnections.add(link);
     }
 
-    public void removeOffMeshConnections(Predicate<OffMeshConnection> filter) {
+    public void removeOffMeshConnections(Predicate<OffMeshLink> filter) {
         offMeshConnections.retainAll(offMeshConnections.stream().filter(c -> !filter.test(c)).collect(Collectors.toList()));
     }
 }
