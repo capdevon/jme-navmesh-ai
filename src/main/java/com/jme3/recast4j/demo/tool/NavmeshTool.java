@@ -126,6 +126,38 @@ public class NavmeshTool {
 
         return foundPath;
     }
+    
+    /**
+	 * Finds the closest point on NavMesh within specified range.
+	 * 
+	 * @param center - The origin of the sample query.
+	 * @param range  - Sample within this distance from center.
+	 * @param result - Holds the resulting location.
+	 * @return True if a nearest point is found.
+	 */
+	public boolean randomPoint(Vector3f center, float range, Vector3f result) {
+
+		boolean found = false;
+		result.set(Vector3f.ZERO);
+		
+		float[] m_spos = center.toArray(null);
+		long m_startRef = navQuery.findNearestPoly(m_spos, m_polyPickExt, m_filter).result.getNearestRef();
+
+		if (m_startRef != 0) {
+			for (int i = 0; i < 30; i++) {
+				Result<FindRandomPointResult> rpResult = navQuery.findRandomPointAroundCircle(m_startRef, m_spos, 
+						range, m_filter, new FRand());
+				
+				if (rpResult.succeeded()) {
+					float[] pt = rpResult.result.getRandomPt();
+					result.set(pt[0], pt[1], pt[2]);
+					found = true;
+				}
+			}
+		} 
+		
+		return found;
+	}
 
     public void setPolyPickExtents(float[] extents) {
         this.m_polyPickExt = extents;
