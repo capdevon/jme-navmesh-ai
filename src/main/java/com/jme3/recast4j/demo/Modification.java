@@ -24,7 +24,6 @@
  * MODELS/DUNE.J3O:
  * Converted from http://quadropolis.us/node/2584 [Public Domain according to the Tags of this Map]
  */
-
 package com.jme3.recast4j.demo;
 
 import org.recast4j.recast.AreaModification;
@@ -37,27 +36,27 @@ import org.recast4j.recast.AreaModification;
  * @author Robert
  */
 public class Modification {
-	
-	private int geomLength;
-	private AreaModification mod;
 
-	public Modification(int geomLength, AreaModification mod) {
-		this.geomLength = geomLength;
-		this.mod = mod;
-	}
+    private int geomLength;
+    private AreaModification areaMod;
 
-	/**
-	 * @return the geomLength
-	 */
-	public int getGeomLength() {
-		return geomLength;
-	}
+    public Modification(int geomLength, AreaModification mod) {
+        this.geomLength = geomLength;
+        this.areaMod = mod;
+    }
 
-	/**
-	 * @return The AreaModification.
-	 */
-	public AreaModification getMod() {
-		return mod;
-	}
+    /**
+     * @return the geomLength
+     */
+    public int getGeomLength() {
+        return geomLength;
+    }
+
+    /**
+     * @return The AreaModification.
+     */
+    public AreaModification getMod() {
+        return areaMod;
+    }
 
 }
