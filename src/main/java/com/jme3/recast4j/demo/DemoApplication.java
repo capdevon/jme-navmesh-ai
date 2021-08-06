@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import com.jme3.animation.SkeletonControl;
 import com.jme3.app.DebugKeysAppState;
-import com.jme3.app.LostFocusBehavior;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.audio.AudioListenerState;
@@ -41,7 +40,6 @@ import com.jme3.recast4j.demo.utils.GameObject;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.shadow.DirectionalLightShadowFilter;
 import com.jme3.system.AppSettings;
@@ -102,7 +100,7 @@ public class DemoApplication extends SimpleApplication {
     }
     
     private void initPhysics() {
-   	 bullet = new BulletAppState();
+   	 	bullet = new BulletAppState();
         // Performance is better when threading in parallel
         bullet.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
         stateManager.attach(bullet);
@@ -209,11 +207,11 @@ public class DemoApplication extends SimpleApplication {
          * into their final position. If you apply location in blender, then 
          * findPolysAroundCircle would start the search from (0,0,0).
          */
-        loadDoor(new Vector3f(-.39f, 0f, -10.03f), null);
-        loadDoor(new Vector3f(-15.49f, 2.7f, -2.23f), null);
-        loadDoor(new Vector3f(-21.49f, 2.7f, -2.23f), null);
-        loadDoor(new Vector3f(-22.51f, 2.7f, 2.23f), YAW180);
-        loadDoor(new Vector3f(-16.51f, 2.7f, 2.23f), YAW180);
+        loadDoor(1, new Vector3f(-.39f, 0f, -10.03f), null);
+        loadDoor(2, new Vector3f(-15.49f, 2.7f, -2.23f), null);
+        loadDoor(3, new Vector3f(-21.49f, 2.7f, -2.23f), null);
+        loadDoor(4, new Vector3f(-22.51f, 2.7f, 2.23f), YAW180);
+        loadDoor(5, new Vector3f(-16.51f, 2.7f, 2.23f), YAW180);
     }
 
     /**
@@ -223,7 +221,7 @@ public class DemoApplication extends SimpleApplication {
      * @param rotation The doors rotation. A null value will keep the doors 
      * current rotation.
      */
-    private void loadDoor(Vector3f location, Quaternion rotation) {
+    private void loadDoor(int id, Vector3f location, Quaternion rotation) {
         
         /**
          * gltf loader test. This works but gltf doesn't when it comes to 
@@ -236,7 +234,7 @@ public class DemoApplication extends SimpleApplication {
         
         //Load a door.
         Node door = (Node) assetManager.loadModel("Models/Level/Door.mesh.j3o");
-        door.setName("door");
+        door.setName("door-" + id);
         
         SkeletonControl skelControl = GameObject.getComponentInChild(door, SkeletonControl.class);
         /**
@@ -246,20 +244,19 @@ public class DemoApplication extends SimpleApplication {
          */
         if (skelControl != null) {
             //Create a box shape with the same dimensions as the door.
-			BoundingBox bbox = (BoundingBox) door.getWorldBound();
-			Box boxMesh = new Box(bbox.getXExtent(), bbox.getYExtent(), bbox.getZExtent());
+            BoundingBox bbox = (BoundingBox) door.getWorldBound();
+            Box boxMesh = new Box(bbox.getXExtent(), bbox.getYExtent(), bbox.getZExtent());
 
             //The geometry for the door.
-            Geometry boxGeo = new Geometry("hitBox", boxMesh); 
+            Geometry boxGeo = new Geometry("hitBox-" + id, boxMesh); 
 
             //The material.
-            Material boxMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md"); 
-            boxMat.setBoolean("UseMaterialColors", true); 
-            boxMat.setColor("Ambient", ColorRGBA.Green); 
-            boxMat.setColor("Diffuse", ColorRGBA.Green); 
+            Material boxMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"); 
+            boxMat.setColor("Color", ColorRGBA.Green);
+            boxMat.getAdditionalRenderState().setWireframe(true);
             boxGeo.setMaterial(boxMat); 
             //Toggle visibility.
-            boxGeo.setCullHint(Spatial.CullHint.Always);
+            //boxGeo.setCullHint(Spatial.CullHint.Always);
 
             //Center hitBox to door.
             boxGeo.setLocalTranslation(bbox.getCenter());
@@ -270,7 +267,7 @@ public class DemoApplication extends SimpleApplication {
              * keep the searches in MouseEventControl localized to this 
              * door.
              */
-            Node collisionNode = new Node("collisionNode");
+            Node collisionNode = new Node("collisionNode-" + id);
             collisionNode.attachChild(boxGeo);
 
             String rootBone = skelControl.getSkeleton().getBone(0).getName();
