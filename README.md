@@ -53,7 +53,7 @@ dependencies {
 
 # 
 Solo NavMesh
-![Screenshot](images/buildSoloModified.jpg)
+![Screenshot](images/buildSoloModified-2.jpg)
 Tile NavMesh
 ![Screenshot](images/buildTileCache.jpg)
 
