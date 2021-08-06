@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2019 .
+ * Copyright 2021.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
  * MODELS/DUNE.J3O:
  * Converted from http://quadropolis.us/node/2584 [Public Domain according to the Tags of this Map]
  */
-
 package com.jme3.recast4j.demo;
 
 import java.nio.ByteOrder;
@@ -50,75 +49,75 @@ import org.recast4j.recast.RecastConfig;
  */
 public class TileLayerBuilder extends AbstractTileLayersBuilder {
 
-	private RecastConfig rcConfig;
-	protected final JmeInputGeomProvider geomProvider;
-	private final int tw;
-	private final int th;
+    protected final JmeInputGeomProvider geomProvider;
+    private RecastConfig rcConfig;
+    private final int tw;
+    private final int th;
 
-	public TileLayerBuilder(JmeInputGeomProvider geomProvider, RecastConfig rcConfig) {
-		this.geomProvider = geomProvider;
-		this.rcConfig = rcConfig;
-		float[] bmin = geomProvider.getMeshBoundsMin();
-		float[] bmax = geomProvider.getMeshBoundsMax();
-		int[] twh = Recast.calcTileCount(bmin, bmax, rcConfig.cs, rcConfig.tileSize);
-		tw = twh[0];
-		th = twh[1];
-	}
+    public TileLayerBuilder(JmeInputGeomProvider geomProvider, RecastConfig rcConfig) {
+        this.geomProvider = geomProvider;
+        this.rcConfig = rcConfig;
+        float[] bmin = geomProvider.getMeshBoundsMin();
+        float[] bmax = geomProvider.getMeshBoundsMax();
+        int[] twh = Recast.calcTileCount(bmin, bmax, rcConfig.cs, rcConfig.tileSize);
+        tw = twh[0];
+        th = twh[1];
+    }
 
-	public List<byte[]> build(ByteOrder order, boolean cCompatibility, int threads) {
-		return build(order, cCompatibility, threads, tw, th);
-	}
+    public List<byte[]> build(ByteOrder order, boolean cCompatibility, int threads) {
+        return build(order, cCompatibility, threads, tw, th);
+    }
 
-	public int getTw() {
-		return tw;
-	}
+    public int getTw() {
+        return tw;
+    }
 
-	public int getTh() {
-		return th;
-	}
+    public int getTh() {
+        return th;
+    }
 
-	@Override
-	public List<byte[]> build(int tx, int ty, ByteOrder order, boolean cCompatibility) {
-		HeightfieldLayerSet lset = getHeightfieldSet(tx, ty);
+    @Override
+    public List<byte[]> build(int tx, int ty, ByteOrder order, boolean cCompatibility) {
+        HeightfieldLayerSet lset = getHeightfieldSet(tx, ty);
 
-		List<byte[]> result = new ArrayList<>();
-		if (lset != null) {
-			TileCacheBuilder builder = new TileCacheBuilder();
-			for (int i = 0; i < lset.layers.length; ++i) {
-				HeightfieldLayer layer = lset.layers[i];
+        List<byte[]> result = new ArrayList<>();
+        if (lset != null) {
+            TileCacheBuilder builder = new TileCacheBuilder();
+            for (int i = 0; i < lset.layers.length; ++i) {
+                HeightfieldLayer layer = lset.layers[i];
 
-				// Store header
-				TileCacheLayerHeader header = new TileCacheLayerHeader();
-				header.magic = TileCacheLayerHeader.DT_TILECACHE_MAGIC;
-				header.version = TileCacheLayerHeader.DT_TILECACHE_VERSION;
+                // Store header
+                TileCacheLayerHeader header = new TileCacheLayerHeader();
+                header.magic = TileCacheLayerHeader.DT_TILECACHE_MAGIC;
+                header.version = TileCacheLayerHeader.DT_TILECACHE_VERSION;
 
-				// Tile layer location in the navmesh.
-				header.tx = tx;
-				header.ty = ty;
-				header.tlayer = i;
-				DetourCommon.vCopy(header.bmin, layer.bmin);
-				DetourCommon.vCopy(header.bmax, layer.bmax);
+                // Tile layer location in the navmesh.
+                header.tx = tx;
+                header.ty = ty;
+                header.tlayer = i;
+                DetourCommon.vCopy(header.bmin, layer.bmin);
+                DetourCommon.vCopy(header.bmax, layer.bmax);
 
-				// Tile info.
-				header.width = layer.width;
-				header.height = layer.height;
-				header.minx = layer.minx;
-				header.maxx = layer.maxx;
-				header.miny = layer.miny;
-				header.maxy = layer.maxy;
-				header.hmin = layer.hmin;
-				header.hmax = layer.hmax;
-				result.add(builder.compressTileCacheLayer(header, layer.heights, layer.areas, layer.cons, order, cCompatibility));
-			}
-		}
-		return result;
-	}
+                // Tile info.
+                header.width = layer.width;
+                header.height = layer.height;
+                header.minx = layer.minx;
+                header.maxx = layer.maxx;
+                header.miny = layer.miny;
+                header.maxy = layer.maxy;
+                header.hmin = layer.hmin;
+                header.hmax = layer.hmax;
+                result.add(builder.compressTileCacheLayer(header, layer.heights, layer.areas, layer.cons, order, cCompatibility));
+            }
+        }
+        return result;
+    }
 
-	protected HeightfieldLayerSet getHeightfieldSet(int tx, int ty) {
-		RecastBuilder rcBuilder = new RecastBuilder();
-		float[] bmin = geomProvider.getMeshBoundsMin();
-		float[] bmax = geomProvider.getMeshBoundsMax();
-		RecastBuilderConfig cfg = new RecastBuilderConfig(rcConfig, bmin, bmax, tx, ty, true);
-		return rcBuilder.buildLayers(geomProvider, cfg);
-	}
+    protected HeightfieldLayerSet getHeightfieldSet(int tx, int ty) {
+        JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
+        float[] bmin = geomProvider.getMeshBoundsMin();
+        float[] bmax = geomProvider.getMeshBoundsMax();
+        RecastBuilderConfig cfg = new RecastBuilderConfig(rcConfig, bmin, bmax, tx, ty, true);
+        return rcBuilder.buildLayers(geomProvider, cfg);
+    }
 }
