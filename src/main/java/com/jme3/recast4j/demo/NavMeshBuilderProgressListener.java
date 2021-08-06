@@ -33,7 +33,7 @@ import org.recast4j.recast.RecastBuilder.RecastBuilderProgressListener;
 /**
  * Listener for build process of tiled builds.
  */
-public class MyBuilderProgressListener implements RecastBuilderProgressListener {
+public class NavMeshBuilderProgressListener implements RecastBuilderProgressListener {
 
     private long time = System.nanoTime();
     private long elapsedTime;
