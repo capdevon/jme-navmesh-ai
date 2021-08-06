@@ -48,10 +48,10 @@ import jme3tools.optimize.GeometryBatchFactory;
  */
 public class GeometryProviderBuilder {
 
-	private static final Predicate<Spatial> DefaultFilter = sp -> sp.getUserData("no_collision") == null;
-	
-	private List<Geometry> geometryList;
-	private Mesh mesh;
+    private static final Predicate<Spatial> DefaultFilter = sp -> sp.getUserData("no_collision") == null;
+
+    private List<Geometry> geometryList;
+    private Mesh mesh;
 	
     /**
      * Provide this Mesh to the Builder.
