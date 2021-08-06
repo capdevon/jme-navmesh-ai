@@ -24,34 +24,34 @@ import com.jme3.scene.Node;
  */
 public class SimpleNavMeshBuilder {
 
-	/**
-	 * 
-	 * @param node
-	 * @param cfg
-	 * @return
-	 */
-	public static NavMesh buildSolo(Node node, RecastConfig cfg) {
-		// Build merged mesh.
-		InputGeomProvider geomProvider = new GeometryProviderBuilder(node).build();
+    /**
+     * 
+     * @param node
+     * @param cfg
+     * @return
+     */
+    public static NavMesh buildSolo(Node node, RecastConfig cfg) {
+        // Build merged mesh.
+        InputGeomProvider geomProvider = new GeometryProviderBuilder(node).build();
 
-		// Create a RecastBuilderConfig builder with world bounds of our geometry.
-		RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, geomProvider.getMeshBoundsMin(), geomProvider.getMeshBoundsMax());
+        // Create a RecastBuilderConfig builder with world bounds of our geometry.
+        RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, geomProvider.getMeshBoundsMin(), geomProvider.getMeshBoundsMax());
 
-		// Build our Navmesh data using our gathered geometry and configuration.
-		RecastBuilder rcBuilder = new RecastBuilder();
-		RecastBuilderResult rcResult = rcBuilder.build(geomProvider, builderCfg);
+        // Build our Navmesh data using our gathered geometry and configuration.
+        RecastBuilder rcBuilder = new RecastBuilder();
+        RecastBuilderResult rcResult = rcBuilder.build(geomProvider, builderCfg);
 
-		// Set the parameters needed to build our MeshData using the RecastBuilder results.
-		NavMeshDataCreateParamsBuilder paramsBuilder = new NavMeshDataCreateParamsBuilder(rcResult);
+        // Set the parameters needed to build our MeshData using the RecastBuilder results.
+        NavMeshDataCreateParamsBuilder paramsBuilder = new NavMeshDataCreateParamsBuilder(rcResult);
 
-		// Build the parameter object.
-		NavMeshDataCreateParams params = paramsBuilder.withPolyFlagsAll(1).build(builderCfg);
+        // Build the parameter object.
+        NavMeshDataCreateParams params = paramsBuilder.withPolyFlagsAll(1).build(builderCfg);
 
-		//Generate MeshData using our parameters object.
-		MeshData meshData = NavMeshBuilder.createNavMeshData(params);
+        //Generate MeshData using our parameters object.
+        MeshData meshData = NavMeshBuilder.createNavMeshData(params);
 
-		//Build the NavMesh.
-		NavMesh navMesh = new NavMesh(meshData, builderCfg.cfg.maxVertsPerPoly, 0);
-		return navMesh;
-	}
+        //Build the NavMesh.
+        NavMesh navMesh = new NavMesh(meshData, builderCfg.cfg.maxVertsPerPoly, 0);
+        return navMesh;
+    }
 }
