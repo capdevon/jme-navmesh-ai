@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2019.
+ * Copyright 2021.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -102,7 +102,6 @@ import org.recast4j.recast.RecastMeshDetail;
 import org.recast4j.recast.RecastRasterization;
 import org.recast4j.recast.RecastRegion;
 import org.recast4j.recast.RecastVectors;
-import org.recast4j.recast.geom.InputGeomProvider;
 import org.recast4j.recast.geom.TriMesh;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,9 +122,9 @@ import com.jme3.recast4j.Recast.NavMeshDataCreateParamsBuilder;
 import com.jme3.recast4j.Recast.RecastConfigBuilder;
 import com.jme3.recast4j.demo.JmeGeomProviderBuilder;
 import com.jme3.recast4j.demo.JmeInputGeomProvider;
+import com.jme3.recast4j.demo.JmeRecastBuilder;
 import com.jme3.recast4j.demo.Modification;
-import com.jme3.recast4j.demo.MyBuilderProgressListener;
-import com.jme3.recast4j.demo.RecastBuilder;
+import com.jme3.recast4j.demo.NavMeshBuilderProgressListener;
 import com.jme3.recast4j.demo.TileLayerBuilder;
 import com.jme3.recast4j.demo.controls.DoorSwingControl;
 import com.jme3.recast4j.demo.controls.PhysicsAgentControl;
@@ -169,15 +168,21 @@ public class NavState extends AbstractNavState {
         offMeshCon = (Node) rootNode.getChild("offMeshCon");
         
         //====================================================================
+        System.out.println("Building NavMesh... this may freeze your computer for a few seconds, please stand by");
+        long t = System.nanoTime();
+        
 //        //Original implementation using jme3-recast4j methods.
 //        buildSolo();
 //        //Solo build using jme3-recast4j methods. Implements area and flag types.
 //        buildSoloModified();
 //        //Solo build using recast4j methods. Implements area and flag types.
-//        buildSoloRecast4j();
+        buildSoloRecast4j();
 //        //Tile build using recast4j methods. Implements area and flag types plus offmesh connections.
 //        buildTiledRecast4j();
-        buildTileCache();
+//        buildTileCache();
+        
+        long buildTime = (System.nanoTime() - t) / 1_000_000;
+        System.out.println("Building succeeded after " + buildTime + " ms");
         //====================================================================
         
         initWorldMouseListener();
@@ -409,7 +414,7 @@ public class NavState extends AbstractNavState {
 
                 if (event.getButtonIndex() == MouseInput.BUTTON_LEFT && getCharacters().size() == 1) {
                 	
-                    // First clear existing pathGeometries from the old path finding:
+                	// First clear existing pathGeometries from the old path finding:
                     pathViewer.clearPath();
 
                     Node character = getCharacters().get(0);
@@ -481,10 +486,7 @@ public class NavState extends AbstractNavState {
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
 
-        System.out.println("Building Nav Mesh, this may freeze your computer for a few seconds, please stand by");
-        long startTime = System.currentTimeMillis();
-
-        InputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
+        JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
 
         RecastConfig cfg = new RecastConfigBuilder()
             .withAgentRadius(.3f) 	// r
@@ -505,7 +507,7 @@ public class NavState extends AbstractNavState {
         RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, geomProvider.getMeshBoundsMin(), geomProvider.getMeshBoundsMax());
 
         // Build our Navmesh data using our gathered geometry and configuration.
-        RecastBuilder rcBuilder = new RecastBuilder();
+        JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
         RecastBuilderResult rcResult = rcBuilder.build(geomProvider, builderCfg);
 
         // Set the parameters needed to build our MeshData using the RecastBuilder results.
@@ -531,9 +533,6 @@ public class NavState extends AbstractNavState {
 
         //Show wireframe. Helps with param tweaks. false = solid color.
         meshDebugViewer.showDebugMeshes(meshData, true);
-
-        long endTime = System.currentTimeMillis();
-        System.out.println("Building succeeded after " + (endTime - startTime) + " ms");
     }
     
     /**
@@ -546,7 +545,7 @@ public class NavState extends AbstractNavState {
         //Build merged mesh.
         JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
 
-        configureAreaMod(geomProvider);
+        setNavMeshArea(geomProvider, worldMap);
 
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
@@ -569,7 +568,7 @@ public class NavState extends AbstractNavState {
         //Create a RecastBuilderConfig builder with world bounds of our geometry.
         RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, geomProvider.getMeshBoundsMin(), geomProvider.getMeshBoundsMax());
         
-        RecastBuilder rcBuilder = new RecastBuilder();
+        JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
         RecastBuilderResult rcResult = rcBuilder.build(geomProvider, builderCfg);
 
         NavMeshDataCreateParamsBuilder paramsBuilder = new NavMeshDataCreateParamsBuilder(rcResult);
@@ -628,7 +627,7 @@ public class NavState extends AbstractNavState {
         //Build merged mesh.
         JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
 
-        configureAreaMod(geomProvider);
+        setNavMeshArea(geomProvider, worldMap);
 
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
@@ -656,6 +655,8 @@ public class NavState extends AbstractNavState {
 
         RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, bmin, bmax);
 
+        // Step 2. Rasterize input polygon soup.
+     	// Allocate voxel heightfield where we rasterize our input data to.
         Heightfield m_solid = new Heightfield(builderCfg.width, builderCfg.height, builderCfg.bmin, builderCfg.bmax, cfg.cs, cfg.ch);
 
         for (TriMesh geom: geomProvider.meshes()) {
@@ -663,6 +664,16 @@ public class NavState extends AbstractNavState {
             int[] tris = geom.getTris();
             int ntris = tris.length / 3;
 
+            // Allocate array that can hold triangle area types.
+            // If you have multiple meshes you need to process, allocate
+            // and array which can hold the max number of triangles you need to
+            // process.
+
+            // Find triangles which are walkable based on their slope and rasterize them.
+            // If your input data is multiple meshes, you can transform them here,
+            // calculate the are type for each of the meshes and rasterize them.
+            
+            // ** START NEW **
             //Separate individual triangles into a arrays so we can mark Area Type.
             List<int[]> listTris = new ArrayList<>();
             int fromIndex = 0;
@@ -695,22 +706,26 @@ public class NavState extends AbstractNavState {
                 System.arraycopy(area, 0, m_triareasAll, length, area.length);
                 length += area.length;
             }
+            // ** END NEW **
+            
             RecastRasterization.rasterizeTriangles(m_ctx, verts, tris, m_triareasAll, ntris, m_solid, cfg.walkableClimb);
         }
 
+        // Step 3. Filter walkables surfaces.
         RecastFilter.filterLowHangingWalkableObstacles(m_ctx, cfg.walkableClimb, m_solid);
         RecastFilter.filterLedgeSpans(m_ctx, cfg.walkableHeight, cfg.walkableClimb, m_solid);
         RecastFilter.filterWalkableLowHeightSpans(m_ctx, cfg.walkableHeight, m_solid);
 
+        // Step 4. Partition walkable surface to simple regions.
         CompactHeightfield m_chf = Recast.buildCompactHeightfield(m_ctx, cfg.walkableHeight, cfg.walkableClimb, m_solid);
 
         RecastArea.erodeWalkableArea(m_ctx, cfg.walkableRadius, m_chf);
 
-        //        // (Optional) Mark areas.
-        //        List<ConvexVolume> vols = geom.getConvexVolumes(); 
-        //        for (ConvexVolume convexVolume: vols) { 
-        //            RecastArea.markConvexPolyArea(m_ctx, convexVolume.verts, convexVolume.hmin, convexVolume.hmax, convexVolume.areaMod, m_chf);
-        //        }
+        // (Optional) Mark areas.
+//      List<ConvexVolume> vols = geom.getConvexVolumes(); 
+//      for (ConvexVolume convexVolume: vols) { 
+//          RecastArea.markConvexPolyArea(m_ctx, convexVolume.verts, convexVolume.hmin, convexVolume.hmax, convexVolume.areaMod, m_chf);
+//      }
 
         if (m_partitionType == PartitionType.WATERSHED) {
             // Prepare for region partitioning, by calculating distance field
@@ -727,12 +742,13 @@ public class NavState extends AbstractNavState {
             RecastRegion.buildLayerRegions(m_ctx, m_chf, 0, cfg.minRegionArea);
         }
 
+        // Step 5. Trace and simplify region contours.
         ContourSet m_cset = RecastContour.buildContours(m_ctx, m_chf, cfg.maxSimplificationError, cfg.maxEdgeLen, RecastConstants.RC_CONTOUR_TESS_WALL_EDGES);
 
-        // Build polygon navmesh from the contours.
+        // Step 6. Build polygons mesh from contours.
         PolyMesh m_pmesh = RecastMesh.buildPolyMesh(m_ctx, m_cset, cfg.maxVertsPerPoly);
 
-        //Set Ability flags.
+        // Update poly flags from areas.
         for (int i = 0; i < m_pmesh.npolys; ++i) {
             if (m_pmesh.areas[i] == POLYAREA_TYPE_GROUND ||
                 m_pmesh.areas[i] == POLYAREA_TYPE_GRASS ||
@@ -747,7 +763,7 @@ public class NavState extends AbstractNavState {
             }
         }
 
-        //Create detailed mesh for picking.
+        // Step 7. Create detail mesh which allows to access approximate height on each polygon.
         PolyMeshDetail m_dmesh = RecastMeshDetail.buildPolyMeshDetail(m_ctx, m_pmesh, m_chf, cfg.detailSampleDist, cfg.detailSampleMaxError);
 
         NavMeshDataCreateParams params = new NavMeshDataCreateParams();
@@ -801,7 +817,7 @@ public class NavState extends AbstractNavState {
         //Build merged mesh.
         JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
 
-        configureAreaMod(geomProvider);
+        setNavMeshArea(geomProvider, worldMap);
 
         setOffMeshConnections();
 
@@ -810,14 +826,14 @@ public class NavState extends AbstractNavState {
 
         //Step 2. Create a Recast configuration object.
         RecastConfig cfg = new RecastConfigBuilder()
-            .withAgentRadius(.3f) 		// r
-            .withAgentHeight(1.7f) 		// h
+            .withAgentRadius(.3f) 			// r
+            .withAgentHeight(1.7f) 			// h
             //cs and ch should be .1 at min.
-            .withCellSize(0.1f) 		// cs=r/2
-            .withCellHeight(0.1f) 		// ch=cs/2 but not < .1f
+            .withCellSize(0.1f) 			// cs=r/2
+            .withCellHeight(0.1f) 			// ch=cs/2 but not < .1f
             .withAgentMaxClimb(.3f) 		// > 2*ch
             .withAgentMaxSlope(45f)
-            .withEdgeMaxLen(3.2f) 		// r*8
+            .withEdgeMaxLen(3.2f) 			// r*8
             .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
             .withDetailSampleDistance(6.0f) // increase if exception
             .withDetailSampleMaxError(6.0f) // increase if exception
@@ -826,7 +842,7 @@ public class NavState extends AbstractNavState {
             .build();
 
         // Build all tiles
-        RecastBuilder rcBuilder = new RecastBuilder(new MyBuilderProgressListener());
+        JmeRecastBuilder rcBuilder = new JmeRecastBuilder(new NavMeshBuilderProgressListener());
         RecastBuilderResult[][] rcResult = rcBuilder.buildTiles(geomProvider, cfg, 1);
         // Add tiles to nav mesh
         int tw = rcResult.length;
@@ -897,13 +913,15 @@ public class NavState extends AbstractNavState {
         processOffMeshConnections();
 
         try {
+        	File f = new File("test-tiled.nm");
+        	
             // Native format using tiles.
             MeshSetWriter msw = new MeshSetWriter();
-            msw.write(new FileOutputStream(new File("test-tiled.nm")), navMesh, ByteOrder.BIG_ENDIAN, false);
+            msw.write(new FileOutputStream(f), navMesh, ByteOrder.BIG_ENDIAN, false);
 
             // Read in saved NavMesh.
             MeshSetReader msr = new MeshSetReader();
-            navMesh = msr.read(new FileInputStream("test-tiled.nm"), cfg.maxVertsPerPoly);
+            navMesh = msr.read(new FileInputStream(f), cfg.maxVertsPerPoly);
 
             navQuery = new NavMeshQuery(navMesh);
 
@@ -926,7 +944,7 @@ public class NavState extends AbstractNavState {
         //Build merged mesh.
         JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
 
-        configureAreaMod(geomProvider);
+        setNavMeshArea(geomProvider, worldMap);
 
         setOffMeshConnections();
 
@@ -935,15 +953,15 @@ public class NavState extends AbstractNavState {
 
         //Step 2. Create a Recast configuration object.
         RecastConfig cfg = new RecastConfigBuilder()
-            .withAgentRadius(agentRadius) 	// r
-            .withAgentHeight(agentHeight) 	// h
+            .withAgentRadius(agentRadius) 		// r
+            .withAgentHeight(agentHeight) 		// h
             //cs and ch should be .1 at min.
-            .withCellSize(0.1f) 		// cs=r/2
-            .withCellHeight(0.1f) 		// ch=cs/2 but not < .1f
+            .withCellSize(0.1f) 				// cs=r/2
+            .withCellHeight(0.1f) 				// ch=cs/2 but not < .1f
             .withAgentMaxClimb(agentMaxClimb) 	// > 2*ch
             .withAgentMaxSlope(45f)
-            .withEdgeMaxLen(3.2f) 		// r*8
-            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+            .withEdgeMaxLen(3.2f) 				// r*8
+            .withEdgeMaxError(1.3f) 			// 1.1 - 1.5
             .withDetailSampleDistance(6.0f) 	// increase if exception
             .withDetailSampleMaxError(6.0f) 	// increase if exception
             .withVertsPerPoly(3)
@@ -982,10 +1000,12 @@ public class NavState extends AbstractNavState {
         TileCacheReader reader = new TileCacheReader();
 
         try {
+        	File f = new File("TestTileCache_" + cfg.partitionType + ".tc");
+        	
             //Write our file.
-            writer.write(new FileOutputStream(new File("test.tc")), tc, ByteOrder.BIG_ENDIAN, false);
+            writer.write(new FileOutputStream(f), tc, ByteOrder.BIG_ENDIAN, false);
             //Create new tile cache.
-            tc = reader.read(new FileInputStream("test.tc"), 3, new JmeTileCacheMeshProcess());
+            tc = reader.read(new FileInputStream(f), 3, new JmeTileCacheMeshProcess());
 
             //Get the navMesh and build a querry object.
             navMesh = tc.getNavMesh();
@@ -1350,13 +1370,15 @@ public class NavState extends AbstractNavState {
         msw.write(new FileOutputStream(f), nm, ByteOrder.BIG_ENDIAN, false);
     }
     
-    private void configureAreaMod(JmeInputGeomProvider geomProvider) {
-        worldMap.depthFirstTraversal(new SceneGraphVisitorAdapter() {
+    private void setNavMeshArea(JmeInputGeomProvider geomProvider, Node rootParent) {
+    	
+    	rootParent.depthFirstTraversal(new SceneGraphVisitorAdapter() {
             @Override
-            public void visit(Geometry spat) {
+            public void visit(Geometry geo) {
 
-                int geomLength = spat.getMesh().getTriangleCount() * 3;
-                String[] name = spat.getMaterial().getName().split("_");
+                int geomLength = geo.getMesh().getTriangleCount() * 3;
+                String[] name = geo.getMaterial().getName().split("_");
+                System.out.println("setNavMeshArea: " + geo + ", Material: " + Arrays.toString(name));
 
                 switch (name[0]) {
                     case "water":
