@@ -63,7 +63,8 @@ public class NavmeshTool {
     }
 
     /**
-     * 
+     * Calculate a path between two points and store the resulting path.
+     *
      * @param startPosition
      * @param endPosition
      * @return
