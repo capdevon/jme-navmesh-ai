@@ -67,9 +67,7 @@ import org.recast4j.detour.NavMeshDataCreateParams;
 import org.recast4j.detour.NavMeshParams;
 import org.recast4j.detour.NavMeshQuery;
 import org.recast4j.detour.Poly;
-import org.recast4j.detour.QueryFilter;
 import org.recast4j.detour.Result;
-import org.recast4j.detour.StraightPathItem;
 import org.recast4j.detour.Tupple2;
 import org.recast4j.detour.VectorPtr;
 import org.recast4j.detour.io.MeshDataWriter;
@@ -83,7 +81,6 @@ import org.recast4j.detour.tilecache.io.TileCacheReader;
 import org.recast4j.detour.tilecache.io.TileCacheWriter;
 import org.recast4j.detour.tilecache.io.compress.TileCacheCompressorFactory;
 import org.recast4j.recast.CompactHeightfield;
-import org.recast4j.recast.Context;
 import org.recast4j.recast.ContourSet;
 import org.recast4j.recast.Heightfield;
 import org.recast4j.recast.PolyMesh;
@@ -120,6 +117,11 @@ import com.jme3.recast4j.Detour.BetterDefaultQueryFilter;
 import com.jme3.recast4j.Detour.DetourUtils;
 import com.jme3.recast4j.Recast.NavMeshDataCreateParamsBuilder;
 import com.jme3.recast4j.Recast.RecastConfigBuilder;
+import com.jme3.recast4j.Recast.Telemetry;
+import com.jme3.recast4j.ai.NavMeshAgent;
+import com.jme3.recast4j.ai.NavMeshPath;
+import com.jme3.recast4j.ai.NavMeshPathStatus;
+import com.jme3.recast4j.ai.NavMeshQueryFilter;
 import com.jme3.recast4j.demo.JmeGeomProviderBuilder;
 import com.jme3.recast4j.demo.JmeInputGeomProvider;
 import com.jme3.recast4j.demo.JmeRecastBuilder;
@@ -127,8 +129,6 @@ import com.jme3.recast4j.demo.Modification;
 import com.jme3.recast4j.demo.NavMeshBuilderProgressListener;
 import com.jme3.recast4j.demo.TileLayerBuilder;
 import com.jme3.recast4j.demo.controls.DoorSwingControl;
-import com.jme3.recast4j.demo.controls.PhysicsAgentControl;
-import com.jme3.recast4j.demo.tool.NavmeshTool;
 import com.jme3.recast4j.demo.utils.GameObject;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Geometry;
@@ -137,6 +137,9 @@ import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.scene.Spatial;
 import com.simsilica.lemur.event.DefaultMouseListener;
 import com.simsilica.lemur.event.MouseEventControl;
+
+import mygame.controls.AnimationControl;
+import mygame.controls.PCControl;
 
 /**
  *
@@ -152,7 +155,6 @@ public class NavState extends AbstractNavState {
     private NavMeshQuery navQuery;
     private List<Node> characters;
     private Map<String, org.recast4j.detour.OffMeshConnection> mapOffMeshCon;
-    private PartitionType m_partitionType = PartitionType.WATERSHED;
     private float agentMaxClimb = .3f; // Should add getter for this.
     private float agentRadius = 0.4f;  // Should add getter for this.
     private float agentHeight = 1.7f;  // Should add getter for this.
@@ -174,9 +176,9 @@ public class NavState extends AbstractNavState {
 //        //Original implementation using jme3-recast4j methods.
 //        buildSolo();
 //        //Solo build using jme3-recast4j methods. Implements area and flag types.
-//        buildSoloModified();
+        buildSoloModified();
 //        //Solo build using recast4j methods. Implements area and flag types.
-        buildSoloRecast4j();
+//        buildSoloRecast4j();
 //        //Tile build using recast4j methods. Implements area and flag types plus offmesh connections.
 //        buildTiledRecast4j();
 //        buildTileCache();
@@ -394,46 +396,51 @@ public class NavState extends AbstractNavState {
 
     private void initWorldMouseListener() {
     	
-    	DefaultQueryFilter filter = new BetterDefaultQueryFilter();
+        if (getCharacters().size() > 1) {
+            System.out.println("WARN: No WorldMouseListener configured");
+            return;
+        }
     	
-        int includeFlags = POLYFLAGS_WALK | POLYFLAGS_DOOR | POLYFLAGS_SWIM | POLYFLAGS_JUMP;
-        filter.setIncludeFlags(includeFlags);
-        
+    	Node character = getCharacters().get(0);
+    	character.addControl(new AnimationControl());
+    	character.addControl(new NavMeshAgent(navMesh, app));
+    	character.addControl(new PCControl());
+    	
+    	int includeFlags = POLYFLAGS_WALK | POLYFLAGS_DOOR | POLYFLAGS_SWIM | POLYFLAGS_JUMP;
         int excludeFlags = POLYFLAGS_DISABLED;
-        filter.setExcludeFlags(excludeFlags);
+        //Extents can be anything you determine is appropriate.
+        float[] polyExtents = new float[] { 1, 1, 1 };
+        
+    	NavMeshQueryFilter filter = new NavMeshQueryFilter(includeFlags, excludeFlags);
+    	filter.setPolyExtents(polyExtents);
     	
-    	NavmeshTool navTool = new NavmeshTool(navMesh);
-    	navTool.setQueryFilter(filter);
-    	//Extents can be anything you determine is appropriate.
-    	navTool.setPolyPickExtents(new float[] { 1, 1, 1 });
+    	NavMeshAgent agent = character.getControl(NavMeshAgent.class);
+        agent.setQueryFilter(filter);
+        
+        NavMeshPath navPath = new NavMeshPath();
     	
         MouseEventControl.addListenersToSpatial(worldMap, new DefaultMouseListener() {
             @Override
             protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
                 super.click(event, target, capture);
 
-                if (event.getButtonIndex() == MouseInput.BUTTON_LEFT && getCharacters().size() == 1) {
+                if (event.getButtonIndex() == MouseInput.BUTTON_LEFT) {
                 	
                 	// First clear existing pathGeometries from the old path finding:
                     pathViewer.clearPath();
 
-                    Node character = getCharacters().get(0);
                     Vector3f locOnMap = getLocationOnMap();
-
                     System.out.println("Compute path from " + character.getWorldTranslation() + " to " + locOnMap);
-                    boolean success = navTool.computePath(character.getWorldTranslation(), locOnMap);
-
-                    if (success) {
-                        float yOffset = .5f;
+                    
+                    agent.calculatePath(locOnMap, navPath);
+                    
+                    if (navPath.getStatus() == NavMeshPathStatus.PathComplete) {
+                    	agent.setPath(navPath);
+                    	
+                    	float yOffset = .5f;
                         pathViewer.putBox(ColorRGBA.Green, character.getWorldTranslation().add(0, yOffset, 0));
                         pathViewer.putBox(ColorRGBA.Yellow, locOnMap.add(0, yOffset, 0));
-
-                        List<Vector3f> wayPoints = navTool.getPath();
-                        pathViewer.drawPath(wayPoints);
-
-                        character.getControl(PhysicsAgentControl.class).stopFollowing();
-                        character.getControl(PhysicsAgentControl.class).followPath(wayPoints);
-
+                        
                     } else {
                         System.err.println("Unable to find path");
                     }
@@ -514,7 +521,7 @@ public class NavState extends AbstractNavState {
         NavMeshDataCreateParamsBuilder paramsBuilder = new NavMeshDataCreateParamsBuilder(rcResult);
 
         // Build the parameter object.
-        NavMeshDataCreateParams params = paramsBuilder.withPolyFlagsAll(1).build(builderCfg);
+        NavMeshDataCreateParams params = paramsBuilder.build(builderCfg);
 
         //Generate MeshData using our parameters object.
         MeshData meshData = NavMeshBuilder.createNavMeshData(params);
@@ -572,24 +579,9 @@ public class NavState extends AbstractNavState {
         RecastBuilderResult rcResult = rcBuilder.build(geomProvider, builderCfg);
 
         NavMeshDataCreateParamsBuilder paramsBuilder = new NavMeshDataCreateParamsBuilder(rcResult);
-        PolyMesh m_pmesh = rcResult.getMesh();
-
-        //Set Ability flags. 
-        for (int i = 0; i < m_pmesh.npolys; ++i) {
-            if (m_pmesh.areas[i] == POLYAREA_TYPE_GROUND ||
-                m_pmesh.areas[i] == POLYAREA_TYPE_GRASS ||
-                m_pmesh.areas[i] == POLYAREA_TYPE_ROAD) {
-                paramsBuilder.withPolyFlag(i, POLYFLAGS_WALK);
-            } else if (m_pmesh.areas[i] == POLYAREA_TYPE_WATER) {
-                paramsBuilder.withPolyFlag(i, POLYFLAGS_SWIM);
-            } else if (m_pmesh.areas[i] == POLYAREA_TYPE_DOOR) {
-                paramsBuilder.withPolyFlags(i, POLYFLAGS_WALK | POLYFLAGS_DOOR);
-            } else if (m_pmesh.areas[i] == POLYAREA_TYPE_JUMP) {
-                paramsBuilder.withPolyFlag(i, POLYFLAGS_JUMP);
-            }
-        }
-
         NavMeshDataCreateParams params = paramsBuilder.build(builderCfg);
+        
+        updateAreaAndFlags(params);
 
         /**
          * Must set variables for parameters walkableHeight, walkableRadius, 
@@ -635,7 +627,8 @@ public class NavState extends AbstractNavState {
         //Get min/max bounds.
         float[] bmin = geomProvider.getMeshBoundsMin();
         float[] bmax = geomProvider.getMeshBoundsMax();
-        Context m_ctx = new Context();
+        Telemetry m_ctx = new Telemetry();
+        PartitionType m_partitionType = PartitionType.WATERSHED;
 
         //We could use multiple configs here based off area type list.
         RecastConfig cfg = new RecastConfigBuilder()
@@ -651,7 +644,8 @@ public class NavState extends AbstractNavState {
             .withDetailSampleDistance(8.0f) 	// increase if exception
             .withDetailSampleMaxError(8.0f) 	// increase if exception
             .withWalkableAreaMod(AREAMOD_GROUND)
-            .withVertsPerPoly(3).build();
+            .withVertsPerPoly(3)
+            .build();
 
         RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, bmin, bmax);
 
@@ -748,21 +742,6 @@ public class NavState extends AbstractNavState {
         // Step 6. Build polygons mesh from contours.
         PolyMesh m_pmesh = RecastMesh.buildPolyMesh(m_ctx, m_cset, cfg.maxVertsPerPoly);
 
-        // Update poly flags from areas.
-        for (int i = 0; i < m_pmesh.npolys; ++i) {
-            if (m_pmesh.areas[i] == POLYAREA_TYPE_GROUND ||
-                m_pmesh.areas[i] == POLYAREA_TYPE_GRASS ||
-                m_pmesh.areas[i] == POLYAREA_TYPE_ROAD) {
-                m_pmesh.flags[i] = POLYFLAGS_WALK;
-            } else if (m_pmesh.areas[i] == POLYAREA_TYPE_WATER) {
-                m_pmesh.flags[i] = POLYFLAGS_SWIM;
-            } else if (m_pmesh.areas[i] == POLYAREA_TYPE_DOOR) {
-                m_pmesh.flags[i] = POLYFLAGS_WALK | POLYFLAGS_DOOR;
-            } else if (m_pmesh.areas[i] == POLYAREA_TYPE_JUMP) {
-                m_pmesh.flags[i] = POLYFLAGS_JUMP;
-            }
-        }
-
         // Step 7. Create detail mesh which allows to access approximate height on each polygon.
         PolyMeshDetail m_dmesh = RecastMeshDetail.buildPolyMeshDetail(m_ctx, m_pmesh, m_chf, cfg.detailSampleDist, cfg.detailSampleMaxError);
 
@@ -787,11 +766,14 @@ public class NavState extends AbstractNavState {
         params.cs = cfg.cs;
         params.ch = cfg.ch;
         params.buildBvTree = true;
+        
+        updateAreaAndFlags(params);
 
         MeshData meshData = NavMeshBuilder.createNavMeshData(params);
         navMesh = new NavMesh(meshData, params.nvp, 0);
         navQuery = new NavMeshQuery(navMesh);
 
+        m_ctx.print();
         //Create offmesh connections here.
 
         try {
@@ -826,17 +808,17 @@ public class NavState extends AbstractNavState {
 
         //Step 2. Create a Recast configuration object.
         RecastConfig cfg = new RecastConfigBuilder()
-            .withAgentRadius(.3f) 			// r
-            .withAgentHeight(1.7f) 			// h
+            .withAgentRadius(.3f) 		// r
+            .withAgentHeight(1.7f) 		// h
             //cs and ch should be .1 at min.
-            .withCellSize(0.1f) 			// cs=r/2
-            .withCellHeight(0.1f) 			// ch=cs/2 but not < .1f
+            .withCellSize(0.1f) 		// cs=r/2
+            .withCellHeight(0.1f) 		// ch=cs/2 but not < .1f
             .withAgentMaxClimb(.3f) 		// > 2*ch
             .withAgentMaxSlope(45f)
-            .withEdgeMaxLen(3.2f) 			// r*8
+            .withEdgeMaxLen(3.2f) 		// r*8
             .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
-            .withDetailSampleDistance(6.0f) // increase if exception
-            .withDetailSampleMaxError(6.0f) // increase if exception
+            .withDetailSampleDistance(6.0f) 	// increase if exception
+            .withDetailSampleMaxError(6.0f) 	// increase if exception
             .withVertsPerPoly(3)
             .withTileSize(16)
             .build();
@@ -864,19 +846,6 @@ public class NavState extends AbstractNavState {
                     continue;
                 }
 
-                // Update obj flags from areas. Including offmesh connections.
-                for (int i = 0; i < m_pmesh.npolys; ++i) {
-                    if (m_pmesh.areas[i] == POLYAREA_TYPE_GROUND ||
-                        m_pmesh.areas[i] == POLYAREA_TYPE_GRASS ||
-                        m_pmesh.areas[i] == POLYAREA_TYPE_ROAD) {
-                        m_pmesh.flags[i] = POLYFLAGS_WALK;
-                    } else if (m_pmesh.areas[i] == POLYAREA_TYPE_WATER) {
-                        m_pmesh.flags[i] = POLYFLAGS_SWIM;
-                    } else if (m_pmesh.areas[i] == POLYAREA_TYPE_DOOR) {
-                        m_pmesh.flags[i] = POLYFLAGS_WALK | POLYFLAGS_DOOR;
-                    }
-                }
-
                 NavMeshDataCreateParams params = new NavMeshDataCreateParams();
                 params.verts = m_pmesh.verts;
                 params.vertCount = m_pmesh.nverts;
@@ -901,6 +870,8 @@ public class NavState extends AbstractNavState {
                 params.tileX = x;
                 params.tileY = y;
                 params.buildBvTree = true;
+                
+                updateAreaAndFlags(params);
 
                 MeshData meshData = NavMeshBuilder.createNavMeshData(params);
                 navMesh.addTile(meshData, 0, 0);
@@ -913,8 +884,8 @@ public class NavState extends AbstractNavState {
         processOffMeshConnections();
 
         try {
-        	File f = new File("test-tiled.nm");
-        	
+             File f = new File("test-tiled.nm");
+
             // Native format using tiles.
             MeshSetWriter msw = new MeshSetWriter();
             msw.write(new FileOutputStream(f), navMesh, ByteOrder.BIG_ENDIAN, false);
@@ -927,7 +898,7 @@ public class NavState extends AbstractNavState {
 
             // Tile data can be null since maxTiles is not an exact science.
             int maxTiles = navMesh.getMaxTiles();
-            
+
             for (int i = 0; i < maxTiles; i++) {
                 MeshData meshData = navMesh.getTile(i).data;
                 if (meshData != null) {
@@ -953,15 +924,15 @@ public class NavState extends AbstractNavState {
 
         //Step 2. Create a Recast configuration object.
         RecastConfig cfg = new RecastConfigBuilder()
-            .withAgentRadius(agentRadius) 		// r
-            .withAgentHeight(agentHeight) 		// h
+            .withAgentRadius(agentRadius) 	// r
+            .withAgentHeight(agentHeight) 	// h
             //cs and ch should be .1 at min.
-            .withCellSize(0.1f) 				// cs=r/2
-            .withCellHeight(0.1f) 				// ch=cs/2 but not < .1f
+            .withCellSize(0.1f) 		// cs=r/2
+            .withCellHeight(0.1f) 		// ch=cs/2 but not < .1f
             .withAgentMaxClimb(agentMaxClimb) 	// > 2*ch
             .withAgentMaxSlope(45f)
-            .withEdgeMaxLen(3.2f) 				// r*8
-            .withEdgeMaxError(1.3f) 			// 1.1 - 1.5
+            .withEdgeMaxLen(3.2f) 		// r*8
+            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
             .withDetailSampleDistance(6.0f) 	// increase if exception
             .withDetailSampleMaxError(6.0f) 	// increase if exception
             .withVertsPerPoly(3)
@@ -1000,8 +971,8 @@ public class NavState extends AbstractNavState {
         TileCacheReader reader = new TileCacheReader();
 
         try {
-        	File f = new File("TestTileCache_" + cfg.partitionType + ".tc");
-        	
+            File f = new File("TestTileCache_" + cfg.partitionType + ".tc");
+
             //Write our file.
             writer.write(new FileOutputStream(f), tc, ByteOrder.BIG_ENDIAN, false);
             //Create new tile cache.
@@ -1016,7 +987,7 @@ public class NavState extends AbstractNavState {
 
             //Tile data can be null since maxTiles is not an exact science.
             int maxTiles = tc.getTileCount();
-            
+
             for (int i = 0; i < maxTiles; i++) {
                 MeshTile tile = tc.getNavMesh().getTile(i);
                 MeshData meshData = tile.data;
@@ -1435,30 +1406,32 @@ public class NavState extends AbstractNavState {
      * the areas. This gets call from the tc.buildNavMeshTile(ref) method.
      */
     private class JmeTileCacheMeshProcess implements TileCacheMeshProcess {
-    	
-    	private static final int DT_TILECACHE_WALKABLE_AREA = 63;
-
         @Override
         public void process(NavMeshDataCreateParams params) {
-            // Update poly flags from areas.
-            for (int i = 0; i < params.polyCount; ++i) {
-                Poly poly = new Poly(i, 6);
+        	updateAreaAndFlags(params);
+        }
+    }
+    
+    private void updateAreaAndFlags(NavMeshDataCreateParams params) {
+        final int DT_TILECACHE_WALKABLE_AREA = 63;
 
-                if (params.polyAreas[i] == DT_TILECACHE_WALKABLE_AREA) {
-                    params.polyAreas[i] = POLYAREA_TYPE_GROUND;
-                }
+        for (int i = 0; i < params.polyCount; ++i) {
+            Poly poly = new Poly(i, 6);
 
-                if (params.polyAreas[i] == POLYAREA_TYPE_GROUND ||
-                    params.polyAreas[i] == POLYAREA_TYPE_GRASS ||
-                    params.polyAreas[i] == POLYAREA_TYPE_ROAD) {
-                    params.polyFlags[i] = POLYFLAGS_WALK;
-                    
-                } else if (params.polyAreas[i] == POLYAREA_TYPE_WATER) {
-                    params.polyFlags[i] = POLYFLAGS_SWIM;
-                    
-                } else if (params.polyAreas[i] == POLYAREA_TYPE_DOOR) {
-                    params.polyFlags[i] = POLYFLAGS_WALK | POLYFLAGS_DOOR;
-                }
+            if (params.polyAreas[i] == DT_TILECACHE_WALKABLE_AREA) {
+                params.polyAreas[i] = POLYAREA_TYPE_GROUND;
+            }
+
+            if (params.polyAreas[i] == POLYAREA_TYPE_GROUND ||
+                params.polyAreas[i] == POLYAREA_TYPE_GRASS ||
+                params.polyAreas[i] == POLYAREA_TYPE_ROAD) {
+                params.polyFlags[i] = POLYFLAGS_WALK;
+
+            } else if (params.polyAreas[i] == POLYAREA_TYPE_WATER) {
+                params.polyFlags[i] = POLYFLAGS_SWIM;
+
+            } else if (params.polyAreas[i] == POLYAREA_TYPE_DOOR) {
+                params.polyFlags[i] = POLYFLAGS_WALK | POLYFLAGS_DOOR;
             }
         }
     }
