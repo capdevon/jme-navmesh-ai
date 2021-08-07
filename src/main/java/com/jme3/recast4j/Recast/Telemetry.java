@@ -38,10 +38,10 @@ public class Telemetry extends Context {
     }
 
     public void stopTimer(String name) {
-    	if (timerStart.get().get(name) != null) {
-    		long delta = System.nanoTime() - timerStart.get().get(name).get();
-    		timerAccum.computeIfAbsent(name, __ -> new AtomicLong()).addAndGet(delta);
-    	}
+        if (timerStart.get().get(name) != null) {
+            long delta = System.nanoTime() - timerStart.get().get(name).get();
+            timerAccum.computeIfAbsent(name, __ -> new AtomicLong()).addAndGet(delta);
+        }
     }
 
     public void warn(String string) {
