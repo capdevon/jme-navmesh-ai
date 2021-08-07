@@ -1,39 +1,28 @@
-/*
- *  MIT License
- *  Copyright (c) 2018 MeFisto94
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in all
- *  copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- *  SOFTWARE.
- */
 package com.jme3.recast4j.Recast;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.recast4j.detour.NavMeshDataCreateParams;
 import org.recast4j.recast.PolyMesh;
 import org.recast4j.recast.PolyMeshDetail;
 import org.recast4j.recast.RecastBuilder;
 import org.recast4j.recast.RecastBuilderConfig;
 
+/**
+ * 
+ * @author capdevon
+ */
 public class NavMeshDataCreateParamsBuilder {
 	
     protected NavMeshDataCreateParams params;
     protected PolyMesh m_pmesh;
     protected PolyMeshDetail m_dmesh;
 
+    /**
+     * Constrcutor.
+     * 
+     * @param rcResult
+     */
     public NavMeshDataCreateParamsBuilder(RecastBuilder.RecastBuilderResult rcResult) {
         params = new NavMeshDataCreateParams();
         m_pmesh = rcResult.getMesh();
@@ -41,65 +30,17 @@ public class NavMeshDataCreateParamsBuilder {
     }
 
     /**
-     * Sets the flags attribute for a specific polygon. This is later used in detour to filter whether you want to use
-     * a certain polygon or not. It's a fast way to filter polygons on demand (e.g. in a boss battle, bridges become locked).
-     *
-     * @see #withPolyFlag(int, int) for setting individual flags instead of manually composing the flags attribute already
-     * @see #withPolyFlagsAll(int) for setting flags for all polygons
-     * @param id The Polygonal Id, good luck at finding this
-     * @param flags The Flags to set
-     * @return this
+     * 
+     * @param builderCfg
+     * @param connections
+     * @return
      */
-    public NavMeshDataCreateParamsBuilder withPolyFlags(int id, int flags) {
-        m_pmesh.flags[id] = flags;
-        return this;
-    }
-
-    /**
-     * Sets a flag attribute for a specific polygon. This is later used in detour to filter whether you want to use a
-     * certain polygon or not. It's a fast way to filter polygons on demand (e.g. in a boss battle, bridges become locked)
-     * @param id The Polygonal Id, good luck at finding this
-     * @param flag The Flag to set
-     * @return this
-     */
-    public NavMeshDataCreateParamsBuilder withPolyFlag(int id, int flag) {
-        m_pmesh.flags[id] |= flag;
-        return this;
-    }
-
-    /**
-     * Sets the flags attribute for all polygons. This is later used in detour to filter whether you want to use
-     * a certain polygon or not. It's a fast way to filter polygons on demand (e.g. in a boss battle, bridges become locked).
-     *
-     * @see #withPolyFlagAll(int) for setting individual flags instead of manually composing the flags attribute already
-     * @see #withPolyFlagsAll(int) for setting flags for individual polygon
-     * @param flags The Flags to set
-     * @return this
-     */
-    public NavMeshDataCreateParamsBuilder withPolyFlagsAll(int flags) {
-        for (int i = 0; i < m_pmesh.npolys; ++i) {
-            m_pmesh.flags[i] = flags;
-        }
-        return this;
-    }
-
-    /**
-     * Sets the flags attribute for all polygons. This is later used in detour to filter whether you want to use
-     * a certain polygon or not. It's a fast way to filter polygons on demand (e.g. in a boss battle, bridges become locked).
-     *
-     * @see #withPolyFlags(int, int) for setting flags for individual polygon
-     * @see #withPolyFlagAll(int) for setting individual flags instead of manually composing the flags attribute already
-     * @param flag The Flag to set
-     * @return this
-     */
-    public NavMeshDataCreateParamsBuilder withPolyFlagAll(int flag) {
-        for (int i = 0; i < m_pmesh.npolys; ++i) {
-            m_pmesh.flags[i] |= flag;
-        }
-        return this;
-    }
-
     public NavMeshDataCreateParams build(RecastBuilderConfig builderCfg, OffMeshLink... connections) {
+		
+        for (int i = 0; i < m_pmesh.npolys; ++i) {
+            m_pmesh.flags[i] = 1;
+        }
+		
         params.verts = m_pmesh.verts;
         params.vertCount = m_pmesh.nverts;
         params.polys = m_pmesh.polys;
@@ -152,6 +93,7 @@ public class NavMeshDataCreateParamsBuilder {
             }
         }
 
+        System.out.println(ReflectionToStringBuilder.toString(params, ToStringStyle.MULTI_LINE_STYLE));
         return params;
     }
 
