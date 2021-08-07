@@ -27,7 +27,6 @@ import com.jme3.post.filters.FXAAFilter;
 import com.jme3.recast4j.Detour.Crowd.CrowdManager;
 import com.jme3.recast4j.Detour.Crowd.Impl.CrowdManagerAppState;
 import com.jme3.recast4j.demo.controls.DoorSwingControl;
-import com.jme3.recast4j.demo.controls.PhysicsAgentControl;
 import com.jme3.recast4j.demo.states.AgentGridState;
 import com.jme3.recast4j.demo.states.AgentParamState;
 import com.jme3.recast4j.demo.states.CrowdBuilderState;
@@ -52,7 +51,9 @@ public class DemoApplication extends SimpleApplication {
     private static final Logger LOG = LoggerFactory.getLogger(DemoApplication.class.getName());
     
     private final Quaternion YAW180 = new Quaternion().fromAngleAxis(FastMath.PI, new Vector3f(0,1,0));
-    private Node worldMap, doorNode, offMeshCon;
+    private Node worldMap;
+    private Node doorNode;
+    private Node offMeshCon;
     private BulletAppState bullet;
     
     public DemoApplication() {
@@ -96,6 +97,9 @@ public class DemoApplication extends SimpleApplication {
 //        loadPond();
 //        loadPondSurface();
 //        loadCrate();
+        
+        cam.setLocation(new Vector3f(0f, 40f, 0f));
+        cam.lookAtDirection(new Vector3f(0f, -1f, 0f), Vector3f.UNIT_Z);
         bullet.setDebugEnabled(false);
     }
     
@@ -139,9 +143,6 @@ public class DemoApplication extends SimpleApplication {
         fpp.addFilter(fxaa);
 //        fpp.addFilter(setupWater());
         viewPort.addProcessor(fpp);
-
-        cam.setLocation(new Vector3f(0f, 40f, 0f));
-        cam.lookAtDirection(new Vector3f(0f, -1f, 0f), Vector3f.UNIT_Z);
     }
     
     private void initKeys() {
@@ -301,7 +302,8 @@ public class DemoApplication extends SimpleApplication {
 //        player.setLocalTranslation(-5f, 5,0);
         player.addControl(new BetterCharacterControl(0.3f, 1.5f, 20f)); // values taken from recast defaults
 //        player.addControl(new CrowdBCC(0.3f, 1.5f, 20f)); // values taken from recast defaults
-        player.addControl(new PhysicsAgentControl());
+//        player.addControl(new PhysicsAgentControl());
+        
         bullet.getPhysicsSpace().add(player);
         stateManager.getState(NavState.class).getCharacters().add(player);
         rootNode.attachChild(player);
