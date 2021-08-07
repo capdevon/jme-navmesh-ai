@@ -45,7 +45,7 @@ public class SimpleNavMeshBuilder {
         NavMeshDataCreateParamsBuilder paramsBuilder = new NavMeshDataCreateParamsBuilder(rcResult);
 
         // Build the parameter object.
-        NavMeshDataCreateParams params = paramsBuilder.withPolyFlagsAll(1).build(builderCfg);
+        NavMeshDataCreateParams params = paramsBuilder.build(builderCfg);
 
         //Generate MeshData using our parameters object.
         MeshData meshData = NavMeshBuilder.createNavMeshData(params);
