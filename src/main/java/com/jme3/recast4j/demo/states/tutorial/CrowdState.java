@@ -146,21 +146,7 @@ public class CrowdState extends BaseAppState {
         //Set the parameters needed to build our MeshData using the RecastBuilder results.
         NavMeshDataCreateParamsBuilder paramBuilder = new NavMeshDataCreateParamsBuilder(rcResult);
         
-        //Update poly flags from areas. Set any flags here.
-        PolyMesh pmesh = rcResult.getMesh();
-        
-        for (int i = 0; i < pmesh.npolys; ++i) {
-            if (pmesh.areas[i] == POLYAREA_TYPE_GROUND
-              || pmesh.areas[i] == POLYAREA_TYPE_GRASS
-              || pmesh.areas[i] == POLYAREA_TYPE_ROAD) {
-                paramBuilder.withPolyFlag(i, POLYFLAGS_WALK);
-            } else if (pmesh.areas[i] == POLYAREA_TYPE_WATER) {
-                paramBuilder.withPolyFlag(i, POLYFLAGS_SWIM);
-            } else if (pmesh.areas[i] == POLYAREA_TYPE_DOOR) {
-                paramBuilder.withPolyFlags(i, POLYFLAGS_WALK | POLYFLAGS_DOOR);
-            }
-        }
-        //Build the parameter object. 
+        //Build the parameter object.
         NavMeshDataCreateParams params = paramBuilder.build(builderCfg);
         //Step 4. Generate MeshData using our parameters object.
         MeshData meshData = NavMeshBuilder.createNavMeshData(params);
