@@ -12,21 +12,16 @@ plugins {
     id 'java-library'
 }
 
-description = 'Demo Application to show how to use recast4j in jMonkeyEngine 3'
+description = 'Navigation-mesh Toolset for jMonkeyEngine3'
 
 // select one source-code (JDK) option
-//sourceCompatibility = '1.6'
-//sourceCompatibility = '1.7'
 sourceCompatibility = '1.8'
-
-//targetCompatibility = '1.6'
-//targetCompatibility = '1.7'
 targetCompatibility = '1.8'
 
-// select one version of the Engine:
-//ext.jmonkeyengineVersion = '3.3.2-stable' // from mavenCentral
-ext.jmonkeyengineVersion = '3.4.0-stable' // from mavenCentral
-ext.recast4jVersion = '1.2.8'
+ext {
+    jmeVersion = '3.4.0-stable'
+    recast4jVersion = '1.2.8'
+}
 
 gradle.projectsEvaluated {
     tasks.withType(JavaCompile) { // compile-time options:
@@ -62,7 +57,10 @@ dependencies {
     // You can read more about how to add dependencies here:
     //   https://docs.gradle.org/current/userguide/dependency_management.html#sec:how_to_declare_your_dependencies
 
-    // from jcenter (or mavenLocal) repositories:
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+    implementation 'org.apache.commons:commons-lang3:3.10'
+
+    // Engine:
     implementation 'org.jmonkeyengine:jme3-core:' + jmonkeyengineVersion
     implementation 'org.jmonkeyengine:jme3-desktop:' + jmonkeyengineVersion
     implementation 'org.jmonkeyengine:jme3-effects:' + jmonkeyengineVersion
