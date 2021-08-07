@@ -26,10 +26,10 @@ public class PCControl extends AdapterControl implements AnimEventListener {
         if (spatial != null) {
             this.agent = getComponent(NavMeshAgent.class);
             requireNonNull(agent, NavMeshAgent.class, PCControl.class);
-            
+
             this.animator = getComponent(AnimationControl.class);
             requireNonNull(animator, AnimationControl.class, PCControl.class);
-            
+
             animator.addAnimListener(this);
         }
     }
@@ -43,13 +43,13 @@ public class PCControl extends AdapterControl implements AnimEventListener {
         }
     }
 
-	@Override
-	public void onAnimCycleDone(AnimControl control, AnimChannel channel, String animName) {
-	}
+    @Override
+    public void onAnimCycleDone(AnimControl control, AnimChannel channel, String animName) {
+    }
 
-	@Override
-	public void onAnimChange(AnimControl control, AnimChannel channel, String animName) {
-		System.out.println("onAnimChange: " + animName);
-	}
+    @Override
+    public void onAnimChange(AnimControl control, AnimChannel channel, String animName) {
+        System.out.println("onAnimChange: " + animName);
+    }
 
 }
