@@ -15,8 +15,8 @@ plugins {
 description = 'Navigation-mesh Toolset for jMonkeyEngine3'
 
 // select one source-code (JDK) option
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+sourceCompatibility = '1.11'
+targetCompatibility = '1.11'
 
 ext {
     jmeVersion = '3.4.0-stable'
