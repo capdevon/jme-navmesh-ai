@@ -10,8 +10,6 @@ This project was born with the aim of creating a bridge API between the recast4j
 
 Follow me to stay updated on the improvements I am working on. 
 
-If you like the project just let me know by leaving a star.
-
 Write me your suggestions or report any bugs.
 
 # Requirements
@@ -20,7 +18,7 @@ The individual projects and their respective requirements used in this demo can 
 - [jmonkeyengine](https://github.com/jMonkeyEngine/jmonkeyengine) - A complete 3D game development suite written purely in Java.
 - [recast4j](https://github.com/ppiastucki/recast4j) - Java Port of Recast & Detour navigation mesh toolset.
 - [Lemur](https://github.com/jMonkeyEngine-Contributions/Lemur) - jMonkeyEngine-based UI toolkit.
-- java 8+
+- java 11+
 
 The gradle dependencies are as follows.
 
