@@ -7,6 +7,7 @@ This project was born with the aim of creating a bridge API between the recast4j
 - NavMeshPath
 - NavMeshTools
 - Optimization of the classes that hide the integration between the 2 worlds of **recast4j** and **jme3**.
+- IORecast to export **PolyMesh** and **PolyMeshDetail** in .obj format
 
 Follow me to stay updated on the improvements I am working on. 
 
