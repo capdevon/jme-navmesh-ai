@@ -21,6 +21,10 @@ import com.jme3.scene.Spatial;
 import mygame.controls.AdapterControl;
 
 /**
+ * Navigation mesh agent.
+ * <p>
+ * This component is attached to a mobile character in the game to allow it to
+ * navigate the scene using the NavMesh
  * 
  * @author capdevon
  */
