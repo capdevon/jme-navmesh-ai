@@ -7,6 +7,7 @@ import org.recast4j.recast.PolyMesh;
 import org.recast4j.recast.PolyMeshDetail;
 import org.recast4j.recast.RecastBuilder;
 import org.recast4j.recast.RecastBuilderConfig;
+import org.recast4j.recast.RecastBuilder.RecastBuilderResult;
 
 /**
  * 
@@ -14,19 +15,15 @@ import org.recast4j.recast.RecastBuilderConfig;
  */
 public class NavMeshDataCreateParamsBuilder {
 	
-    protected NavMeshDataCreateParams params;
-    protected PolyMesh m_pmesh;
-    protected PolyMeshDetail m_dmesh;
+    protected RecastBuilderResult rcResult;
 
     /**
-     * Constrcutor.
+     * Constructor.
      * 
      * @param rcResult
      */
     public NavMeshDataCreateParamsBuilder(RecastBuilder.RecastBuilderResult rcResult) {
-        params = new NavMeshDataCreateParams();
-        m_pmesh = rcResult.getMesh();
-        m_dmesh = rcResult.getMeshDetail();
+    	this.rcResult = rcResult;
     }
 
     /**
@@ -37,6 +34,11 @@ public class NavMeshDataCreateParamsBuilder {
      */
     public NavMeshDataCreateParams build(RecastBuilderConfig builderCfg, OffMeshLink... connections) {
 		
+    	NavMeshDataCreateParams params = new NavMeshDataCreateParams();
+    	
+    	PolyMesh m_pmesh = rcResult.getMesh();
+    	PolyMeshDetail m_dmesh = rcResult.getMeshDetail();
+    	
         for (int i = 0; i < m_pmesh.npolys; ++i) {
             m_pmesh.flags[i] = 1;
         }
@@ -49,11 +51,7 @@ public class NavMeshDataCreateParamsBuilder {
         params.polyCount = m_pmesh.npolys;
         params.nvp = m_pmesh.nvp;
 
-        if (builderCfg.buildMeshDetail) {
-            if (m_dmesh == null) {
-                throw new IllegalStateException("Detail Mesh couldn't be built, this is a sign that the simple " +
-                    "mesh didn't consist of any polygons/verts");
-            }
+        if (m_dmesh != null) {
             params.detailMeshes = m_dmesh.meshes;
             params.detailVerts = m_dmesh.verts;
             params.detailVertsCount = m_dmesh.nverts;
