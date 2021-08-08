@@ -16,18 +16,18 @@ public class NavMeshQueryFilter implements QueryFilter {
     protected int m_includeFlags = 0xffff;
     protected final float[] m_areaCost = new float[NavMesh.DT_MAX_AREAS];
     protected float[] m_polyExtents = new float[] {2, 4, 2};
-    protected int m_straightPathOptions = 0;
+    protected int m_straightPathOptions = NavMeshQuery.DT_STRAIGHTPATH_ALL_CROSSINGS;
 
     public NavMeshQueryFilter() {
-        //default constructor.
+    	for (int i = 0; i < m_areaCost.length; ++i) {
+            m_areaCost[i] = 1.0f;
+        }
     }
 
     public NavMeshQueryFilter(int includeFlags, int excludeFlags) {
+    	this();
         this.m_includeFlags = includeFlags;
         this.m_excludeFlags = excludeFlags;
-        for (int i = 0; i < m_areaCost.length; ++i) {
-            m_areaCost[i] = 1.0f;
-        }
     }
 
     @Override
