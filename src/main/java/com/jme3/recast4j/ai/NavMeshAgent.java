@@ -136,19 +136,18 @@ public class NavMeshAgent extends AdapterControl {
 
     private void startPathFinder() {
         executor.scheduleWithFixedDelay(new Runnable() {
-
             @Override
             public void run() {
                 if (pathPending) {
                 	
-                	hasPath = navtool.computePath(spatial.getWorldTranslation(), destination, filter, navPath);
+                    hasPath = navtool.computePath(spatial.getWorldTranslation(), destination, filter, navPath);
                     System.out.println("TargetPos: " + destination + ", hasPath: " + hasPath);
 
                     if (hasPath) {
                         // display motion path
                         pathChanged = true;
                     }
-                    
+
                     pathPending = false;
                 }
             }
@@ -189,43 +188,43 @@ public class NavMeshAgent extends AdapterControl {
      */
     private void drawPath() {
         if (debugEnabled) {
-        	pathViewer.clearPath();
+            pathViewer.clearPath();
             pathViewer.drawPath(navPath.getCorners());
         }
     }
-    
+
     @Override
     protected void controlRender(RenderManager rm, ViewPort vp) {
         // To change body of generated methods, choose Tools | Templates.
-    	if (debugEnabled) {
-    		pathViewer.show(rm, vp);
-    	}
+        if (debugEnabled) {
+            pathViewer.show(rm, vp);
+        }
     }
     
     public NavMeshQueryFilter getQueryFilter() {
 		return filter;
 	}
 
-	public void setQueryFilter(NavMeshQueryFilter filter) {
-		this.filter = filter;
-	}
+    public void setQueryFilter(NavMeshQueryFilter filter) {
+        this.filter = filter;
+    }
 
-	/**
+    /**
      * @return
      */
     public Vector3f getDestination() {
-    	return destination;
+        return destination;
     }
 
-	/**
-	 * Set the destination of the agent in world-space units.
-	 * <p>
-	 * Note that the path may not become available until after a few frames later.
-	 * While the path is being computed, pathPending will be true. If a valid path
-	 * becomes available then the agent will resume movement.
-	 * 
-	 * @param target - The target point to navigate to.
-	 */
+    /**
+     * Set the destination of the agent in world-space units.
+     * <p>
+     * Note that the path may not become available until after a few frames later.
+     * While the path is being computed, pathPending will be true. If a valid path
+     * becomes available then the agent will resume movement.
+     * 
+     * @param target - The target point to navigate to.
+     */
     public void setDestination(Vector3f target) {
         this.destination.set(target);
         pathPending = true;
@@ -262,7 +261,7 @@ public class NavMeshAgent extends AdapterControl {
     public void setStopped(boolean stopped) {
         this.isStopped = stopped;
         if (stopped) {
-        	bcc.setWalkDirection(Vector3f.ZERO);
+            bcc.setWalkDirection(Vector3f.ZERO);
         }
     }
     
@@ -282,53 +281,53 @@ public class NavMeshAgent extends AdapterControl {
         return navPath.getStatus();
     }
     
-	/**
-	 * Assign a new path to this agent.
-	 * <p>
-	 * If the path is successfully assigned the agent will resume movement toward the
-	 * new target. If the path cannot be assigned the path will be cleared.
-	 * 
-	 * @param path 	- New path to follow.
-	 * @return 		- True if the path is successfully assigned.
-	 */
-	public boolean setPath(NavMeshPath path) {
-		if (!hasPath) {
-			navPath = path;
-			// display motion path
+    /**
+     * Assign a new path to this agent.
+     * <p>
+     * If the path is successfully assigned the agent will resume movement toward the
+     * new target. If the path cannot be assigned the path will be cleared.
+     * 
+     * @param path - New path to follow.
+     * @return - True if the path is successfully assigned.
+     */
+    public boolean setPath(NavMeshPath path) {
+        if (!hasPath) {
+            navPath = path;
+            // display motion path
             pathChanged = true;
-			return true;
-			
-		} else {
-			navPath.clearCorners();
-			return false;
-		}
-	}
-    
-	/**
-	 * Calculate a path to a specified point and store the resulting path.
-	 * <p>
-	 * This function can be used to plan a path ahead of time to avoid a delay in
-	 * gameplay when the path is needed. Another use is to check if a target
-	 * position is reachable before moving the agent.
-	 * 
-	 * @param targetPosition - The final position of the path requested.
-	 * @param path           - The resulting path.
-	 * @return 				 - True if a path is found.
-	 */
-    public boolean calculatePath(Vector3f targetPosition, NavMeshPath path) {
-    	return navtool.computePath(spatial.getWorldTranslation(), targetPosition, filter, path);
+            return true;
+
+        } else {
+            navPath.clearCorners();
+            return false;
+        }
     }
-    
-	/**
-	 * Finds the closest point on NavMesh within specified range.
-	 * 
-	 * @param center - The origin of the sample query.
-	 * @param range  - Sample within this distance from center.
-	 * @param result - Holds the resulting location.
-	 * @return 		 - True if a nearest point is found.
-	 */
+
+    /**
+     * Calculate a path to a specified point and store the resulting path.
+     * <p>
+     * This function can be used to plan a path ahead of time to avoid a delay in
+     * gameplay when the path is needed. Another use is to check if a target
+     * position is reachable before moving the agent.
+     * 
+     * @param targetPosition - The final position of the path requested.
+     * @param path           - The resulting path.
+     * @return - True if a path is found.
+     */
+    public boolean calculatePath(Vector3f targetPosition, NavMeshPath path) {
+        return navtool.computePath(spatial.getWorldTranslation(), targetPosition, filter, path);
+    }
+
+    /**
+     * Finds the closest point on NavMesh within specified range.
+     * 
+     * @param center - The origin of the sample query.
+     * @param range  - Sample within this distance from center.
+     * @param result - Holds the resulting location.
+     * @return - True if a nearest point is found.
+     */
     public boolean samplePosition(Vector3f center, float range, Vector3f result) {
-    	return navtool.randomPoint(center, range, result, filter);
+        return navtool.randomPoint(center, range, result, filter);
     }
 
 }
