@@ -27,47 +27,23 @@
 
 package com.jme3.recast4j.demo.states;
 
-import com.jme3.app.Application;
+import java.text.NumberFormat;
+import java.text.ParsePosition;
+
 import com.jme3.app.state.BaseAppState;
 import com.jme3.recast4j.demo.layout.MigLayout;
-import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
-import com.jme3.scene.control.Control;
 import com.simsilica.lemur.ActionButton;
 import com.simsilica.lemur.CallMethodAction;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.Label;
 import com.simsilica.lemur.Panel;
-import java.text.NumberFormat;
-import java.text.ParsePosition;
 
 /**
  * Utility class for common use Gui methods.
  * 
  * @author Robert
  */
-public class UtilState extends BaseAppState {
-    
-    @Override
-    protected void initialize(Application app) {
-    }
-
-    @Override
-    protected void cleanup(Application app) {
-    }
-
-    @Override
-    protected void onEnable() {
-    }
-
-    @Override
-    protected void onDisable() {
-    }
-    
-    @Override
-    public void update(float tpf) {
-        //TODO: implement behavior during runtime
-    }
+public abstract class AbstractCrowdState extends BaseAppState {
 
     /**
      * Builds a popup for display of messages.
