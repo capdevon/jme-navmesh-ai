@@ -1,6 +1,6 @@
 /*
  *  MIT License
- *  Copyright (c) 2018 MeFisto94
+ *  Copyright (c) 2021 MeFisto94
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,10 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *  SOFTWARE.
  */
-
 package com.jme3.recast4j.Recast;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -43,16 +41,16 @@ import jme3tools.optimize.GeometryBatchFactory;
 
 /**
  * This class will build a GeometryProvider for Recast to work with.<br />
- * <b>Note: </b>This code has to be run from the MainThread, but once the Geometry is built, it can be run from every
- * thread
+ * <b>Note: </b>This code has to be run from the MainThread, but once the
+ * Geometry is built, it can be run from every thread
  */
 public class GeometryProviderBuilder {
 
-    private static final Predicate<Spatial> DefaultFilter = sp -> sp.getUserData("no_collision") == null;
+    private static final Predicate<Spatial> DefaultFilter = sp -> sp.getUserData("ignoreFromBuild") == null;
 
     private List<Geometry> geometryList;
     private Mesh mesh;
-	
+    
     /**
      * Provide this Mesh to the Builder.
      * <b>Note: </b>Mesh does not contain trans, rot, scale information, so we suggest to use other constructors instead
@@ -74,24 +72,29 @@ public class GeometryProviderBuilder {
     }
 
     /**
-     * Provides this Node to the Builder and performs a search through the SceneGraph to gather all Geometries<br />
-     * This uses the default filter: If userData "no_collision" is set, ignore this spatial
+     * Provides this Node to the Builder and performs a search through the
+     * SceneGraph to gather all Geometries<br/>
+     * This uses the default filter: If userData "ignoreFromBuild" is set, ignore this
+     * spatial
+     * 
      * @param node The Node to use
      */
     public GeometryProviderBuilder(Node node) {
         this(node, DefaultFilter);
     }
-    
+
     /**
-     * Provides this Node to the Builder and performs a search through the SceneGraph to gather all Geometries
-     * @param node The Node to use
+     * Provides this Node to the Builder and performs a search through the
+     * SceneGraph to gather all Geometries
+     * 
+     * @param node   The Node to use
      * @param filter A Filter which defines when a Spatial should be gathered
      */
     public GeometryProviderBuilder(Node node, Predicate<Spatial> filter) {
     	geometryList = findGeometries(node, new ArrayList<>(), filter);
     }
     
-    protected List<Geometry> findGeometries(Node node, List<Geometry> geoms, Predicate<Spatial> filter) {
+    protected List<Geometry> findGeometries(final Node node, final List<Geometry> geoms, final Predicate<Spatial> filter) {
         for (Spatial spatial : node.getChildren()) {
             if (!filter.test(spatial)) {
                 continue;
@@ -106,19 +109,14 @@ public class GeometryProviderBuilder {
         return geoms;
     }
 
-    protected List<Float> getVertices(Mesh mesh) {
+    protected float[] getVertices(Mesh mesh) {
         FloatBuffer buffer = mesh.getFloatBuffer(VertexBuffer.Type.Position);
-        float[] vertexArray = BufferUtils.getFloatArray(buffer);
-        List<Float> vertexList = new ArrayList<>(vertexArray.length);
-        for (float vertex : vertexArray) {
-            vertexList.add(vertex);
-        }
-        return vertexList;
+        return BufferUtils.getFloatArray(buffer);
     }
 
-    protected List<Integer> getIndices(Mesh mesh) {
+    protected int[] getIndices(Mesh mesh) {
         int[] indices = new int[3];
-        Integer[] triangles = new Integer[mesh.getTriangleCount() * 3];
+        int[] triangles = new int[mesh.getTriangleCount() * 3];
 
         for (int i = 0; i < mesh.getTriangleCount(); i++) {
             mesh.getTriangle(i, indices);
@@ -126,8 +124,7 @@ public class GeometryProviderBuilder {
             triangles[3 * i + 1] = indices[1];
             triangles[3 * i + 2] = indices[2];
         }
-        //Independent copy so Arrays.asList is garbage collected
-        return new ArrayList<>(Arrays.asList(triangles));
+        return triangles;
     }
 
     public InputGeomProvider build() {
