@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
-import com.jme3.app.state.BaseAppState;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.BetterCharacterControl;
@@ -71,7 +70,7 @@ import com.simsilica.lemur.style.ElementId;
  * 
  * @author Robert
  */
-public class AgentGridState extends BaseAppState {
+public class AgentGridState extends AbstractCrowdState {
 
     private static final Logger LOG = LoggerFactory.getLogger(AgentGridState.class.getName());
 
@@ -467,7 +466,7 @@ public class AgentGridState extends BaseAppState {
         listScroll.setPreferredSize(new Vector3f(500, 400, 0));
         listScroll.setVisibleItems(20);
         window.addChild(new ActionButton(new CallMethodAction("Close", window, "removeFromParent")), "align 50%");
-        getState(UtilState.class).centerComp(window);
+        centerComp(window);
         //This assures clicking outside of the message should close the window 
         //but not activate underlying UI components.
         GuiGlobals.getInstance().getPopupState().showPopup(window, PopupState.ClickMode.ConsumeAndClose, null, null);
@@ -486,7 +485,7 @@ public class AgentGridState extends BaseAppState {
         if (checkRadius.isChecked()) {
             //The GridAgent radius. 
             if (fieldRadius.getText().isEmpty()
-            || !getState(UtilState.class).isNumeric(fieldRadius.getText())) {
+            || !isNumeric(fieldRadius.getText())) {
                 displayMessage("[ Agent Radius ] requires a valid float value.", 0);
                 return;
             } 
@@ -496,7 +495,7 @@ public class AgentGridState extends BaseAppState {
         if (checkHeight.isChecked()) {
             //The GridAgent height. 
             if (fieldHeight.getText().isEmpty()
-            || !getState(UtilState.class).isNumeric(fieldHeight.getText())) {
+            || !isNumeric(fieldHeight.getText())) {
                 displayMessage("[ Agent Height ] requires a valid float value.", 0);
                 return;
             }
@@ -507,14 +506,14 @@ public class AgentGridState extends BaseAppState {
         &&  checkWeight.isChecked()) {
             //The GridAgent weight. 
             if (fieldWeight.getText().isEmpty()
-            || !getState(UtilState.class).isNumeric(fieldWeight.getText())) {
+            || !isNumeric(fieldWeight.getText())) {
                 displayMessage("[ Agent Weight ] requires a valid float value.", 0);
                 return;
             }
         }
          
         //Garbage in?, no grid.
-        if (!getState(UtilState.class).isNumeric(fieldDistance.getText()) 
+        if (!isNumeric(fieldDistance.getText()) 
         ||  fieldDistance.getText().isEmpty()) {
             displayMessage("[ Agent Separation ] requires a valid float value.", 0);
             return;
@@ -546,9 +545,9 @@ public class AgentGridState extends BaseAppState {
         int size = listBoxSize.getSelectionModel().getSelection() + 1;
 
         //The starting position of the grid. Sanity check.
-        if (!getState(UtilState.class).isNumeric(fieldPosX.getText()) || fieldPosX.getText().isEmpty() 
-        ||  !getState(UtilState.class).isNumeric(fieldPosY.getText()) || fieldPosY.getText().isEmpty() 
-        ||  !getState(UtilState.class).isNumeric(fieldPosZ.getText()) || fieldPosZ.getText().isEmpty()) {
+        if (!isNumeric(fieldPosX.getText()) || fieldPosX.getText().isEmpty() 
+        ||  !isNumeric(fieldPosY.getText()) || fieldPosY.getText().isEmpty() 
+        ||  !isNumeric(fieldPosZ.getText()) || fieldPosZ.getText().isEmpty()) {
             displayMessage("[ Start Position ] requires a valid float value.", 0);
             return;
         } else {
@@ -737,7 +736,7 @@ public class AgentGridState extends BaseAppState {
      */
     private void displayMessage(String txt, float width) {
         GuiGlobals.getInstance().getPopupState()
-                    .showModalPopup(getState(UtilState.class)
+                    .showModalPopup(getState(AbstractCrowdState.class)
                             .buildPopup(txt, width));
     }
     
