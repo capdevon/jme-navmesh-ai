@@ -33,7 +33,6 @@ import com.jme3.recast4j.demo.states.CrowdBuilderState;
 import com.jme3.recast4j.demo.states.LemurConfigState;
 import com.jme3.recast4j.demo.states.NavState;
 import com.jme3.recast4j.demo.states.ThirdPersonCamState;
-import com.jme3.recast4j.demo.states.UtilState;
 import com.jme3.recast4j.demo.states.tutorial.CrowdState;
 import com.jme3.recast4j.demo.utils.GameObject;
 import com.jme3.renderer.queue.RenderQueue;
@@ -60,7 +59,6 @@ public class DemoApplication extends SimpleApplication {
         super(new StatsAppState(),
                 new AudioListenerState(),
                 new DebugKeysAppState(),
-                new UtilState(),
                 new NavState(),
                 new CrowdManagerAppState(new CrowdManager()),
                 new LemurConfigState(),
@@ -100,16 +98,16 @@ public class DemoApplication extends SimpleApplication {
         
         cam.setLocation(new Vector3f(0f, 40f, 0f));
         cam.lookAtDirection(new Vector3f(0f, -1f, 0f), Vector3f.UNIT_Z);
-        bullet.setDebugEnabled(false);
     }
     
     private void initPhysics() {
-   	 	bullet = new BulletAppState();
+        bullet = new BulletAppState();
         // Performance is better when threading in parallel
         bullet.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
         stateManager.attach(bullet);
-   }
-
+        bullet.setDebugEnabled(false);
+    }
+    
     private void setupWorld() {
     	//Set the atmosphere of the world, lights, camera, post processing.
     	viewPort.setBackgroundColor(new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f));
