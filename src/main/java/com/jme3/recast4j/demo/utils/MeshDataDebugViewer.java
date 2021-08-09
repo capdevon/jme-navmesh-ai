@@ -170,10 +170,11 @@ public class MeshDataDebugViewer {
             float[] colorArray = new float[indexes.length * 4];
 
             // Populate the colorArray based off area type.
+            ColorRGBA areaColor = areaToColorRGBA(areaType);
             for (int i = 0; i < indexes.length; i++) {
-                colorArray[colorIndex++] = areaToColorRGBA(areaType).getRed();
-                colorArray[colorIndex++] = areaToColorRGBA(areaType).getGreen();
-                colorArray[colorIndex++] = areaToColorRGBA(areaType).getBlue();
+                colorArray[colorIndex++] = areaColor.getRed();
+                colorArray[colorIndex++] = areaColor.getGreen();
+                colorArray[colorIndex++] = areaColor.getBlue();
                 colorArray[colorIndex++] = 1.0f;
             }
 
@@ -204,37 +205,32 @@ public class MeshDataDebugViewer {
      * Creates a color based off the area type.
      * 
      * @param area The area color desired.
-     * @return A RGBA color based off the supplied area type.
+     * @return A ColorRGBA based off the supplied area type.
      */
     private ColorRGBA areaToColorRGBA(int area) {
 
-        //Ground (1): light blue
-        if (area == POLYAREA_TYPE_GROUND) {
-            return new ColorRGBA(0.0f, 0.75f, 1.0f, 1.0f);
-        }
-        //Water (2): blue
-        else if (area == POLYAREA_TYPE_WATER) {
-            return ColorRGBA.Blue;
-        }
-        //Road (3): brown
-        else if (area == POLYAREA_TYPE_ROAD) {
-            return new ColorRGBA(0.2f, 0.08f, 0.05f, 1);
-        }
-        //Door (4): cyan
-        else if (area == POLYAREA_TYPE_DOOR) {
-            return ColorRGBA.Magenta;
-        }
-        //Grass (5): green
-        else if (area == POLYAREA_TYPE_GRASS) {
-            return ColorRGBA.Green;
-        }
-        //Jump (6): yellow
-        else if (area == POLYAREA_TYPE_JUMP) {
-            return ColorRGBA.Yellow;
-        }
-        //Unexpected : red
-        else {
-            return ColorRGBA.Red;
+        switch (area) {
+            // Ground (1): light blue
+            case POLYAREA_TYPE_GROUND:
+                return new ColorRGBA(0.0f, 0.75f, 1.0f, 1.0f);
+            // Water (2): blue
+            case POLYAREA_TYPE_WATER:
+                return ColorRGBA.Blue;
+            // Road (3): brown
+            case POLYAREA_TYPE_ROAD:
+                return new ColorRGBA(0.2f, 0.08f, 0.05f, 1);
+            // Door (4): cyan
+            case POLYAREA_TYPE_DOOR:
+                return ColorRGBA.Magenta;
+            // Grass (5): green
+            case POLYAREA_TYPE_GRASS:
+                return ColorRGBA.Green;
+            // Jump (6): yellow
+            case POLYAREA_TYPE_JUMP:
+                return ColorRGBA.Yellow;
+            // Unexpected : red
+            default:
+                return ColorRGBA.Red;
         }
     }
 
