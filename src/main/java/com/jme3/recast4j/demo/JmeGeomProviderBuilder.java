@@ -24,7 +24,6 @@ package com.jme3.recast4j.demo;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -44,7 +43,7 @@ import jme3tools.optimize.GeometryBatchFactory;
  */
 public class JmeGeomProviderBuilder {
     
-    private static final Predicate<Spatial> DefaultFilter = sp -> sp.getUserData("no_collision") == null;
+    private static final Predicate<Spatial> DefaultFilter = sp -> sp.getUserData("ignoreFromBuild") == null;
 
     private List<Geometry> geometryList;
     private Mesh mesh;
@@ -60,7 +59,7 @@ public class JmeGeomProviderBuilder {
 
     /**
      * Provides this Node to the Builder and performs a search through the SceneGraph to gather all Geometries<br />
-     * This uses the default filter: If userData "no_collision" is set, ignore this spatial
+     * This uses the default filter: If userData "ignoreFromBuild" is set, ignore this spatial
      * @param node The Node to use
      */
     public JmeGeomProviderBuilder(Node node) {
@@ -91,19 +90,14 @@ public class JmeGeomProviderBuilder {
         return geoms;
     }
 
-    protected List<Float> getVertices(Mesh mesh) {
+    protected float[] getVertices(Mesh mesh) {
         FloatBuffer buffer = mesh.getFloatBuffer(VertexBuffer.Type.Position);
-        float[] vertexArray = BufferUtils.getFloatArray(buffer);
-        List<Float> vertexList = new ArrayList<>(vertexArray.length);
-        for (float vertex: vertexArray) {
-            vertexList.add(vertex);
-        }
-        return vertexList;
+        return BufferUtils.getFloatArray(buffer);
     }
 
-    protected List<Integer> getIndices(Mesh mesh) {
+    protected int[] getIndices(Mesh mesh) {
         int[] indices = new int[3];
-        Integer[] triangles = new Integer[mesh.getTriangleCount() * 3];
+        int[] triangles = new int[mesh.getTriangleCount() * 3];
 
         for (int i = 0; i < mesh.getTriangleCount(); i++) {
             mesh.getTriangle(i, indices);
@@ -111,8 +105,7 @@ public class JmeGeomProviderBuilder {
             triangles[3 * i + 1] = indices[1];
             triangles[3 * i + 2] = indices[2];
         }
-        //Independent copy so Arrays.asList is garbage collected
-        return new ArrayList<>(Arrays.asList(triangles));
+        return triangles;
     }
 
     public JmeInputGeomProvider build() {
