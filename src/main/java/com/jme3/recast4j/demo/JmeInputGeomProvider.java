@@ -33,32 +33,6 @@ public class JmeInputGeomProvider implements InputGeomProvider {
     /**
      * Constructor.
      * 
-     * @param vertexPositions
-     * @param meshFaces
-     */
-    public JmeInputGeomProvider(List<Float> vertexPositions, List<Integer> meshFaces) {
-        this(mapVertices(vertexPositions), mapFaces(meshFaces));
-    }
-
-    private static int[] mapFaces(List<Integer> meshFaces) {
-        int[] faces = new int[meshFaces.size()];
-        for (int i = 0; i < faces.length; i++) {
-            faces[i] = meshFaces.get(i);
-        }
-        return faces;
-    }
-
-    private static float[] mapVertices(List<Float> vertexPositions) {
-        float[] vertices = new float[vertexPositions.size()];
-        for (int i = 0; i < vertices.length; i++) {
-            vertices[i] = vertexPositions.get(i);
-        }
-        return vertices;
-    }
-
-    /**
-     * Constructor.
-     * 
      * @param vertices
      * @param faces
      */
