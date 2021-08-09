@@ -27,8 +27,18 @@
 
 package com.jme3.recast4j.demo.states;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.recast4j.detour.FindNearestPolyResult;
+import org.recast4j.detour.NavMeshQuery;
+import org.recast4j.detour.Result;
+import org.recast4j.detour.crowd.CrowdAgent;
+import org.recast4j.detour.crowd.CrowdAgentParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.app.Application;
-import com.jme3.app.state.BaseAppState;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.material.Material;
@@ -36,17 +46,15 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.recast4j.Detour.BetterDefaultQueryFilter;
+import com.jme3.recast4j.Detour.DetourUtils;
 import com.jme3.recast4j.Detour.Crowd.Crowd;
 import com.jme3.recast4j.Detour.Crowd.MovementApplicationType;
-import com.jme3.recast4j.Detour.DetourUtils;
 import com.jme3.recast4j.demo.controls.CrowdBCC;
 import com.jme3.recast4j.demo.controls.CrowdChangeControl;
 import com.jme3.recast4j.demo.controls.CrowdDebugControl;
 import com.jme3.recast4j.demo.layout.MigLayout;
 import com.jme3.recast4j.demo.states.AgentGridState.Grid;
 import com.jme3.recast4j.demo.states.AgentGridState.GridAgent;
-import static com.jme3.recast4j.demo.states.CrowdBuilderState.DT_CROWD_MAX_OBSTAVOIDANCE_PARAMS;
-import static com.jme3.recast4j.demo.states.CrowdBuilderState.DT_CROWD_MAX_QUERY_FILTER_TYPE;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Torus;
@@ -59,22 +67,13 @@ import com.simsilica.lemur.Label;
 import com.simsilica.lemur.ListBox;
 import com.simsilica.lemur.TextField;
 import com.simsilica.lemur.event.PopupState;
-import java.util.Arrays;
-import java.util.List;
-import org.recast4j.detour.FindNearestPolyResult;
-import org.recast4j.detour.NavMeshQuery;
-import org.recast4j.detour.Result;
-import org.recast4j.detour.crowd.CrowdAgent;
-import org.recast4j.detour.crowd.CrowdAgentParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Holds the CrowdAgent parameter panel components.
  * 
  * @author Robert
  */
-public class AgentParamState extends BaseAppState {
+public class AgentParamState extends AbstractCrowdState {
 
     private static final Logger LOG = LoggerFactory.getLogger(AgentParamState.class.getName());
     
@@ -165,31 +164,26 @@ public class AgentParamState extends BaseAppState {
         contPanel1.addChild(new Label("Avoidance Type"), "align center");
         //Query filter.
         contPanel1.addChild(new Label("Query Filter"), "align center");
-
         
         
         //Obstacle avoidance list
         listBoxAvoidance = contPanel1.addChild(new ListBox<>(), "align center");
         //Have to set this here since Crowd has package-private access the to 
         //the DT_CROWD_MAX_OBSTAVOIDANCE_PARAMS variable. Currently this is eight.
-        for (int i = 0; i < DT_CROWD_MAX_OBSTAVOIDANCE_PARAMS; i++) {
+        for (int i = 0; i < CrowdBuilderState.DT_CROWD_MAX_OBSTAVOIDANCE_PARAMS; i++) {
             listBoxAvoidance.getModel().add(i);
         }
-        
         listBoxAvoidance.getSelectionModel().setSelection(0);
-        
         
         
         //Obstacle avoidance list
         listBoxQuery = contPanel1.addChild(new ListBox<>(), "align center");
         //Have to set this here since Crowd has package-private access the to 
         //the DT_CROWD_MAX_OBSTAVOIDANCE_PARAMS variable. Currently this is eight.
-        for (int i = 0; i < DT_CROWD_MAX_QUERY_FILTER_TYPE; i++) {
+        for (int i = 0; i < CrowdBuilderState.DT_CROWD_MAX_QUERY_FILTER_TYPE; i++) {
             listBoxQuery.getModel().add(i);
         }
-        
         listBoxQuery.getSelectionModel().setSelection(0);
-        
         
         
         //Panel two.
@@ -398,7 +392,7 @@ public class AgentParamState extends BaseAppState {
         listScroll.setPreferredSize(new Vector3f(500, 400, 0));
         listScroll.setVisibleItems(20);
         window.addChild(new ActionButton(new CallMethodAction("Close", window, "removeFromParent")), "align 50%");
-        getState(UtilState.class).centerComp(window);
+        getState(AbstractCrowdState.class).centerComp(window);
         //This assures clicking outside of the message should close the window 
         //but not activate underlying UI components.
         GuiGlobals.getInstance().getPopupState().showPopup(window, PopupState.ClickMode.ConsumeAndClose, null, null);
@@ -444,7 +438,7 @@ public class AgentParamState extends BaseAppState {
         //The CrowdAgent radius. 
         if (checkRadius.isChecked()) {
             if (fieldRadius.getText().isEmpty()
-            || !getState(UtilState.class).isNumeric(fieldRadius.getText())) {
+            || !isNumeric(fieldRadius.getText())) {
                 displayMessage("[ Agent Radius ] requires a valid float value.", 0);
                 return;
             } 
@@ -454,14 +448,14 @@ public class AgentParamState extends BaseAppState {
         //gathered when the CrowdAgent was added to its grid in the Add Grid tab.
         if (checkHeight.isChecked()) {
             if (fieldHeight.getText().isEmpty()
-            || !getState(UtilState.class).isNumeric(fieldHeight.getText())) {
+            || !isNumeric(fieldHeight.getText())) {
                 displayMessage("[ Agent Height ] requires a valid float value.", 0);
                 return;
             } 
         }
 
         //The max acceleration settings.
-        if (!getState(UtilState.class).isNumeric(fieldMaxAccel.getText()) 
+        if (!isNumeric(fieldMaxAccel.getText()) 
         ||  fieldMaxAccel.getText().isEmpty()) {
             displayMessage("[ Max Acceleration ] requires a valid float value.", 0);
             return;
@@ -475,7 +469,7 @@ public class AgentParamState extends BaseAppState {
         }
 
         //The max speed settings.
-        if (!getState(UtilState.class).isNumeric(fieldMaxSpeed.getText()) 
+        if (!isNumeric(fieldMaxSpeed.getText()) 
         ||  fieldMaxSpeed.getText().isEmpty()) {
             displayMessage("[ Max Speed ] requires a valid float value.", 0);
             return;
@@ -489,7 +483,7 @@ public class AgentParamState extends BaseAppState {
         }
 
         //The collision query range.
-        if (!getState(UtilState.class).isNumeric(fieldColQueryRange.getText()) 
+        if (!isNumeric(fieldColQueryRange.getText()) 
         ||  fieldColQueryRange.getText().isEmpty()) {
             displayMessage("[ Collision Query Range ] requires a valid float value.", 0);
             return;
@@ -503,7 +497,7 @@ public class AgentParamState extends BaseAppState {
         }
 
         //The path optimize range.
-        if (!getState(UtilState.class).isNumeric(fieldPathOptimizeRange.getText()) 
+        if (!isNumeric(fieldPathOptimizeRange.getText()) 
         ||  fieldPathOptimizeRange.getText().isEmpty()) {
             displayMessage("[ Path Optimize Range ] requires a valid float value.", 0);
             return;
@@ -517,10 +511,10 @@ public class AgentParamState extends BaseAppState {
         }
 
         //The separation weight settings.
-        if (!getState(UtilState.class).isNumeric(fieldSeparationWeight.getText()) 
+        if (!isNumeric(fieldSeparationWeight.getText()) 
         ||  fieldSeparationWeight.getText().isEmpty()) {
             GuiGlobals.getInstance().getPopupState()
-                    .showModalPopup(getState(UtilState.class)
+                    .showModalPopup(getState(AbstractCrowdState.class)
                             .buildPopup("[ Separation Weight ] requires a valid float value.", 0));
             return;
         } else {
@@ -528,7 +522,7 @@ public class AgentParamState extends BaseAppState {
             //Stop negative input.
             if (separationWeight < 0.0f) {
                 GuiGlobals.getInstance().getPopupState()
-                        .showModalPopup(getState(UtilState.class)
+                        .showModalPopup(getState(AbstractCrowdState.class)
                                 .buildPopup("[ Separation Weight ] requires a float value >= 0.0f.", 0));
                 return;
             }
@@ -786,9 +780,9 @@ public class AgentParamState extends BaseAppState {
         } 
         
         //The target position of the grid. Sanity check.
-        if (!getState(UtilState.class).isNumeric(fieldTargetX.getText()) || fieldTargetX.getText().isEmpty() 
-        ||  !getState(UtilState.class).isNumeric(fieldTargetY.getText()) || fieldTargetY.getText().isEmpty() 
-        ||  !getState(UtilState.class).isNumeric(fieldTargetZ.getText()) || fieldTargetZ.getText().isEmpty()) {
+        if (!isNumeric(fieldTargetX.getText()) || fieldTargetX.getText().isEmpty() 
+        ||  !isNumeric(fieldTargetY.getText()) || fieldTargetY.getText().isEmpty() 
+        ||  !isNumeric(fieldTargetZ.getText()) || fieldTargetZ.getText().isEmpty()) {
             displayMessage("[ Start Position ] requires a valid float value.", 0);
         } else {
             Float x = new Float(fieldTargetX.getText());
@@ -837,7 +831,7 @@ public class AgentParamState extends BaseAppState {
      */
     private void displayMessage(String txt, float width) {
         GuiGlobals.getInstance().getPopupState()
-                    .showModalPopup(getState(UtilState.class)
+                    .showModalPopup(getState(AbstractCrowdState.class)
                             .buildPopup(txt, width));
     }    
             
