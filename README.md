@@ -67,7 +67,7 @@ dependencies {
 # 
 Solo NavMesh
 ![Screenshot](images/buildSoloModified-2.jpg)
-Tile NavMesh
+Tiled NavMesh
 ![Screenshot](images/buildTileCache.jpg)
 
 # Credits
