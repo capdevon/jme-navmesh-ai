@@ -69,6 +69,8 @@ Solo NavMesh
 ![Screenshot](images/buildSoloModified-2.jpg)
 Tiled NavMesh
 ![Screenshot](images/buildTileCache.jpg)
+IORecast export .obj
+![Screenshot](images/navmesh-obj-export.jpg)
 
 # Credits
 Huge thanks to MeFisto94 ad mitm001 for writing the original project this is based on.
