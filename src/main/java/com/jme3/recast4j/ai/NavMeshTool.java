@@ -35,10 +35,10 @@ public class NavMeshTool {
     /**
      * Calculate a path between two points and store the resulting path.
      * 
-     * @param startPosition - The initial position of the path requested.
-     * @param endPosition - The final position of the path requested.
-     * @param path - The resulting path.
-     * @return - True if either a complete or partial path is found. False otherwise.
+     * @param startPosition The initial position of the path requested.
+     * @param endPosition   The final position of the path requested.
+     * @param path          The resulting path.
+     * @return True if either a complete or partial path is found. False otherwise.
      */
     public boolean computePath(Vector3f startPosition, Vector3f endPosition, NavMeshQueryFilter m_filter, NavMeshPath path) {
 
@@ -65,9 +65,9 @@ public class NavMeshTool {
     }
 
     protected boolean computePath(float[] m_spos, float[] m_epos, NavMeshQueryFilter m_filter) {
-    	if (navQuery == null) {
-    		return false;
-    	}
+        if (navQuery == null) {
+            return false;
+        }
 
         boolean foundPath = false;
         
@@ -106,12 +106,16 @@ public class NavMeshTool {
     /**
      * Finds the closest point on NavMesh within specified range.
      * 
-     * @param center - The origin of the sample query.
-     * @param range  - Sample within this distance from center.
-     * @param result - Holds the resulting location.
-     * @return - True if a nearest point is found.
+     * @param center The origin of the sample query.
+     * @param range  Sample within this distance from center.
+     * @param result Holds the resulting location.
+     * @return True if a nearest point is found.
      */
     public boolean randomPoint(Vector3f center, float range, Vector3f result, NavMeshQueryFilter m_filter) {
+    	
+        if (navQuery == null) {
+            return false;
+        }
 
         boolean found = false;
         result.set(Vector3f.ZERO);
