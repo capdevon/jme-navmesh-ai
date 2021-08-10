@@ -1,25 +1,3 @@
-/*
- *  MIT License
- *  Copyright (c) 2021 MeFisto94
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in all
- *  copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- *  SOFTWARE.
- */
 package com.jme3.recast4j.demo;
 
 import java.nio.FloatBuffer;
@@ -27,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+import com.jme3.bounding.BoundingBox;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
@@ -38,45 +17,63 @@ import jme3tools.optimize.GeometryBatchFactory;
 
 /**
  * This class will build a GeometryProvider for Recast to work with.<br />
- * <b>Note: </b>This code has to be run from the MainThread, but once the Geometry is built, it can be run from every
- * thread
+ * <b>Note: </b>This code has to be run from the MainThread, but once the
+ * Geometry is built, it can be run from every thread
+ * 
+ * @author capdevon
  */
 public class JmeGeomProviderBuilder {
-    
+
     private static final Predicate<Spatial> DefaultFilter = sp -> sp.getUserData("ignoreFromBuild") == null;
 
     private List<Geometry> geometryList;
     private Mesh mesh;
-	
+
     /**
      * Provides this Geometry to the Builder
      * @param geo The Geometry to use
      */
     public JmeGeomProviderBuilder(Geometry geo) {
-    	geometryList = new ArrayList<>();
-    	geometryList.add(geo);
+        geometryList = new ArrayList<>();
+        geometryList.add(geo);
     }
 
     /**
-     * Provides this Node to the Builder and performs a search through the SceneGraph to gather all Geometries<br />
-     * This uses the default filter: If userData "ignoreFromBuild" is set, ignore this spatial
+     * Provides this Node to the Builder and performs a search through the
+     * SceneGraph to gather all Geometries<br />
+     * This uses the default filter: If userData "ignoreFromBuild" is set, ignore
+     * this spatial
+     * 
      * @param node The Node to use
      */
     public JmeGeomProviderBuilder(Node node) {
         this(node, DefaultFilter);
     }
-    
+
     /**
-     * Provides this Node to the Builder and performs a search through the SceneGraph to gather all Geometries
-     * @param node The Node to use
-     * @param filter A Filter which defines when a Spatial should be gathered
+     * Provides this Node to the Builder and performs a search through the
+     * SceneGraph to gather all Geometries.
+     * 
+     * @param node   The Node to use.
+     * @param filter A Filter which defines when a Spatial should be gathered.
      */
     public JmeGeomProviderBuilder(Node node, Predicate<Spatial> filter) {
-    	geometryList = findGeometries(node, new ArrayList<>(), filter);
+        geometryList = findGeometries(node, new ArrayList<>(), filter);
     }
-    
-    protected List<Geometry> findGeometries(Node node, List<Geometry> geoms, Predicate<Spatial> filter) {
-        for (Spatial spatial: node.getChildren()) {
+
+    /**
+     * Provides this Node to the Builder and performs a search through the
+     * SceneGraph to gather all Geometries.
+     * 
+     * @param root                The Node to use.
+     * @param includedWorldBounds The queried objects must overlap these bounds to be included in the results.
+     */
+    public JmeGeomProviderBuilder(Node root, BoundingBox includedWorldBounds) {
+        geometryList = findGeometries(root, new ArrayList<>(), includedWorldBounds);
+    }
+
+    protected List<Geometry> findGeometries(Node node, List<Geometry> geoms, Predicate <Spatial> filter) {
+        for (Spatial spatial : node.getChildren()) {
             if (!filter.test(spatial)) {
                 continue;
             }
@@ -85,6 +82,20 @@ public class JmeGeomProviderBuilder {
                 geoms.add((Geometry) spatial);
             } else if (spatial instanceof Node) {
                 findGeometries((Node) spatial, geoms, filter);
+            }
+        }
+        return geoms;
+    }
+
+    protected List<Geometry> findGeometries(Node node, List<Geometry> geoms, BoundingBox includedWorldBounds) {
+        for (Spatial spatial : node.getChildren()) {
+            if (spatial instanceof Geometry) {
+                Geometry g = (Geometry) spatial;
+                if (g.getWorldBound().intersects(includedWorldBounds)) {
+                    geoms.add(g);
+                }
+            } else if (spatial instanceof Node) {
+                findGeometries((Node) spatial, geoms, includedWorldBounds);
             }
         }
         return geoms;
@@ -113,7 +124,7 @@ public class JmeGeomProviderBuilder {
             mesh = new Mesh();
             GeometryBatchFactory.mergeGeometries(geometryList, mesh);
         }
-        
+
         return new JmeInputGeomProvider(getVertices(mesh), getIndices(mesh));
     }
 }
