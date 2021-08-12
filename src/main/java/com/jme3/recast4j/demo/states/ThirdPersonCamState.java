@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2019 .
+ * Copyright 2021.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,12 @@
  * MODELS/DUNE.J3O:
  * Converted from http://quadropolis.us/node/2584 [Public Domain according to the Tags of this Map]
  */
-
 package com.jme3.recast4j.demo.states;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 import com.jme3.app.Application;
+import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.input.CameraInput;
@@ -48,7 +47,7 @@ import com.jme3.scene.Node;
  */
 public class ThirdPersonCamState extends BaseAppState {
     
-    private static final Logger LOG = LoggerFactory.getLogger(ThirdPersonCamState.class.getName());
+    private static final Logger LOG = Logger.getLogger(ThirdPersonCamState.class.getName());
     
     private Camera cam;
     private InputManager inputManager;
@@ -58,7 +57,9 @@ public class ThirdPersonCamState extends BaseAppState {
     	this.cam = app.getCamera();
     	this.inputManager = app.getInputManager();
     	
-        addHeadNode(getState(NavState.class).getCharacters().get(0));
+    	Node rootNode = ((SimpleApplication) app).getRootNode();
+    	Node character = (Node) rootNode.getChild("jaime");
+        addHeadNode(character);
         
         LOG.info("ThirdPersonCamState initialized");
     }
@@ -76,11 +77,11 @@ public class ThirdPersonCamState extends BaseAppState {
     }
     
     //create 3rd person view.
-    private void addHeadNode(Node body) {
+    private void addHeadNode(Node character) {
         
-        BoundingBox bounds = (BoundingBox) body.getWorldBound();
+        BoundingBox bounds = (BoundingBox) character.getWorldBound();
         Node head = new Node("headNode");
-        body.attachChild(head);
+        character.attachChild(head);
         
         //offset head node using spatial bounds to pos head level
         head.setLocalTranslation(0, bounds.getYExtent() * 2, 0);
@@ -103,14 +104,14 @@ public class ThirdPersonCamState extends BaseAppState {
         //Set arrow keys to rotate view.
         //Uses default mouse scrolling to zoom.
         chaseCam.setToggleRotationTrigger(
-                new KeyTrigger(KeyInput.KEY_LEFT),
-                new KeyTrigger(KeyInput.KEY_RIGHT),
-                new KeyTrigger(KeyInput.KEY_UP),
-                new KeyTrigger(KeyInput.KEY_DOWN));
-        
-		inputManager.addMapping(CameraInput.CHASECAM_MOVERIGHT, new KeyTrigger(KeyInput.KEY_RIGHT));
-		inputManager.addMapping(CameraInput.CHASECAM_MOVELEFT, new KeyTrigger(KeyInput.KEY_LEFT));
-		inputManager.addMapping(CameraInput.CHASECAM_DOWN, new KeyTrigger(KeyInput.KEY_DOWN));
-		inputManager.addMapping(CameraInput.CHASECAM_UP, new KeyTrigger(KeyInput.KEY_UP));
+            new KeyTrigger(KeyInput.KEY_LEFT),
+            new KeyTrigger(KeyInput.KEY_RIGHT),
+            new KeyTrigger(KeyInput.KEY_UP),
+            new KeyTrigger(KeyInput.KEY_DOWN));
+
+        inputManager.addMapping(CameraInput.CHASECAM_MOVERIGHT, new KeyTrigger(KeyInput.KEY_RIGHT));
+        inputManager.addMapping(CameraInput.CHASECAM_MOVELEFT, new KeyTrigger(KeyInput.KEY_LEFT));
+        inputManager.addMapping(CameraInput.CHASECAM_DOWN, new KeyTrigger(KeyInput.KEY_DOWN));
+        inputManager.addMapping(CameraInput.CHASECAM_UP, new KeyTrigger(KeyInput.KEY_UP));
     }
 }
