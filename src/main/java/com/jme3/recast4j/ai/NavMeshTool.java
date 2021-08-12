@@ -29,7 +29,7 @@ public class NavMeshTool {
      * @param navMesh
      */
     public NavMeshTool(NavMesh navMesh) {
-        setNavQuery(navMesh);
+    	navQuery = new NavMeshQuery(navMesh);
     }
 
     /**
@@ -65,9 +65,6 @@ public class NavMeshTool {
     }
 
     protected boolean computePath(float[] m_spos, float[] m_epos, NavMeshQueryFilter m_filter) {
-        if (navQuery == null) {
-            return false;
-        }
 
         boolean foundPath = false;
         
@@ -113,10 +110,6 @@ public class NavMeshTool {
      */
     public boolean randomPoint(Vector3f center, float range, Vector3f result, NavMeshQueryFilter m_filter) {
     	
-        if (navQuery == null) {
-            return false;
-        }
-
         boolean found = false;
         result.set(Vector3f.ZERO);
 
@@ -139,10 +132,6 @@ public class NavMeshTool {
         }
 
         return found;
-    }
-
-    public void setNavQuery(NavMesh navMesh) {
-        navQuery = (navMesh != null) ? new NavMeshQuery(navMesh) : null;
     }
 
 }
