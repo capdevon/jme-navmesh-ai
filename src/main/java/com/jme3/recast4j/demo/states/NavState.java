@@ -191,6 +191,16 @@ public class NavState extends AbstractNavState {
         
         setupDoors();
     }
+    
+    @Override
+    protected void onDisable() {
+        for (Node character: characters) {
+            NavMeshAgent agent = character.getControl(NavMeshAgent.class);
+            if (agent != null) {
+                character.removeControl(agent);
+            }
+        }
+    }
 
     private void setupDoors() {
         //If the doorNode in DemoApplication is not null, we will create doors.
@@ -621,17 +631,17 @@ public class NavState extends AbstractNavState {
 
         //We could use multiple configs here based off area type list.
         RecastConfig cfg = new RecastConfigBuilder()
-            .withAgentRadius(agentRadius) 	// r
-            .withAgentHeight(agentHeight) 	// h
+            .withAgentRadius(agentRadius) 		// r
+            .withAgentHeight(agentHeight) 		// h
             //cs and ch should be .1 at min.
-            .withCellSize(0.1f) 		// cs=r/2
-            .withCellHeight(0.1f) 		// ch=cs/2 but not < .1f
-            .withAgentMaxClimb(agentMaxClimb) 	// > 2*ch
+            .withCellSize(0.1f) 			// cs=r/2
+            .withCellHeight(0.1f) 			// ch=cs/2 but not < .1f
+            .withAgentMaxClimb(agentMaxClimb) 		// > 2*ch
             .withAgentMaxSlope(45f)
-            .withEdgeMaxLen(2.4f) 		// r*8
-            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
-            .withDetailSampleDistance(8.0f) 	// increase if exception
-            .withDetailSampleMaxError(8.0f) 	// increase if exception
+            .withEdgeMaxLen(2.4f) 			// r*8
+            .withEdgeMaxError(1.3f) 			// 1.1 - 1.5
+            .withDetailSampleDistance(8.0f) 		// increase if exception
+            .withDetailSampleMaxError(8.0f) 		// increase if exception
             .withWalkableAreaMod(AREAMOD_GROUND)
             .withPartitionType(m_partitionType)
             .withVertsPerPoly(3)
@@ -769,7 +779,7 @@ public class NavState extends AbstractNavState {
         try {
             saveToFile(meshData, "recast4j-solo.md");
             saveToFile(navMesh, "recast4j-solo.nm");
-
+            
             IORecast.saveObj("recast4j-solo_" + cfg.partitionType + "_detail.obj", m_dmesh);
             IORecast.saveObj("recast4j-solo_" + cfg.partitionType + ".obj", m_pmesh);
 
@@ -810,8 +820,8 @@ public class NavState extends AbstractNavState {
             .withAgentMaxSlope(45f)
             .withEdgeMaxLen(3.2f) 		// r*8
             .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
-            .withDetailSampleDistance(6.0f) // increase if exception
-            .withDetailSampleMaxError(6.0f) // increase if exception
+            .withDetailSampleDistance(6.0f) 	// increase if exception
+            .withDetailSampleMaxError(6.0f) 	// increase if exception
             .withVertsPerPoly(3)
             .withTileSize(16)
             .build();
