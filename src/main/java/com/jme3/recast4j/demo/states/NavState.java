@@ -114,6 +114,7 @@ import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.recast4j.Detour.DetourUtils;
+import com.jme3.recast4j.Recast.IORecast;
 import com.jme3.recast4j.Recast.NavMeshDataCreateParamsBuilder;
 import com.jme3.recast4j.Recast.RecastConfigBuilder;
 import com.jme3.recast4j.Recast.Telemetry;
@@ -196,15 +197,13 @@ public class NavState extends AbstractNavState {
         doorNode = (Node) rootNode.getChild("doorNode");
 
         /**
-         * This check will set any doors found in the doorNode open/closed flags
-         * by adding a lemur MouseEventControl to each door found that has a 
-         * DoorSwingControl. The click method for the MouseEventControl will 
-         * determine when and which flags to set for the door. It will notify 
-         * the DoorSwingControl of which animation to play based off the 
-         * determination.
+         * This check will set any doors found in the doorNode open/closed flags by
+         * adding a lemur MouseEventControl to each door found that has a
+         * DoorSwingControl. The click method for the MouseEventControl will determine
+         * when and which flags to set for the door. It will notify the DoorSwingControl
+         * of which animation to play based off the determination.
          * 
-         * This is an all or none setting where either the door is open or 
-         * closed. 
+         * This is an all or none setting where either the door is open or closed.
          */
         if (doorNode != null) {
 
@@ -220,12 +219,12 @@ public class NavState extends AbstractNavState {
                 DoorSwingControl swingControl = GameObject.getComponentInChild(child, DoorSwingControl.class);
 
                 if (swingControl != null) {
-					/**
-					 * We are adding the MouseEventControl to the doors hitBox not the door. It
-					 * would be easier to use the door by turning hardware skinning off but for some
-					 * reason it always throws an exception when doing so. The hitBox is attached to
-					 * the root bones attachment node.
-					 */
+                    /**
+                     * We are adding the MouseEventControl to the doors hitBox not the door. It
+                     * would be easier to use the door by turning hardware skinning off but for some
+                     * reason it always throws an exception when doing so. The hitBox is attached to
+                     * the root bones attachment node.
+                     */
                     SkeletonControl skelControl = GameObject.getComponentInChild(child, SkeletonControl.class);
                     String name = skelControl.getSkeleton().getBone(0).getName();
                     Spatial hitBox = skelControl.getAttachmentsNode(name).getChild(0);
@@ -244,11 +243,11 @@ public class NavState extends AbstractNavState {
 
                 LOG.info("<========== BEGIN Door MouseEventControl ==========>");
 
-				/**
-				 * We have the worldmap and the doors using MouseEventControl. In certain
-				 * circumstances, usually when moving and clicking, click will return target as
-				 * worldmap so we have to then use capture to get the proper spatial.
-				 */
+                /**
+                 * We have the worldmap and the doors using MouseEventControl. In certain
+                 * circumstances, usually when moving and clicking, click will return target as
+                 * worldmap so we have to then use capture to get the proper spatial.
+                 */
                 if (!target.equals(hitBox)) {
                     LOG.info("Wrong target found [{}] parentName [{}].", target.getName(), target.getParent().getName());
                     LOG.info("Switching to capture [{}] capture parent [{}].", capture.getName(), capture.getParent().getName());
@@ -267,17 +266,15 @@ public class NavState extends AbstractNavState {
                 filter.setExcludeFlags(excludeFlags);
 
                 /**
-                 * Look for the largest radius to search for. This will 
-                 * make it possible to grab only one of a double door. 
-                 * The width of the door is preferred over thickness. 
-                 * The idea is to only return polys within the width of 
-                 * the door so in cases where there are double doors, 
-                 * only the selected door will open/close. This means 
-                 * doors with large widths should not be in range of 
-                 * other doors or the other doors polys will be included.
+                 * Look for the largest radius to search for. This will make it possible to grab
+                 * only one of a double door. The width of the door is preferred over thickness.
+                 * The idea is to only return polys within the width of the door so in cases
+                 * where there are double doors, only the selected door will open/close. This
+                 * means doors with large widths should not be in range of other doors or the
+                 * other doors polys will be included.
                  * 
-                 * Searches take place from the origin of the attachment
-                 * node which should be the same as the doors origin.
+                 * Searches take place from the origin of the attachment node which should be
+                 * the same as the doors origin.
                  */
                 BoundingBox bounds = (BoundingBox) target.getWorldBound();
                 //Width of door opening.
@@ -304,10 +301,10 @@ public class NavState extends AbstractNavState {
                     //List<Long> m_parent = result.result.getParentRefs();
                     //List<Float> m_costs = result.result.getCosts();
 
-					/**
-					 * Store each poly and flag in a single object and add it to this list so we can
-					 * later check they all have the same flag.
-					 */
+                    /**
+                     * Store each poly and flag in a single object and add it to this list so we can
+                     * later check they all have the same flag.
+                     */
                     List<PolyAndFlag> listPolyFlag = new ArrayList<>();
 
                     //The flags that say this door is open.
@@ -325,12 +322,12 @@ public class NavState extends AbstractNavState {
                         LOG.info("PRE flag set Poly ID [{}] Flags [{}]", poly, navMesh.getPolyFlags(poly).result);
                         printFlags(poly);
 
-						/**
-						 * We look for closed or open doors and add the poly id and flag to set for the
-						 * poly to the list. We will later check to see if all poly flags are the same
-						 * and act accordingly. If the door is closed, we add the open flags, if open,
-						 * add the closed flags.
-						 */
+                        /**
+                         * We look for closed or open doors and add the poly id and flag to set for the
+                         * poly to the list. We will later check to see if all poly flags are the same
+                         * and act accordingly. If the door is closed, we add the open flags, if open,
+                         * add the closed flags.
+                         */
                         if (isBitSet(closedFlags, navMesh.getPolyFlags(poly).result)) {
                             listPolyFlag.add(new PolyAndFlag(poly, openFlags));
 
@@ -339,14 +336,14 @@ public class NavState extends AbstractNavState {
                         }
                     }
 
-					/**
-					 * Check that all poly flags for the door are either all open or all closed.
-					 * This prevents changing door flags in circumstances where a user may be
-					 * allowed to block open or closed doors with in game objects through tile
-					 * caching. If the object was placed in such a way that not all polys in a door
-					 * opening were blocked by the object, not checking if all polys had the same
-					 * flag would allow bypassing the blocking object flag setting.
-					 */
+                    /**
+                     * Check that all poly flags for the door are either all open or all closed.
+                     * This prevents changing door flags in circumstances where a user may be
+                     * allowed to block open or closed doors with in game objects through tile
+                     * caching. If the object was placed in such a way that not all polys in a door
+                     * opening were blocked by the object, not checking if all polys had the same
+                     * flag would allow bypassing the blocking object flag setting.
+                     */
                     boolean same = true;
                     for (PolyAndFlag obj : listPolyFlag) {
                         //If any flag does not match, were done.
@@ -416,7 +413,7 @@ public class NavState extends AbstractNavState {
 
                 if (event.getButtonIndex() == MouseInput.BUTTON_LEFT) {
                 	
-                	// First clear existing pathGeometries from the old path finding:
+                    // First clear existing pathGeometries from the old path finding
                     pathViewer.clearPath();
 
                     Vector3f locOnMap = getLocationOnMap();
@@ -440,11 +437,11 @@ public class NavState extends AbstractNavState {
     }
     
     /**
-     * Returns the Location on the Map which is currently under the Cursor. 
-     * For this we use the Camera to project the point onto the near and far 
-     * plane (because we don'from have the depth information [map height]). Then 
-     * we can use this information to do a raycast, ideally the world is in 
-     * between those planes and we hit it at the correct place.
+     * Returns the Location on the Map which is currently under the Cursor. For this
+     * we use the Camera to project the point onto the near and far plane (because
+     * we don'from have the depth information [map height]). Then we can use this
+     * information to do a raycast, ideally the world is in between those planes and
+     * we hit it at the correct place.
      * 
      * @return The Location on the Map
      */
@@ -477,7 +474,7 @@ public class NavState extends AbstractNavState {
     }
     
     /**
-     * Original implementation using jme3-recast4j methods and custom recastBuilder.
+     * Original implementation using jme3-recast4j methods and custom JmeRecastBuilder.
      */
     private void buildSolo() {
         //Clean up offMesh connections.
@@ -521,10 +518,10 @@ public class NavState extends AbstractNavState {
         navQuery = new NavMeshQuery(navMesh);
 
         try {
-            saveToFile(meshData);
-            saveToFile(navMesh);
+            saveToFile(meshData, "recast-solo.md");
+            saveToFile(navMesh, "recast-solo.nm");
 
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
 
@@ -534,13 +531,15 @@ public class NavState extends AbstractNavState {
     
     /**
      * This example sets area type and flags based off geometry of each 
-     * individual mesh and uses the custom RecastBuilder class with 
+     * individual mesh and uses the custom JmeRecastBuilder class with 
      * jme3-recast4j wrapper methods. 
      */
     private void buildSoloModified() {
 
         //Build merged mesh.
         JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
+        float[] bmin = geomProvider.getMeshBoundsMin();
+        float[] bmax = geomProvider.getMeshBoundsMax();
 
         setNavMeshArea(geomProvider, worldMap);
 
@@ -563,7 +562,7 @@ public class NavState extends AbstractNavState {
 	            .build();
         
         //Create a RecastBuilderConfig builder with world bounds of our geometry.
-        RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, geomProvider.getMeshBoundsMin(), geomProvider.getMeshBoundsMax());
+        RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, bmin, bmax);
         
         JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
         RecastBuilderResult rcResult = rcBuilder.build(geomProvider, builderCfg);
@@ -588,10 +587,10 @@ public class NavState extends AbstractNavState {
         //Create offmesh connections here.
 
         try {
-            saveToFile(meshData);
-            saveToFile(navMesh);
+            saveToFile(meshData, "recast-solo-modified.md");
+            saveToFile(navMesh, "recast-solo-modified.nm");
 
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
 
@@ -761,17 +760,20 @@ public class NavState extends AbstractNavState {
         updateAreaAndFlags(params);
 
         MeshData meshData = NavMeshBuilder.createNavMeshData(params);
-        navMesh = new NavMesh(meshData, params.nvp, 0);
+        navMesh = new NavMesh(meshData, cfg.maxVertsPerPoly, 0);
         navQuery = new NavMeshQuery(navMesh);
 
         m_ctx.print();
         //Create offmesh connections here.
 
         try {
-            saveToFile(meshData);
-            saveToFile(navMesh);
+            saveToFile(meshData, "recast4j-solo.md");
+            saveToFile(navMesh, "recast4j-solo.nm");
 
-        } catch (Exception ex) {
+            IORecast.saveObj("recast4j-solo_" + cfg.partitionType + "_detail.obj", m_dmesh);
+            IORecast.saveObj("recast4j-solo_" + cfg.partitionType + ".obj", m_pmesh);
+
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
 
@@ -782,7 +784,7 @@ public class NavState extends AbstractNavState {
 
     /**
      * This example sets area type and flags based off geometry of each 
-     * individual mesh and uses the custom RecastBuilder class. Implements 
+     * individual mesh and uses the custom JmeRecastBuilder class. Implements 
      * offmesh connections. Uses recast4j methods for building.
      */
     private void buildTiledRecast4j() {
@@ -967,7 +969,7 @@ public class NavState extends AbstractNavState {
             
             //Read our tile cache.
             TileCacheReader reader = new TileCacheReader();
-            tc = reader.read(new FileInputStream(f), 3, new JmeTileCacheMeshProcess());
+            tc = reader.read(new FileInputStream(f), cfg.maxVertsPerPoly, new JmeTileCacheMeshProcess());
 
             //Get the navMesh and build a query object.
             navMesh = tc.getNavMesh();
@@ -1066,19 +1068,16 @@ public class NavState extends AbstractNavState {
                         //yet so this will become our new poly's index.
                         int poly = startTile.header.polyCount;
                         /**
-                         * Off-mesh connections are stored in the navigation 
-                         * mesh as special 2-vertex polygons with a single edge. 
-                         * At least one of the vertices is expected to be inside 
-                         * a normal polygon. So an off-mesh connection is 
-                         * "entered" from a normal polygon at one of its 
-                         * endpoints. Jme requires 3 vertices per poly to 
-                         * build a debug mesh so we have to create a 
-                         * 3-vertex polygon here if using debug. The extra 
-                         * vertex position will be connected automatically 
-                         * when we add the tile back to the navmesh. For 
-                         * games, this would be a two vert poly.
+                         * Off-mesh connections are stored in the navigation mesh as special 2-vertex
+                         * polygons with a single edge. At least one of the vertices is expected to be
+                         * inside a normal polygon. So an off-mesh connection is "entered" from a normal
+                         * polygon at one of its endpoints. Jme requires 3 vertices per poly to build a
+                         * debug mesh so we have to create a 3-vertex polygon here if using debug. The
+                         * extra vertex position will be connected automatically when we add the tile
+                         * back to the navmesh. For games, this would be a two vert poly.
                          * 
-                         * See: https://github.com/ppiastucki/recast4j/blob/3c532068d79fe0306fedf035e50216008c306cdf/detour/src/main/java/org/recast4j/detour/NavMesh.java#L406
+                         * See:
+                         * https://github.com/ppiastucki/recast4j/blob/3c532068d79fe0306fedf035e50216008c306cdf/detour/src/main/java/org/recast4j/detour/NavMesh.java#L406
                          */
                         startTile.polys[poly] = new Poly(poly, 3);
                         /**
@@ -1316,79 +1315,49 @@ public class NavState extends AbstractNavState {
         });
     }
     
-    private void saveToFile(MeshData md) throws Exception {
+    private void saveToFile(MeshData md, String fileName) throws IOException {
         MeshDataWriter mdw = new MeshDataWriter();
-        File f = new File("test-solo.md");
+        File f = new File(fileName);
         System.out.println("Saving MeshData=" + f.getAbsolutePath());
         mdw.write(new FileOutputStream(f), md, ByteOrder.BIG_ENDIAN, false);
     }
 
-    private void saveToFile(NavMesh nm) throws Exception {
+    private void saveToFile(NavMesh nm, String fileName) throws IOException {
         MeshSetWriter msw = new MeshSetWriter();
-        File f = new File("test-solo.nm");
+        File f = new File(fileName);
         System.out.println("Saving NavMesh=" + f.getAbsolutePath());
         msw.write(new FileOutputStream(f), nm, ByteOrder.BIG_ENDIAN, false);
     }
     
-    private void setNavMeshArea(JmeInputGeomProvider geomProvider, Node rootParent) {
-    	
-    	rootParent.depthFirstTraversal(new SceneGraphVisitorAdapter() {
-            @Override
-            public void visit(Geometry geo) {
-
-                int geomLength = geo.getMesh().getTriangleCount() * 3;
-                String[] name = geo.getMaterial().getName().split("_");
-                System.out.println("setNavMeshArea=" + geo + ", geomLength=" + geomLength + ", Material=" + Arrays.toString(name));
-
-                switch (name[0]) {
-                    case "water":
-                        geomProvider.addMod(new Modification(geomLength, AREAMOD_WATER));
-                        break;
-                    case "road":
-                        geomProvider.addMod(new Modification(geomLength, AREAMOD_ROAD));
-                        break;
-                    case "grass":
-                        geomProvider.addMod(new Modification(geomLength, AREAMOD_GRASS));
-                        break;
-                    case "door":
-                        geomProvider.addMod(new Modification(geomLength, AREAMOD_DOOR));
-                        break;
-                    default:
-                        geomProvider.addMod(new Modification(geomLength, AREAMOD_GROUND));
-                }
-            }
-        });
-    }
-    
     //Build the tile cache.
-    private TileCache getTileCache(JmeInputGeomProvider geom, RecastConfig rcfg) {
+    private TileCache getTileCache(JmeInputGeomProvider geom, RecastConfig cfg) {
         final int EXPECTED_LAYERS_PER_TILE = 4;
         
         TileCacheParams params = new TileCacheParams();
-        int[] twh = Recast.calcTileCount(geom.getMeshBoundsMin(), geom.getMeshBoundsMax(), rcfg.cs, rcfg.tileSize);
-        params.ch = rcfg.ch;
-        params.cs = rcfg.cs;
+        int[] twh = Recast.calcTileCount(geom.getMeshBoundsMin(), geom.getMeshBoundsMax(), cfg.cs, cfg.tileSize);
+        params.ch = cfg.ch;
+        params.cs = cfg.cs;
         DetourCommon.vCopy(params.orig, geom.getMeshBoundsMin());
-        params.height = rcfg.tileSize;
-        params.width = rcfg.tileSize;
+        params.height = cfg.tileSize;
+        params.width = cfg.tileSize;
         params.walkableHeight = agentHeight;
         params.walkableRadius = agentRadius;
         params.walkableClimb = agentMaxClimb;
-        params.maxSimplificationError = rcfg.maxSimplificationError;
+        params.maxSimplificationError = cfg.maxSimplificationError;
         params.maxTiles = twh[0] * twh[1] * EXPECTED_LAYERS_PER_TILE;
         params.maxObstacles = 128;
         
         NavMeshParams navMeshParams = new NavMeshParams();
         RecastVectors.copy(navMeshParams.orig, geom.getMeshBoundsMin());
-        navMeshParams.tileWidth = rcfg.tileSize * rcfg.cs;
-        navMeshParams.tileHeight = rcfg.tileSize * rcfg.cs;
+        navMeshParams.tileWidth = cfg.tileSize * cfg.cs;
+        navMeshParams.tileHeight = cfg.tileSize * cfg.cs;
         navMeshParams.maxTiles = params.maxTiles;
         navMeshParams.maxPolys = 16384;
         
-        NavMesh navMesh = new NavMesh(navMeshParams, 3);
+        NavMesh navMesh = new NavMesh(navMeshParams, cfg.maxVertsPerPoly);
 
         return new TileCache(params, new TileCacheStorageParams(ByteOrder.BIG_ENDIAN, false), 
-			     navMesh, TileCacheCompressorFactory.get(false), new JmeTileCacheMeshProcess());
+        		navMesh, TileCacheCompressorFactory.get(false), new JmeTileCacheMeshProcess());
     }
     
     /**
@@ -1400,6 +1369,42 @@ public class NavState extends AbstractNavState {
         public void process(NavMeshDataCreateParams params) {
             updateAreaAndFlags(params);
         }
+    }
+    
+    private void setNavMeshArea(JmeInputGeomProvider geomProvider, Node root) {
+    	
+    	root.depthFirstTraversal(new SceneGraphVisitorAdapter() {
+            @Override
+            public void visit(Geometry geo) {
+
+                int geomLength = geo.getMesh().getTriangleCount() * 3;
+                String[] name = geo.getMaterial().getName().split("_");
+                
+                Modification mod = null;
+
+                switch (name[0]) {
+                    case "water":
+                        mod = new Modification(geomLength, AREAMOD_WATER);
+                        break;
+                    case "road":
+                        mod = new Modification(geomLength, AREAMOD_ROAD);
+                        break;
+                    case "grass":
+                        mod = new Modification(geomLength, AREAMOD_GRASS);
+                        break;
+                    case "door":
+                        mod = new Modification(geomLength, AREAMOD_DOOR);
+                        break;
+                    default:
+                        mod = new Modification(geomLength, AREAMOD_GROUND);
+                }
+                
+                geomProvider.addMod(mod);
+                
+                System.out.println("setNavMeshArea=" + geo + ", geomLength=" + geomLength 
+                		+ ", Material=" + Arrays.toString(name) + ", areaMod=" + mod.getMod().getMaskedValue());
+            }
+        });
     }
     
     private void updateAreaAndFlags(NavMeshDataCreateParams params) {
