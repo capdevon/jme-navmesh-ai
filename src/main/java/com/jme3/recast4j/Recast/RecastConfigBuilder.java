@@ -1,6 +1,6 @@
 /*
  *  MIT License
- *  Copyright (c) 2018 MeFisto94
+ *  Copyright (c) 2021 MeFisto94
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,8 @@ import org.recast4j.recast.AreaModification;
 import org.recast4j.recast.RecastConfig;
 import org.recast4j.recast.RecastConstants;
 
+import com.jme3.recast4j.demo.JmeAreaMods;
+
 public class RecastConfigBuilder {
 
     protected RecastConstants.PartitionType partitionType;
@@ -45,7 +47,7 @@ public class RecastConfigBuilder {
     protected int tileSize;
     protected AreaModification walkableAreaMod;
 
-    /*
+    /**
      * We have values which we can derive from others using a formula.
      * When such a value is modified, we have to disable auto-deriveal or else
      * we'll overwrite what the user is trying to do
@@ -81,7 +83,6 @@ public class RecastConfigBuilder {
         agentMaxClimb = 0.9f;
         edgeMaxError = 1.3f;
         edgeMaxLen = 12f;
-        partitionType = RecastConstants.PartitionType.WATERSHED;
         regionMergeSize = 20;
         regionMinSize = 8;
         detailSampleDist = 6.0f;
@@ -89,7 +90,8 @@ public class RecastConfigBuilder {
         agentMaxSlope = 45f;
         vertsPerPoly = 6;
         tileSize = 0;
-        walkableAreaMod = SampleAreaModifications.SAMPLE_AREAMOD_GROUND;
+        partitionType = RecastConstants.PartitionType.WATERSHED;
+        walkableAreaMod = JmeAreaMods.AREAMOD_GROUND;
     }
 
     /**
