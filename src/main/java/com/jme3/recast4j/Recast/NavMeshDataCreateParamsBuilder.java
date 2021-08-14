@@ -5,44 +5,29 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.recast4j.detour.NavMeshDataCreateParams;
 import org.recast4j.recast.PolyMesh;
 import org.recast4j.recast.PolyMeshDetail;
-import org.recast4j.recast.RecastBuilder;
-import org.recast4j.recast.RecastBuilderConfig;
 import org.recast4j.recast.RecastBuilder.RecastBuilderResult;
+
+import com.jme3.recast4j.demo.JmeInputGeomProvider;
+import com.jme3.recast4j.demo.OffMeshLink;
 
 /**
  * 
  * @author capdevon
  */
+@Deprecated
 public class NavMeshDataCreateParamsBuilder {
-	
-    protected RecastBuilderResult rcResult;
 
-    /**
-     * Constructor.
-     * 
-     * @param rcResult
-     */
-    public NavMeshDataCreateParamsBuilder(RecastBuilder.RecastBuilderResult rcResult) {
-    	this.rcResult = rcResult;
-    }
+    public static NavMeshDataCreateParams build(JmeInputGeomProvider m_geom, float m_cellSize,
+        float m_cellHeight, float m_agentHeight, float m_agentRadius, float m_agentMaxClimb, RecastBuilderResult rcResult) {
 
-    /**
-     * 
-     * @param builderCfg
-     * @param connections
-     * @return
-     */
-    public NavMeshDataCreateParams build(RecastBuilderConfig builderCfg, OffMeshLink... connections) {
-		
-    	NavMeshDataCreateParams params = new NavMeshDataCreateParams();
-    	
-    	PolyMesh m_pmesh = rcResult.getMesh();
-    	PolyMeshDetail m_dmesh = rcResult.getMeshDetail();
-    	
+        PolyMesh m_pmesh = rcResult.getMesh();
+        PolyMeshDetail m_dmesh = rcResult.getMeshDetail();
+        NavMeshDataCreateParams params = new NavMeshDataCreateParams();
+
         for (int i = 0; i < m_pmesh.npolys; ++i) {
             m_pmesh.flags[i] = 1;
         }
-		
+
         params.verts = m_pmesh.verts;
         params.vertCount = m_pmesh.nverts;
         params.polys = m_pmesh.polys;
@@ -59,36 +44,33 @@ public class NavMeshDataCreateParamsBuilder {
             params.detailTriCount = m_dmesh.ntris;
         }
 
-        params.walkableHeight = builderCfg.cfg.walkableHeight;
-        params.walkableRadius = builderCfg.cfg.walkableRadius;
-        params.walkableClimb = builderCfg.cfg.walkableClimb;
+        params.walkableHeight = m_agentHeight;
+        params.walkableRadius = m_agentRadius;
+        params.walkableClimb = m_agentMaxClimb;
         params.bmin = m_pmesh.bmin;
         params.bmax = m_pmesh.bmax;
-        params.cs = builderCfg.cfg.cs;
-        params.ch = builderCfg.cfg.ch;
+        params.cs = m_cellSize;
+        params.ch = m_cellHeight;
         params.buildBvTree = true;
 
-        if (connections != null && connections.length > 0) {
-            params.offMeshConCount 	= connections.length;
-            params.offMeshConVerts 	= new float[connections.length * 6];
-            params.offMeshConRad 	= new float[connections.length];
-            params.offMeshConDir 	= new int[connections.length];
-            params.offMeshConAreas 	= new int[connections.length];
-            params.offMeshConFlags 	= new int[connections.length];
-            params.offMeshConUserID 	= new int[connections.length];
+        params.offMeshConCount = m_geom.getOffMeshConnections().size();
+        params.offMeshConVerts 	= new float[params.offMeshConCount * 6];
+        params.offMeshConRad 	= new float[params.offMeshConCount];
+        params.offMeshConDir 	= new int[params.offMeshConCount];
+        params.offMeshConAreas 	= new int[params.offMeshConCount];
+        params.offMeshConFlags 	= new int[params.offMeshConCount];
+        params.offMeshConUserID = new int[params.offMeshConCount];
 
-            for (int i = 0; i < connections.length; ++i) {
-                OffMeshLink offMeshCon = connections[i];
-                for (int j = 0; j < 6; j++) {
-                    params.offMeshConVerts[6 * i + j] = offMeshCon.verts[j];
-                }
-
-                params.offMeshConRad[i] = offMeshCon.radius;
-                params.offMeshConDir[i] = offMeshCon.direction;
-                params.offMeshConAreas[i] = offMeshCon.areas;
-                params.offMeshConFlags[i] = offMeshCon.flags;
-                params.offMeshConUserID[i] = offMeshCon.userID;
+        for (int i = 0; i < params.offMeshConCount; i++) {
+            OffMeshLink offMeshCon = m_geom.getOffMeshConnections().get(i);
+            for (int j = 0; j < 6; j++) {
+                params.offMeshConVerts[6 * i + j] = offMeshCon.verts[j];
             }
+            params.offMeshConRad[i] = offMeshCon.radius;
+            params.offMeshConDir[i] = offMeshCon.direction;
+            params.offMeshConAreas[i] = offMeshCon.areas;
+            params.offMeshConFlags[i] = offMeshCon.flags;
+            params.offMeshConUserID[i] = offMeshCon.userID;
         }
 
         System.out.println(ReflectionToStringBuilder.toString(params, ToStringStyle.MULTI_LINE_STYLE));
