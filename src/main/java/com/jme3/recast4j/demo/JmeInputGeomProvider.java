@@ -12,8 +12,6 @@ import org.recast4j.recast.RecastVectors;
 import org.recast4j.recast.geom.InputGeomProvider;
 import org.recast4j.recast.geom.TriMesh;
 
-import com.jme3.recast4j.Recast.OffMeshLink;
-
 /**
  *
  * @author Robert
