@@ -1,25 +1,3 @@
-/*
- *  MIT License
- *  Copyright (c) 2021 MeFisto94
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in all
- *  copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- *  SOFTWARE.
- */
 package com.jme3.recast4j.Recast;
 
 import java.nio.FloatBuffer;
@@ -44,29 +22,18 @@ import jme3tools.optimize.GeometryBatchFactory;
  * <b>Note: </b>This code has to be run from the MainThread, but once the
  * Geometry is built, it can be run from every thread
  */
-public class GeometryProviderBuilder {
+public class SimpleGeomProviderBuilder {
 
     private static final Predicate<Spatial> DefaultFilter = sp -> sp.getUserData("ignoreFromBuild") == null;
 
     private List<Geometry> geometryList;
     private Mesh mesh;
-    
-    /**
-     * Provide this Mesh to the Builder.
-     * <b>Note: </b>Mesh does not contain trans, rot, scale information, so we suggest to use other constructors instead
-     * @see #GeometryProviderBuilder(Geometry)
-     * @see #GeometryProviderBuilder(Node, Predicate)
-     * @param m The Mesh to use
-     */
-    public GeometryProviderBuilder(Mesh m) {
-        this.mesh = m;
-    }
 	
     /**
      * Provides this Geometry to the Builder
      * @param geo The Geometry to use
      */
-    public GeometryProviderBuilder(Geometry geo) {
+    public SimpleGeomProviderBuilder(Geometry geo) {
     	geometryList = new ArrayList<>();
     	geometryList.add(geo);
     }
@@ -79,10 +46,10 @@ public class GeometryProviderBuilder {
      * 
      * @param node The Node to use
      */
-    public GeometryProviderBuilder(Node node) {
+    public SimpleGeomProviderBuilder(Node node) {
         this(node, DefaultFilter);
     }
-
+    
     /**
      * Provides this Node to the Builder and performs a search through the
      * SceneGraph to gather all Geometries
@@ -90,7 +57,7 @@ public class GeometryProviderBuilder {
      * @param node   The Node to use
      * @param filter A Filter which defines when a Spatial should be gathered
      */
-    public GeometryProviderBuilder(Node node, Predicate<Spatial> filter) {
+    public SimpleGeomProviderBuilder(Node node, Predicate<Spatial> filter) {
     	geometryList = findGeometries(node, new ArrayList<>(), filter);
     }
     
