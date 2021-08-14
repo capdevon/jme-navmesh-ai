@@ -54,6 +54,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.recast4j.detour.DefaultQueryFilter;
 import org.recast4j.detour.DetourCommon;
 import org.recast4j.detour.FindNearestPolyResult;
@@ -87,6 +89,7 @@ import org.recast4j.recast.PolyMesh;
 import org.recast4j.recast.PolyMeshDetail;
 import org.recast4j.recast.Recast;
 import org.recast4j.recast.RecastArea;
+import org.recast4j.recast.RecastBuilder;
 import org.recast4j.recast.RecastBuilder.RecastBuilderResult;
 import org.recast4j.recast.RecastBuilderConfig;
 import org.recast4j.recast.RecastConfig;
@@ -115,7 +118,6 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.recast4j.Detour.DetourUtils;
 import com.jme3.recast4j.Recast.IORecast;
-import com.jme3.recast4j.Recast.NavMeshDataCreateParamsBuilder;
 import com.jme3.recast4j.Recast.RecastConfigBuilder;
 import com.jme3.recast4j.Recast.Telemetry;
 import com.jme3.recast4j.ai.NavMeshAgent;
@@ -127,6 +129,7 @@ import com.jme3.recast4j.demo.JmeInputGeomProvider;
 import com.jme3.recast4j.demo.JmeRecastBuilder;
 import com.jme3.recast4j.demo.Modification;
 import com.jme3.recast4j.demo.NavMeshBuilderProgressListener;
+import com.jme3.recast4j.demo.OffMeshLink;
 import com.jme3.recast4j.demo.TileLayerBuilder;
 import com.jme3.recast4j.demo.controls.DoorSwingControl;
 import com.jme3.recast4j.demo.utils.GameObject;
@@ -155,13 +158,23 @@ public class NavState extends AbstractNavState {
     private NavMeshQuery navQuery;
     private List<Node> characters;
     private Map<String, OffMeshConnection> mapOffMeshCon;
-    private float agentMaxClimb = .3f; // Should add getter for this.
-    private float agentRadius = 0.4f;  // Should add getter for this.
-    private float agentHeight = 1.7f;  // Should add getter for this.
+    
+    float agentRadius = 0.3f;
+    float agentHeight = 1.7f;
+    float agentMaxClimb = 0.3f; // > 2*ch
+    float cellSize = 0.1f; 	// cs=r/2
+    float cellHeight = 0.1f; 	// ch=cs/2 but not < .1f
 
     public NavState() {
         characters = new ArrayList<>(64);
         mapOffMeshCon = new HashMap<>();
+    }
+
+    /**
+     * @return the characters
+     */
+    public List<Node> getCharacters() {
+        return characters;
     }
     
     @Override
@@ -475,13 +488,6 @@ public class NavState extends AbstractNavState {
         Ray ray = new Ray(click3d, dir);
         return ray;
     }
-
-    /**
-     * @return the characters
-     */
-    public List<Node> getCharacters() {
-        return characters;
-    }
     
     /**
      * Original implementation using jme3-recast4j methods and custom JmeRecastBuilder.
@@ -490,41 +496,40 @@ public class NavState extends AbstractNavState {
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
 
-        JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
+        JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
 
         RecastConfig cfg = new RecastConfigBuilder()
-            .withAgentRadius(.3f) 		// r
-            .withAgentHeight(1.7f) 		// h
-            //cs and ch should probably be .1 at min.
-            .withCellSize(.1f) 			// cs=r/3
-            .withCellHeight(.1f) 		// ch=cs 
-            .withAgentMaxClimb(.3f) 		// > 2*ch
-            .withAgentMaxSlope(45f)
-            .withEdgeMaxLen(2.4f) 		// r*8
-            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
-            .withDetailSampleDistance(8.0f) 	// increase if exception
-            .withDetailSampleMaxError(8.0f) 	// increase if exception
-            .withVertsPerPoly(3)
-            .build();
+                .withPartitionType(RecastConstants.PartitionType.WATERSHED)
+                .withWalkableAreaMod(AREAMOD_GROUND)
+                .withAgentRadius(agentRadius)
+                .withAgentHeight(agentHeight)
+                .withCellSize(cellSize)
+                .withCellHeight(cellHeight)
+                .withAgentMaxClimb(agentMaxClimb)
+                .withAgentMaxSlope(45f)
+                .withEdgeMaxLen(2.4f) 		// r*8
+                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withDetailSampleDistance(8.0f) // increase if exception
+                .withDetailSampleMaxError(8.0f) // increase if exception
+                .withVertsPerPoly(3)
+                .build();
 
         // Create a RecastBuilderConfig builder with world bounds of our geometry.
-        RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, geomProvider.getMeshBoundsMin(), geomProvider.getMeshBoundsMax());
+        RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, m_geom.getMeshBoundsMin(), m_geom.getMeshBoundsMax());
 
         // Build our Navmesh data using our gathered geometry and configuration.
         JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
-        RecastBuilderResult rcResult = rcBuilder.build(geomProvider, builderCfg);
-
-        // Set the parameters needed to build our MeshData using the RecastBuilder results.
-        NavMeshDataCreateParamsBuilder paramsBuilder = new NavMeshDataCreateParamsBuilder(rcResult);
+        RecastBuilderResult rcResult = rcBuilder.build(m_geom, builderCfg);
 
         // Build the parameter object.
-        NavMeshDataCreateParams params = paramsBuilder.build(builderCfg);
+        NavMeshDataCreateParams params = getNavMeshCreateParams(m_geom,
+            cellSize, cellHeight, agentHeight, agentRadius, agentMaxClimb, rcResult);
 
         //Generate MeshData using our parameters object.
         MeshData meshData = NavMeshBuilder.createNavMeshData(params);
 
         //Build the NavMesh.
-        navMesh = new NavMesh(meshData, builderCfg.cfg.maxVertsPerPoly, 0);
+        navMesh = new NavMesh(meshData, cfg.maxVertsPerPoly, 0);
         navQuery = new NavMeshQuery(navMesh);
 
         try {
@@ -547,51 +552,46 @@ public class NavState extends AbstractNavState {
     private void buildSoloModified() {
 
         //Build merged mesh.
-        JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
-        float[] bmin = geomProvider.getMeshBoundsMin();
-        float[] bmax = geomProvider.getMeshBoundsMax();
+        JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
 
-        setNavMeshArea(geomProvider, worldMap);
+        setNavMeshArea(m_geom, worldMap);
 
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
         
         RecastConfig cfg = new RecastConfigBuilder()
-	            .withAgentRadius(.3f) 		// r
-	            .withAgentHeight(1.7f) 		// h
-	            //cs and ch should probably be .1 at min.
-	            .withCellSize(.1f) 			// cs=r/3
-	            .withCellHeight(.1f) 		// ch=cs 
-	            .withAgentMaxClimb(.3f) 		// > 2*ch
-	            .withAgentMaxSlope(45f)
-	            .withEdgeMaxLen(2.4f) 		// r*8
-	            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
-	            .withDetailSampleDistance(8.0f) 	// increase if exception
-	            .withDetailSampleMaxError(8.0f) 	// increase if exception
-	            .withVertsPerPoly(3)
-	            .build();
+                .withPartitionType(RecastConstants.PartitionType.WATERSHED)
+                .withWalkableAreaMod(AREAMOD_GROUND)
+                .withAgentRadius(agentRadius)
+                .withAgentHeight(agentHeight)
+                .withCellSize(cellSize)
+                .withCellHeight(cellHeight)
+                .withAgentMaxClimb(agentMaxClimb)
+                .withAgentMaxSlope(45f)
+                .withEdgeMaxLen(2.4f) 		// r*8
+                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withDetailSampleDistance(8.0f) // increase if exception
+                .withDetailSampleMaxError(8.0f) // increase if exception
+                .withVertsPerPoly(3)
+                .build();
         
         //Create a RecastBuilderConfig builder with world bounds of our geometry.
-        RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, bmin, bmax);
+        RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, m_geom.getMeshBoundsMin(), m_geom.getMeshBoundsMax());
         
         JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
-        RecastBuilderResult rcResult = rcBuilder.build(geomProvider, builderCfg);
+        RecastBuilderResult rcResult = rcBuilder.build(m_geom, builderCfg);
 
-        NavMeshDataCreateParamsBuilder paramsBuilder = new NavMeshDataCreateParamsBuilder(rcResult);
-        NavMeshDataCreateParams params = paramsBuilder.build(builderCfg);
+        // Build the parameter object.
+        NavMeshDataCreateParams params = getNavMeshCreateParams(m_geom,
+                cellSize, cellHeight, agentHeight, agentRadius, agentMaxClimb, rcResult);
         
         updateAreaAndFlags(params);
 
-        /**
-         * Must set variables for parameters walkableHeight, walkableRadius, 
-         * walkableClimb manually for mesh data unless jme3-recast4j fixed.
-         */
-        params.walkableClimb = agentMaxClimb; //Should add getter for this.
-        params.walkableHeight = agentHeight;  //Should add getter for this.
-        params.walkableRadius = agentRadius;  //Should add getter for this.
-
+        //Generate MeshData using our parameters object.
         MeshData meshData = NavMeshBuilder.createNavMeshData(params);
-        navMesh = new NavMesh(meshData, builderCfg.cfg.maxVertsPerPoly, 0);
+        
+        //Build the NavMesh.
+        navMesh = new NavMesh(meshData, cfg.maxVertsPerPoly, 0);
         navQuery = new NavMeshQuery(navMesh);
 
         //Create offmesh connections here.
@@ -616,36 +616,34 @@ public class NavState extends AbstractNavState {
     private void buildSoloRecast4j() {
 
         //Build merged mesh.
-        JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
+        JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
 
-        setNavMeshArea(geomProvider, worldMap);
+        setNavMeshArea(m_geom, worldMap);
 
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
 
         //Get min/max bounds.
-        float[] bmin = geomProvider.getMeshBoundsMin();
-        float[] bmax = geomProvider.getMeshBoundsMax();
+        float[] bmin = m_geom.getMeshBoundsMin();
+        float[] bmax = m_geom.getMeshBoundsMax();
         Telemetry m_ctx = new Telemetry();
         PartitionType m_partitionType = PartitionType.WATERSHED;
 
-        //We could use multiple configs here based off area type list.
         RecastConfig cfg = new RecastConfigBuilder()
-            .withAgentRadius(agentRadius) 		// r
-            .withAgentHeight(agentHeight) 		// h
-            //cs and ch should be .1 at min.
-            .withCellSize(0.1f) 			// cs=r/2
-            .withCellHeight(0.1f) 			// ch=cs/2 but not < .1f
-            .withAgentMaxClimb(agentMaxClimb) 		// > 2*ch
-            .withAgentMaxSlope(45f)
-            .withEdgeMaxLen(2.4f) 			// r*8
-            .withEdgeMaxError(1.3f) 			// 1.1 - 1.5
-            .withDetailSampleDistance(8.0f) 		// increase if exception
-            .withDetailSampleMaxError(8.0f) 		// increase if exception
-            .withWalkableAreaMod(AREAMOD_GROUND)
-            .withPartitionType(m_partitionType)
-            .withVertsPerPoly(3)
-            .build();
+                .withPartitionType(m_partitionType)
+                .withWalkableAreaMod(AREAMOD_GROUND)
+                .withAgentRadius(agentRadius)
+                .withAgentHeight(agentHeight)
+                .withCellSize(cellSize)
+                .withCellHeight(cellHeight)
+                .withAgentMaxClimb(agentMaxClimb)
+                .withAgentMaxSlope(45f)
+                .withEdgeMaxLen(2.4f) 		// r*8
+                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withDetailSampleDistance(8.0f) // increase if exception
+                .withDetailSampleMaxError(8.0f) // increase if exception
+                .withVertsPerPoly(3)
+                .build();
 
         RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, bmin, bmax);
 
@@ -653,7 +651,7 @@ public class NavState extends AbstractNavState {
      	// Allocate voxel heightfield where we rasterize our input data to.
         Heightfield m_solid = new Heightfield(builderCfg.width, builderCfg.height, builderCfg.bmin, builderCfg.bmax, cfg.cs, cfg.ch);
 
-        for (TriMesh geom: geomProvider.meshes()) {
+        for (TriMesh geom: m_geom.meshes()) {
             float[] verts = geom.getVerts();
             int[] tris = geom.getTris();
             int ntris = tris.length / 3;
@@ -671,7 +669,7 @@ public class NavState extends AbstractNavState {
             //Separate individual triangles into a arrays so we can mark Area Type.
             List<int[]> listTris = new ArrayList<>();
             int fromIndex = 0;
-            for (Modification mod : geomProvider.getListMods()) {
+            for (Modification mod : m_geom.getListMods()) {
                 int[] triangles = new int[mod.getGeomLength()];
                 System.arraycopy(tris, fromIndex, triangles, 0, mod.getGeomLength());
                 listTris.add(triangles);
@@ -680,13 +678,13 @@ public class NavState extends AbstractNavState {
 
             List<int[]> areas = new ArrayList<>();
 
-            for (Modification mod : geomProvider.getListMods()) {
+            for (Modification mod : m_geom.getListMods()) {
                 int[] m_triareas = Recast.markWalkableTriangles(
                     m_ctx,
                     cfg.walkableSlopeAngle,
                     verts,
-                    listTris.get(geomProvider.getListMods().indexOf(mod)),
-                    listTris.get(geomProvider.getListMods().indexOf(mod)).length / 3,
+                    listTris.get(m_geom.getListMods().indexOf(mod)),
+                    listTris.get(m_geom.getListMods().indexOf(mod)).length / 3,
                     mod.getMod());
 
                 areas.add(m_triareas);
@@ -745,27 +743,9 @@ public class NavState extends AbstractNavState {
         // Step 7. Create detail mesh which allows to access approximate height on each polygon.
         PolyMeshDetail m_dmesh = RecastMeshDetail.buildPolyMeshDetail(m_ctx, m_pmesh, m_chf, cfg.detailSampleDist, cfg.detailSampleMaxError);
 
-        NavMeshDataCreateParams params = new NavMeshDataCreateParams();
-        params.verts = m_pmesh.verts;
-        params.vertCount = m_pmesh.nverts;
-        params.polys = m_pmesh.polys;
-        params.polyAreas = m_pmesh.areas;
-        params.polyFlags = m_pmesh.flags;
-        params.polyCount = m_pmesh.npolys;
-        params.nvp = m_pmesh.nvp;
-        params.detailMeshes = m_dmesh.meshes;
-        params.detailVerts = m_dmesh.verts;
-        params.detailVertsCount = m_dmesh.nverts;
-        params.detailTris = m_dmesh.tris;
-        params.detailTriCount = m_dmesh.ntris;
-        params.walkableHeight = agentHeight; //Should add getter for this.
-        params.walkableRadius = agentRadius; //Should add getter for this.
-        params.walkableClimb = agentMaxClimb; //Should add getter for this.
-        params.bmin = m_pmesh.bmin;
-        params.bmax = m_pmesh.bmax;
-        params.cs = cfg.cs;
-        params.ch = cfg.ch;
-        params.buildBvTree = true;
+        RecastBuilderResult rcResult = new RecastBuilder().new RecastBuilderResult(m_solid, m_chf, m_cset, m_pmesh, m_dmesh);
+        
+        NavMeshDataCreateParams params = getNavMeshCreateParams(m_geom, cellSize, cellHeight, agentHeight, agentRadius, agentMaxClimb, rcResult);
         
         updateAreaAndFlags(params);
 
@@ -774,6 +754,7 @@ public class NavState extends AbstractNavState {
         navQuery = new NavMeshQuery(navMesh);
 
         m_ctx.print();
+        
         //Create offmesh connections here.
 
         try {
@@ -800,42 +781,44 @@ public class NavState extends AbstractNavState {
     private void buildTiledRecast4j() {
 
         //Build merged mesh.
-        JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
+        JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
 
-        setNavMeshArea(geomProvider, worldMap);
+        setNavMeshArea(m_geom, worldMap);
 
         setOffMeshConnections();
 
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
-
+        
         //Step 2. Create a Recast configuration object.
         RecastConfig cfg = new RecastConfigBuilder()
-            .withAgentRadius(.3f) 		// r
-            .withAgentHeight(1.7f) 		// h
-            //cs and ch should be .1 at min.
-            .withCellSize(0.1f) 		// cs=r/2
-            .withCellHeight(0.1f) 		// ch=cs/2 but not < .1f
-            .withAgentMaxClimb(.3f) 		// > 2*ch
-            .withAgentMaxSlope(45f)
-            .withEdgeMaxLen(3.2f) 		// r*8
-            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
-            .withDetailSampleDistance(6.0f) 	// increase if exception
-            .withDetailSampleMaxError(6.0f) 	// increase if exception
-            .withVertsPerPoly(3)
-            .withTileSize(16)
-            .build();
+                .withPartitionType(RecastConstants.PartitionType.WATERSHED)
+                .withWalkableAreaMod(AREAMOD_GROUND)
+                .withAgentRadius(agentRadius)
+                .withAgentHeight(agentHeight)
+                .withCellSize(cellSize)
+                .withCellHeight(cellHeight)
+                .withAgentMaxClimb(agentMaxClimb)
+                .withAgentMaxSlope(45f)
+                .withEdgeMaxLen(3.2f) 		// r*8
+                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withDetailSampleDistance(6.0f) // increase if exception
+                .withDetailSampleMaxError(6.0f) // increase if exception
+                .withVertsPerPoly(3)
+                .withTileSize(16)
+                .build();
 
         // Build all tiles
         JmeRecastBuilder rcBuilder = new JmeRecastBuilder(new NavMeshBuilderProgressListener());
-        RecastBuilderResult[][] rcResult = rcBuilder.buildTiles(geomProvider, cfg, 1);
+        int threads = 1;
+        RecastBuilderResult[][] rcResult = rcBuilder.buildTiles(m_geom, cfg, threads);
         // Add tiles to nav mesh
         int tw = rcResult.length;
         int th = rcResult[0].length;
 
         // Create empty nav mesh
         NavMeshParams navMeshParams = new NavMeshParams();
-        RecastVectors.copy(navMeshParams.orig, geomProvider.getMeshBoundsMin());
+        RecastVectors.copy(navMeshParams.orig, m_geom.getMeshBoundsMin());
         navMeshParams.tileWidth = cfg.tileSize * cfg.cs;
         navMeshParams.tileHeight = cfg.tileSize * cfg.cs;
         navMeshParams.maxTiles = tw * th;
@@ -844,35 +827,17 @@ public class NavState extends AbstractNavState {
 
         for (int y = 0; y < th; y++) {
             for (int x = 0; x < tw; x++) {
+            	
                 PolyMesh m_pmesh = rcResult[x][y].getMesh();
                 if (m_pmesh.npolys == 0) {
                     continue;
                 }
 
-                NavMeshDataCreateParams params = new NavMeshDataCreateParams();
-                params.verts = m_pmesh.verts;
-                params.vertCount = m_pmesh.nverts;
-                params.polys = m_pmesh.polys;
-                params.polyAreas = m_pmesh.areas;
-                params.polyFlags = m_pmesh.flags;
-                params.polyCount = m_pmesh.npolys;
-                params.nvp = m_pmesh.nvp;
-                PolyMeshDetail dmesh = rcResult[x][y].getMeshDetail();
-                params.detailMeshes = dmesh.meshes;
-                params.detailVerts = dmesh.verts;
-                params.detailVertsCount = dmesh.nverts;
-                params.detailTris = dmesh.tris;
-                params.detailTriCount = dmesh.ntris;
-                params.walkableHeight = agentHeight;
-                params.walkableRadius = agentRadius;
-                params.walkableClimb = agentMaxClimb;
-                params.bmin = m_pmesh.bmin;
-                params.bmax = m_pmesh.bmax;
-                params.cs = cfg.cs;
-                params.ch = cfg.ch;
+                NavMeshDataCreateParams params = getNavMeshCreateParams(m_geom,
+                        cellSize, cellHeight, agentHeight, agentRadius, agentMaxClimb, rcResult[x][y]);
+                
                 params.tileX = x;
                 params.tileY = y;
-                params.buildBvTree = true;
                 
                 updateAreaAndFlags(params);
 
@@ -916,42 +881,42 @@ public class NavState extends AbstractNavState {
     private void buildTileCache() {
 
         //Build merged mesh.
-        JmeInputGeomProvider geomProvider = new JmeGeomProviderBuilder(worldMap).build();
+        JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
 
-        setNavMeshArea(geomProvider, worldMap);
+        setNavMeshArea(m_geom, worldMap);
 
         setOffMeshConnections();
 
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
-
+        
         //Step 2. Create a Recast configuration object.
         RecastConfig cfg = new RecastConfigBuilder()
-            .withAgentRadius(agentRadius) 	// r
-            .withAgentHeight(agentHeight) 	// h
-            //cs and ch should be .1 at min.
-            .withCellSize(0.1f) 		// cs=r/2
-            .withCellHeight(0.1f) 		// ch=cs/2 but not < .1f
-            .withAgentMaxClimb(agentMaxClimb) 	// > 2*ch
-            .withAgentMaxSlope(45f)
-            .withEdgeMaxLen(3.2f) 		// r*8
-            .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
-            .withDetailSampleDistance(6.0f) 	// increase if exception
-            .withDetailSampleMaxError(6.0f) 	// increase if exception
-            .withVertsPerPoly(3)
-            .withPartitionType(PartitionType.MONOTONE)
-            .withTileSize(16)
-            .build();
+                .withPartitionType(RecastConstants.PartitionType.MONOTONE)
+                .withWalkableAreaMod(AREAMOD_GROUND)
+                .withAgentRadius(agentRadius)
+                .withAgentHeight(agentHeight)
+                .withCellSize(cellSize)
+                .withCellHeight(cellHeight)
+                .withAgentMaxClimb(agentMaxClimb)
+                .withAgentMaxSlope(45f)
+                .withEdgeMaxLen(3.2f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+                .withDetailSampleDistance(6.0f) // increase if exception
+                .withDetailSampleMaxError(6.0f) // increase if exception
+                .withVertsPerPoly(3)
+                .withTileSize(16)
+                .build();
 
         //Build the tile cache which also builds the navMesh.
-        TileCache tc = getTileCache(geomProvider, cfg);
+        TileCache tc = getTileCache(m_geom, cfg);
 
         /**
          * Layers represent heights for the tile cache. For example, a bridge
          * with an underpass would have a layer for travel under the bridge and 
          * another for traveling over the bridge.
          */
-        TileLayerBuilder layerBuilder = new TileLayerBuilder(geomProvider, cfg);
+        TileLayerBuilder layerBuilder = new TileLayerBuilder(m_geom, cfg);
         List<byte[]> layers = layerBuilder.build(ByteOrder.BIG_ENDIAN, false, 1);
 
         for (byte[] data : layers) {
@@ -970,8 +935,8 @@ public class NavState extends AbstractNavState {
         }
 
         try {
-        	//Save and read back for testing.
-            File f = new File("TestTileCache_" + cfg.partitionType + ".tc");
+            //Save and read back for testing.
+            File f = new File("test-tile-cache_" + cfg.partitionType + ".tc");
 
             //Write our tile cache.
             TileCacheWriter writer = new TileCacheWriter();
@@ -1002,6 +967,67 @@ public class NavState extends AbstractNavState {
             ex.printStackTrace();
         }
     }
+    
+	private NavMeshDataCreateParams getNavMeshCreateParams(JmeInputGeomProvider m_geom, 
+			float m_cellSize, float m_cellHeight, float m_agentHeight, float m_agentRadius, float m_agentMaxClimb,
+			RecastBuilderResult rcResult) {
+
+		PolyMesh m_pmesh = rcResult.getMesh();
+		PolyMeshDetail m_dmesh = rcResult.getMeshDetail();
+		NavMeshDataCreateParams params = new NavMeshDataCreateParams();
+
+		for (int i = 0; i < m_pmesh.npolys; ++i) {
+			m_pmesh.flags[i] = 1;
+		}
+
+		params.verts = m_pmesh.verts;
+		params.vertCount = m_pmesh.nverts;
+		params.polys = m_pmesh.polys;
+		params.polyAreas = m_pmesh.areas;
+		params.polyFlags = m_pmesh.flags;
+		params.polyCount = m_pmesh.npolys;
+		params.nvp = m_pmesh.nvp;
+
+		if (m_dmesh != null) {
+			params.detailMeshes = m_dmesh.meshes;
+			params.detailVerts = m_dmesh.verts;
+			params.detailVertsCount = m_dmesh.nverts;
+			params.detailTris = m_dmesh.tris;
+			params.detailTriCount = m_dmesh.ntris;
+		}
+
+		params.walkableHeight = m_agentHeight;
+		params.walkableRadius = m_agentRadius;
+		params.walkableClimb = m_agentMaxClimb;
+		params.bmin = m_pmesh.bmin;
+		params.bmax = m_pmesh.bmax;
+		params.cs = m_cellSize;
+		params.ch = m_cellHeight;
+		params.buildBvTree = true;
+
+		params.offMeshConCount = m_geom.getOffMeshConnections().size();
+		params.offMeshConVerts 	= new float[params.offMeshConCount * 6];
+		params.offMeshConRad 	= new float[params.offMeshConCount];
+		params.offMeshConDir 	= new int[params.offMeshConCount];
+		params.offMeshConAreas 	= new int[params.offMeshConCount];
+		params.offMeshConFlags 	= new int[params.offMeshConCount];
+		params.offMeshConUserID = new int[params.offMeshConCount];
+
+		for (int i = 0; i < params.offMeshConCount; i++) {
+			OffMeshLink offMeshCon = m_geom.getOffMeshConnections().get(i);
+			for (int j = 0; j < 6; j++) {
+				params.offMeshConVerts[6 * i + j] = offMeshCon.verts[j];
+			}
+			params.offMeshConRad[i] = offMeshCon.radius;
+			params.offMeshConDir[i] = offMeshCon.direction;
+			params.offMeshConAreas[i] = offMeshCon.areas;
+			params.offMeshConFlags[i] = offMeshCon.flags;
+			params.offMeshConUserID[i] = offMeshCon.userID;
+		}
+
+		System.out.println(ReflectionToStringBuilder.toString(params, ToStringStyle.MULTI_LINE_STYLE));
+		return params;
+	}
 
     private void processOffMeshConnections() {
         /**
@@ -1345,8 +1371,8 @@ public class NavState extends AbstractNavState {
         
         TileCacheParams params = new TileCacheParams();
         int[] twh = Recast.calcTileCount(geom.getMeshBoundsMin(), geom.getMeshBoundsMax(), cfg.cs, cfg.tileSize);
-        params.ch = cfg.ch;
-        params.cs = cfg.cs;
+        params.ch = cellSize;
+        params.cs = cellHeight;
         DetourCommon.vCopy(params.orig, geom.getMeshBoundsMin());
         params.height = cfg.tileSize;
         params.width = cfg.tileSize;
