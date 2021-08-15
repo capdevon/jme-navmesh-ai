@@ -2,13 +2,14 @@ package com.jme3.recast4j.Recast;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.recast4j.detour.NavMesh;
 import org.recast4j.detour.NavMeshDataCreateParams;
 import org.recast4j.recast.PolyMesh;
 import org.recast4j.recast.PolyMeshDetail;
 import org.recast4j.recast.RecastBuilder.RecastBuilderResult;
 
-import com.jme3.recast4j.demo.JmeInputGeomProvider;
-import com.jme3.recast4j.demo.OffMeshLink;
+import com.jme3.recast4j.geom.JmeInputGeomProvider;
+import com.jme3.recast4j.geom.OffMeshLink;
 
 /**
  * 
@@ -67,8 +68,8 @@ public class NavMeshDataCreateParamsBuilder {
                 params.offMeshConVerts[6 * i + j] = offMeshCon.verts[j];
             }
             params.offMeshConRad[i] = offMeshCon.radius;
-            params.offMeshConDir[i] = offMeshCon.direction;
-            params.offMeshConAreas[i] = offMeshCon.areas;
+            params.offMeshConDir[i] = offMeshCon.biDirectional ? NavMesh.DT_OFFMESH_CON_BIDIR : 0;
+            params.offMeshConAreas[i] = offMeshCon.area;
             params.offMeshConFlags[i] = offMeshCon.flags;
             params.offMeshConUserID[i] = offMeshCon.userID;
         }
