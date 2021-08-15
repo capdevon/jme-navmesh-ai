@@ -10,6 +10,8 @@ Write me your suggestions or report any bugs.
 - NavMeshQueryFilter
 - NavMeshPath
 - NavMeshTools
+- NavMeshBuildMarkup allows you to control how certain objects are treated during the NavMesh build process, specifically when collecting sources for building.
+- NavMeshBuildSource
 - IORecast to export **PolyMesh** and **PolyMeshDetail** in .obj format
 
 # Requirements
