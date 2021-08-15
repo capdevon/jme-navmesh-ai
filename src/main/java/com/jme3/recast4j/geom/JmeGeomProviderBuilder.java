@@ -133,59 +133,59 @@ public class JmeGeomProviderBuilder {
         return new JmeInputGeomProvider(getVertices(mesh), getIndices(mesh));
     }
     
-	/**
-	 * 
-	 * @param defaultArea Area type to assign to results, unless modified by NavMeshMarkup.
-	 * @param markups     List of markups which allows finer control over how objects are collected.
-	 * @param results     List where results are stored, the list is cleared at the beginning of the call.
-	 * @return
-	 */
-    public JmeInputGeomProvider build(AreaModification defaultArea, 
-    		List<NavMeshBuildMarkup> markups, List<NavMeshBuildSource> results) {
-    	
-    	results.clear();
-    	
-    	final Map<Geometry, AreaModification> map = new HashMap<>();
-    	geometryList.forEach(g -> map.put(g, defaultArea));
-    	
-    	for (NavMeshBuildMarkup markup : markups) {
-    		if (markup.root instanceof Geometry) {
-    			
-    			Geometry geo = (Geometry) markup.root;
-    			
-    			if (markup.ignoreFromBuild) {
-    				map.remove(geo);
-				} else if (markup.overrideArea && map.containsKey(geo)) {
-					map.put(geo, markup.area);
-				}
-    		} else if (markup.root instanceof Node) {
-    			((Node) markup.root).depthFirstTraversal(new SceneGraphVisitorAdapter() {
-    				
-    				@Override
-    				public void visit(Geometry geo) {
-    					
-    					if (markup.ignoreFromBuild) {
-    	    				map.remove(geo);
-    					} else if (markup.overrideArea && map.containsKey(geo)) {
-    						map.put(geo, markup.area);
-    					}
-    				}
-    			});
-    		}
-    	}
-    	
-    	for (Map.Entry<Geometry, AreaModification> entry : map.entrySet()) {
-    		NavMeshBuildSource source = new NavMeshBuildSource(entry.getKey(), entry.getValue());
-    		results.add(source);
-    		System.out.println(source);
-    	}
-    	
-    	Mesh optiMesh = new Mesh();
+    /**
+     * 
+     * @param defaultArea Area type to assign to results, unless modified by NavMeshMarkup.
+     * @param markups     List of markups which allows finer control over how objects are collected.
+     * @param results     List where results are stored, the list is cleared at the beginning of the call.
+     * @return
+     */
+    public JmeInputGeomProvider build(AreaModification defaultArea,
+        List<NavMeshBuildMarkup> markups, List<NavMeshBuildSource> results) {
+
+        results.clear();
+
+        final Map<Geometry, AreaModification> map = new HashMap<>();
+        geometryList.forEach(g -> map.put(g, defaultArea));
+
+        for (NavMeshBuildMarkup markup : markups) {
+            if (markup.root instanceof Geometry) {
+
+                Geometry geo = (Geometry) markup.root;
+
+                if (markup.ignoreFromBuild) {
+                    map.remove(geo);
+                } else if (markup.overrideArea && map.containsKey(geo)) {
+                    map.put(geo, markup.area);
+                }
+            } else if (markup.root instanceof Node) {
+                ((Node) markup.root).depthFirstTraversal(new SceneGraphVisitorAdapter() {
+
+                    @Override
+                    public void visit(Geometry geo) {
+
+                        if (markup.ignoreFromBuild) {
+                            map.remove(geo);
+                        } else if (markup.overrideArea && map.containsKey(geo)) {
+                            map.put(geo, markup.area);
+                        }
+                    }
+                });
+            }
+        }
+
+        for (Map.Entry<Geometry, AreaModification> entry: map.entrySet()) {
+            NavMeshBuildSource source = new NavMeshBuildSource(entry.getKey(), entry.getValue());
+            results.add(source);
+            System.out.println(source);
+        }
+
+        Mesh optiMesh = new Mesh();
         GeometryBatchFactory.mergeGeometries(map.keySet(), optiMesh);
-        
+
         JmeInputGeomProvider geomProvider = new JmeInputGeomProvider(getVertices(optiMesh), getIndices(optiMesh));
         results.forEach(s -> geomProvider.addModification(s));
-        
+
         return geomProvider;
     }
 }
