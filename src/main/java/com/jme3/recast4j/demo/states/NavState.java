@@ -124,15 +124,18 @@ import com.jme3.recast4j.ai.NavMeshAgent;
 import com.jme3.recast4j.ai.NavMeshPath;
 import com.jme3.recast4j.ai.NavMeshPathStatus;
 import com.jme3.recast4j.ai.NavMeshQueryFilter;
-import com.jme3.recast4j.demo.JmeGeomProviderBuilder;
-import com.jme3.recast4j.demo.JmeInputGeomProvider;
-import com.jme3.recast4j.demo.JmeRecastBuilder;
-import com.jme3.recast4j.demo.Modification;
-import com.jme3.recast4j.demo.NavMeshBuilderProgressListener;
-import com.jme3.recast4j.demo.OffMeshLink;
-import com.jme3.recast4j.demo.TileLayerBuilder;
+import com.jme3.recast4j.demo.JmeAreaMods;
 import com.jme3.recast4j.demo.controls.DoorSwingControl;
 import com.jme3.recast4j.demo.utils.GameObject;
+import com.jme3.recast4j.geom.JmeGeomProviderBuilder;
+import com.jme3.recast4j.geom.JmeInputGeomProvider;
+import com.jme3.recast4j.geom.JmeRecastBuilder;
+import com.jme3.recast4j.geom.JmeRecastVoxelization;
+import com.jme3.recast4j.geom.JmeTileLayerBuilder;
+import com.jme3.recast4j.geom.NavMeshBuildMarkup;
+import com.jme3.recast4j.geom.NavMeshBuildSource;
+import com.jme3.recast4j.geom.NavMeshBuilderProgressListener;
+import com.jme3.recast4j.geom.OffMeshLink;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -162,7 +165,7 @@ public class NavState extends AbstractNavState {
     float agentRadius = 0.3f;
     float agentHeight = 1.7f;
     float agentMaxClimb = 0.3f; // > 2*ch
-    float cellSize = 0.1f; 	// cs=r/2
+    float cellSize = 0.1f; 		// cs=r/2
     float cellHeight = 0.1f; 	// ch=cs/2 but not < .1f
 
     public NavState() {
@@ -507,8 +510,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(2.4f) 		// r*8
-                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withEdgeMaxLen(2.4f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
                 .withDetailSampleDistance(8.0f) // increase if exception
                 .withDetailSampleMaxError(8.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -552,10 +555,14 @@ public class NavState extends AbstractNavState {
     private void buildSoloModified() {
 
         //Build merged mesh.
-        JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
+//        JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
+//        setNavMeshArea(m_geom, worldMap);
 
-        setNavMeshArea(m_geom, worldMap);
+        NavMeshBuildMarkup markup = new NavMeshBuildMarkup(worldMap.getChild("door_green"), JmeAreaMods.AREAMOD_DOOR);
 
+        JmeGeomProviderBuilder m_gbuilder = new JmeGeomProviderBuilder(worldMap);
+        JmeInputGeomProvider m_geom = m_gbuilder.build(JmeAreaMods.AREAMOD_GROUND, Arrays.asList(markup), new ArrayList<>());
+		
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
         
@@ -568,8 +575,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(2.4f) 		// r*8
-                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withEdgeMaxLen(2.4f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
                 .withDetailSampleDistance(8.0f) // increase if exception
                 .withDetailSampleMaxError(8.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -579,7 +586,13 @@ public class NavState extends AbstractNavState {
         RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, m_geom.getMeshBoundsMin(), m_geom.getMeshBoundsMax());
         
         JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
-        RecastBuilderResult rcResult = rcBuilder.build(m_geom, builderCfg);
+        Telemetry ctx = new Telemetry();
+        // Rasterize input polygon soup.
+        Heightfield solid = JmeRecastVoxelization.buildSolidHeightfield(m_geom, builderCfg, ctx);
+        RecastBuilderResult rcResult = rcBuilder.build(builderCfg.borderSize, builderCfg.buildMeshDetail, m_geom, cfg, solid, ctx);
+        ctx.print();
+        
+//        RecastBuilderResult rcResult = rcBuilder.build(m_geom, builderCfg);
 
         // Build the parameter object.
         NavMeshDataCreateParams params = getNavMeshCreateParams(m_geom,
@@ -638,8 +651,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(2.4f) 		// r*8
-                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withEdgeMaxLen(2.4f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
                 .withDetailSampleDistance(8.0f) // increase if exception
                 .withDetailSampleMaxError(8.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -669,7 +682,7 @@ public class NavState extends AbstractNavState {
             //Separate individual triangles into a arrays so we can mark Area Type.
             List<int[]> listTris = new ArrayList<>();
             int fromIndex = 0;
-            for (Modification mod : m_geom.getListMods()) {
+            for (NavMeshBuildSource mod : m_geom.getModifications()) {
                 int[] triangles = new int[mod.getGeomLength()];
                 System.arraycopy(tris, fromIndex, triangles, 0, mod.getGeomLength());
                 listTris.add(triangles);
@@ -678,14 +691,14 @@ public class NavState extends AbstractNavState {
 
             List<int[]> areas = new ArrayList<>();
 
-            for (Modification mod : m_geom.getListMods()) {
+            for (NavMeshBuildSource mod : m_geom.getModifications()) {
                 int[] m_triareas = Recast.markWalkableTriangles(
                     m_ctx,
                     cfg.walkableSlopeAngle,
                     verts,
-                    listTris.get(m_geom.getListMods().indexOf(mod)),
-                    listTris.get(m_geom.getListMods().indexOf(mod)).length / 3,
-                    mod.getMod());
+                    listTris.get(m_geom.getModifications().indexOf(mod)),
+                    listTris.get(m_geom.getModifications().indexOf(mod)).length / 3,
+                    mod.getAreaModification());
 
                 areas.add(m_triareas);
             }
@@ -761,8 +774,8 @@ public class NavState extends AbstractNavState {
             saveToFile(meshData, "recast4j-solo.md");
             saveToFile(navMesh, "recast4j-solo.nm");
             
-            IORecast.saveObj("recast4j-solo_" + cfg.partitionType + "_detail.obj", m_dmesh);
-            IORecast.saveObj("recast4j-solo_" + cfg.partitionType + ".obj", m_pmesh);
+            IORecast.saveObj("recastmesh-solo_" + cfg.partitionType + "_detail.obj", m_dmesh);
+            IORecast.saveObj("recastmesh-solo_" + cfg.partitionType + ".obj", m_pmesh);
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -800,8 +813,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(3.2f) 		// r*8
-                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withEdgeMaxLen(3.2f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
                 .withDetailSampleDistance(6.0f) // increase if exception
                 .withDetailSampleMaxError(6.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -916,7 +929,7 @@ public class NavState extends AbstractNavState {
          * with an underpass would have a layer for travel under the bridge and 
          * another for traveling over the bridge.
          */
-        TileLayerBuilder layerBuilder = new TileLayerBuilder(m_geom, cfg);
+        JmeTileLayerBuilder layerBuilder = new JmeTileLayerBuilder(m_geom, cfg);
         List<byte[]> layers = layerBuilder.build(ByteOrder.BIG_ENDIAN, false, 1);
 
         for (byte[] data : layers) {
@@ -1019,8 +1032,8 @@ public class NavState extends AbstractNavState {
 				params.offMeshConVerts[6 * i + j] = offMeshCon.verts[j];
 			}
 			params.offMeshConRad[i] = offMeshCon.radius;
-			params.offMeshConDir[i] = offMeshCon.direction;
-			params.offMeshConAreas[i] = offMeshCon.areas;
+			params.offMeshConDir[i] = offMeshCon.biDirectional ? NavMesh.DT_OFFMESH_CON_BIDIR : 0;
+			params.offMeshConAreas[i] = offMeshCon.area;
 			params.offMeshConFlags[i] = offMeshCon.flags;
 			params.offMeshConUserID[i] = offMeshCon.userID;
 		}
@@ -1028,7 +1041,7 @@ public class NavState extends AbstractNavState {
 		System.out.println(ReflectionToStringBuilder.toString(params, ToStringStyle.MULTI_LINE_STYLE));
 		return params;
 	}
-
+    
     private void processOffMeshConnections() {
         /**
          * Process OffMeshConnections. Since we are reading this in we do it 
@@ -1413,32 +1426,29 @@ public class NavState extends AbstractNavState {
             @Override
             public void visit(Geometry geo) {
 
-                int geomLength = geo.getMesh().getTriangleCount() * 3;
                 String[] name = geo.getMaterial().getName().split("_");
                 
-                Modification mod = null;
+                NavMeshBuildSource mod = null;
 
                 switch (name[0]) {
                     case "water":
-                        mod = new Modification(geomLength, AREAMOD_WATER);
+                        mod = new NavMeshBuildSource(geo, AREAMOD_WATER);
                         break;
                     case "road":
-                        mod = new Modification(geomLength, AREAMOD_ROAD);
+                        mod = new NavMeshBuildSource(geo, AREAMOD_ROAD);
                         break;
                     case "grass":
-                        mod = new Modification(geomLength, AREAMOD_GRASS);
+                        mod = new NavMeshBuildSource(geo, AREAMOD_GRASS);
                         break;
                     case "door":
-                        mod = new Modification(geomLength, AREAMOD_DOOR);
+                        mod = new NavMeshBuildSource(geo, AREAMOD_DOOR);
                         break;
                     default:
-                        mod = new Modification(geomLength, AREAMOD_GROUND);
+                        mod = new NavMeshBuildSource(geo, AREAMOD_GROUND);
                 }
                 
-                geomProvider.addMod(mod);
-                
-                System.out.println("setNavMeshArea=" + geo + ", geomLength=" + geomLength 
-                		+ ", Material=" + Arrays.toString(name) + ", areaMod=" + mod.getMod().getMaskedValue());
+                geomProvider.addModification(mod);
+                System.out.println(mod);
             }
         });
     }
