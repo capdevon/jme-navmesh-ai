@@ -110,7 +110,6 @@ public class NavMeshTool {
      */
     public boolean randomPoint(Vector3f center, float range, Vector3f result, NavMeshQueryFilter m_filter) {
     	
-        boolean found = false;
         result.set(Vector3f.ZERO);
 
         float[] m_spos = center.toArray(null);
@@ -126,12 +125,12 @@ public class NavMeshTool {
                 if (rpResult.succeeded()) {
                     float[] pt = rpResult.result.getRandomPt();
                     result.set(pt[0], pt[1], pt[2]);
-                    found = true;
+                    return true;
                 }
             }
         }
 
-        return found;
+        return false;
     }
 
 }
