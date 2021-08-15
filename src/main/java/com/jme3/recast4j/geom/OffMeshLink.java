@@ -9,9 +9,9 @@ package com.jme3.recast4j.geom;
  */
 public class OffMeshLink {
 
-	// Off-mesh connection vertices.
-	public final float[] verts;
-	// Off-mesh connection radii.
+    // Off-mesh connection vertices.
+    public final float[] verts;
+    // Off-mesh connection radii.
     public final float radius;
     // Can link be traversed in both directions.
     public final boolean biDirectional;
