@@ -7,9 +7,9 @@ Write me your suggestions or report any bugs.
 
 ### Recently added features:
 - NavMeshAgent that allows you to move the character in the Scene using the NavMesh. The com.jme3.recast4j.ai package is very easy to use and is designed taking inspiration from Unity modules.
-- NavMeshQueryFilter
-- NavMeshPath
-- NavMeshTools
+- NavMeshQueryFilter - This struct is used with the NavMesh query methods overloaded with the query filter argument.
+- NavMeshPath - A path as calculated by the navigation system.
+- NavMeshTools - Use the NavMesh class to perform spatial queries such as pathfinding and walkability tests.
 - NavMeshBuildMarkup allows you to control how certain objects are treated during the NavMesh build process, specifically when collecting sources for building.
 - NavMeshBuildSource
 - IORecast to export **PolyMesh** and **PolyMeshDetail** in .obj format
