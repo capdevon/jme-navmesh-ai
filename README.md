@@ -1,17 +1,16 @@
 # jme3-recast4j-test-1
 This project was born with the aim of creating a bridge API between the recast4j library and jMonkeyEngine.
+ 
+⚠️ This library is still under active development! 
+Follow me to stay updated on the improvements I am working on.
+Write me your suggestions or report any bugs.
 
 ### Recently added features:
 - NavMeshAgent that allows you to move the character in the Scene using the NavMesh. The com.jme3.recast4j.ai package is very easy to use and is designed taking inspiration from Unity modules.
 - NavMeshQueryFilter
 - NavMeshPath
 - NavMeshTools
-- Optimization of the classes that hide the integration between the 2 worlds of **recast4j** and **jme3**.
 - IORecast to export **PolyMesh** and **PolyMeshDetail** in .obj format
-
-Follow me to stay updated on the improvements I am working on. 
-
-Write me your suggestions or report any bugs.
 
 # Requirements
 The individual projects and their respective requirements used in this demo can be found by following these links.
