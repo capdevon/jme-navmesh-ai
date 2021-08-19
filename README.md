@@ -12,7 +12,7 @@ Write me your suggestions or report any bugs.
 - NavMeshTools - Use the NavMesh class to perform spatial queries such as pathfinding and walkability tests.
 - NavMeshBuildMarkup allows you to control how certain objects are treated during the NavMesh build process, specifically when collecting sources for building.
 - NavMeshBuildSource
-- IORecast to export **PolyMesh** and **PolyMeshDetail** in .obj format
+- IORecast to export **NavMesh**, **PolyMesh** and **PolyMeshDetail** in .obj format
 
 # Requirements
 The individual projects and their respective requirements used in this demo can be found by following these links.
