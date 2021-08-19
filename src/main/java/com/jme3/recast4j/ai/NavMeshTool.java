@@ -1,12 +1,15 @@
 package com.jme3.recast4j.ai;
 
+import java.util.Arrays;
 import java.util.List;
 
+import org.recast4j.detour.DetourCommon;
 import org.recast4j.detour.FindNearestPolyResult;
 import org.recast4j.detour.FindRandomPointResult;
 import org.recast4j.detour.NavMesh;
 import org.recast4j.detour.NavMeshQuery;
 import org.recast4j.detour.NavMeshQuery.FRand;
+import org.recast4j.detour.RaycastHit;
 import org.recast4j.detour.Result;
 import org.recast4j.detour.StraightPathItem;
 
@@ -131,6 +134,73 @@ public class NavMeshTool {
         }
 
         return false;
+    }
+
+    /**
+     * Trace a line between two points on the NavMesh.
+     * 
+     * @param sourcePos The origin of the ray.
+     * @param targetPos The end of the ray.
+     * @param out       Holds the properties of the ray cast resulting location.
+     * @return True if the ray is terminated before reaching target position. Otherwise returns false.
+     */
+    public boolean raycast(Vector3f sourcePos, Vector3f targetPos, NavMeshHit out, NavMeshQueryFilter m_filter) {
+
+        out.clear();
+        boolean m_hitResult = false;
+
+        // Convert to Recast4j native format.
+        float[] m_spos = sourcePos.toArray(null);
+        float[] m_epos = targetPos.toArray(null);
+        float[] m_polyPickExt = m_filter.m_polyExtents;
+
+        long m_startRef = navQuery.findNearestPoly(m_spos, m_polyPickExt, m_filter).result.getNearestRef();
+        long m_endRef = navQuery.findNearestPoly(m_epos, m_polyPickExt, m_filter).result.getNearestRef();
+
+        if (m_startRef != 0 && m_endRef != 0) {
+            Result<RaycastHit> hit = navQuery.raycast(m_startRef, m_spos, m_epos, m_filter, 0, 0);
+
+            if (hit.succeeded()) {
+
+                float[] m_hitPos = new float[3];
+                float[] m_hitNormal = new float[3];
+                int area = 0;
+
+                List<Long> m_polys = hit.result.path;
+
+                if (hit.result.t > 1) {
+                    // No hit
+                    m_hitPos = Arrays.copyOf(m_epos, m_epos.length);
+                    m_hitResult = false;
+                } else {
+                    // Hit
+                    m_hitPos = DetourCommon.vLerp(m_spos, m_epos, hit.result.t);
+                    m_hitNormal = Arrays.copyOf(hit.result.hitNormal, hit.result.hitNormal.length);
+                    m_hitResult = true;
+                }
+                // Adjust height.
+                if (m_polys.size() > 0) {
+                    Result<Float> polyHeight = navQuery.getPolyHeight(m_polys.get(m_polys.size() - 1), m_hitPos);
+                    if (polyHeight.succeeded()) {
+                        m_hitPos[1] = polyHeight.result;
+                    }
+
+                    NavMesh navMesh = navQuery.getAttachedNavMesh();
+                    Result<Integer> polyFlags = navMesh.getPolyFlags(m_polys.get(m_polys.size() - 1));
+                    if (polyFlags.succeeded()) {
+                        area = polyFlags.result;
+                    }
+                }
+
+                out.mask = area;
+                out.position = DetourUtils.toVector3f(m_hitPos);
+                out.normal = DetourUtils.toVector3f(m_hitNormal);
+                out.distance = sourcePos.distance(out.position);
+                out.hit = m_hitResult;
+            }
+        }
+
+        return m_hitResult;
     }
 
 }
