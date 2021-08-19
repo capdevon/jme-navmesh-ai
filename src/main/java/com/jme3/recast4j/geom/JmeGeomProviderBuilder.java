@@ -21,9 +21,7 @@ import com.jme3.util.BufferUtils;
 import jme3tools.optimize.GeometryBatchFactory;
 
 /**
- * This class will build a GeometryProvider for Recast to work with.<br />
- * <b>Note: </b>This code has to be run from the MainThread, but once the
- * Geometry is built, it can be run from every thread
+ * This class will build a GeometryProvider for Recast to work with.
  * 
  * @author capdevon
  */
@@ -150,9 +148,7 @@ public class JmeGeomProviderBuilder {
 
         for (NavMeshBuildMarkup markup : markups) {
             if (markup.root instanceof Geometry) {
-
                 Geometry geo = (Geometry) markup.root;
-
                 if (markup.ignoreFromBuild) {
                     map.remove(geo);
                 } else if (markup.overrideArea && map.containsKey(geo)) {
@@ -160,10 +156,8 @@ public class JmeGeomProviderBuilder {
                 }
             } else if (markup.root instanceof Node) {
                 ((Node) markup.root).depthFirstTraversal(new SceneGraphVisitorAdapter() {
-
                     @Override
                     public void visit(Geometry geo) {
-
                         if (markup.ignoreFromBuild) {
                             map.remove(geo);
                         } else if (markup.overrideArea && map.containsKey(geo)) {
@@ -174,7 +168,7 @@ public class JmeGeomProviderBuilder {
             }
         }
 
-        for (Map.Entry<Geometry, AreaModification> entry: map.entrySet()) {
+        for (Map.Entry<Geometry, AreaModification> entry : map.entrySet()) {
             NavMeshBuildSource source = new NavMeshBuildSource(entry.getKey(), entry.getValue());
             results.add(source);
             System.out.println(source);
