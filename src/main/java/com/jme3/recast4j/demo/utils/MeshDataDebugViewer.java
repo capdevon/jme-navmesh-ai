@@ -7,6 +7,8 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 
 import org.recast4j.detour.MeshData;
+import org.recast4j.detour.MeshTile;
+import org.recast4j.detour.NavMesh;
 import org.recast4j.detour.Poly;
 import org.recast4j.recast.geom.InputGeomProvider;
 
@@ -55,15 +57,54 @@ public class MeshDataDebugViewer {
     }
     
     public void drawMeshBounds(InputGeomProvider geomProvider) {
-        Vector3f bmin = DetourUtils.toVector3f(geomProvider.getMeshBoundsMin());
-        Vector3f bmax = DetourUtils.toVector3f(geomProvider.getMeshBoundsMax());
+    	drawMeshBounds(geomProvider.getMeshBoundsMin(), geomProvider.getMeshBoundsMax());
+    }
+    
+    public void drawMeshBounds(NavMesh mesh) {
+    	float[][] meshBounds = getNavMeshBounds(mesh);
+    	drawMeshBounds(meshBounds[0], meshBounds[1]);
+    }
+    
+    protected void drawMeshBounds(float[] bmin, float[] bmax) {
+        Vector3f min = DetourUtils.toVector3f(bmin);
+        Vector3f max = DetourUtils.toVector3f(bmax);
 
-        BoundingBox bbox = new BoundingBox(bmin, bmax);
+        BoundingBox bbox = new BoundingBox(min, max);
         Geometry geo = WireBox.makeGeometry(bbox);
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", ColorRGBA.White);
         geo.setMaterial(mat);
         debugNode.attachChild(geo);
+    }
+
+    protected float[][] getNavMeshBounds(NavMesh mesh) {
+        float[] bmin = new float[] { Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY };
+        float[] bmax = new float[] { Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY };
+        for (int t = 0; t < mesh.getMaxTiles(); ++t) {
+            MeshTile tile = mesh.getTile(t);
+            if (tile != null && tile.data != null) {
+                for (int i = 0; i < tile.data.verts.length; i += 3) {
+                    bmin[0] = Math.min(bmin[0], tile.data.verts[i]);
+                    bmin[1] = Math.min(bmin[1], tile.data.verts[i + 1]);
+                    bmin[2] = Math.min(bmin[2], tile.data.verts[i + 2]);
+                    bmax[0] = Math.max(bmax[0], tile.data.verts[i]);
+                    bmax[1] = Math.max(bmax[1], tile.data.verts[i + 1]);
+                    bmax[2] = Math.max(bmax[2], tile.data.verts[i + 2]);
+                }
+            }
+        }
+        return new float[][] { bmin, bmax };
+    }
+    
+    public void drawNavMesh(NavMesh navMesh, boolean wireframe) {
+        int maxTiles = navMesh.getMaxTiles();
+        for (int i = 0; i < maxTiles; i++) {
+            MeshTile tile = navMesh.getTile(i);
+            MeshData meshData = tile.data;
+            if (meshData != null) {
+                showDebugMeshes(meshData, wireframe);
+            }
+        }
     }
 
     /**
@@ -119,7 +160,7 @@ public class MeshDataDebugViewer {
         ArrayList<Float> listVerts = new ArrayList<>();
 
         /**
-         * If the poly area type equals the supplied area type, add vertice to
+         * If the poly area type equals the supplied area type, add vertices to
          * listVerts.
          */
         for (Poly p : meshData.polys) {
@@ -219,7 +260,7 @@ public class MeshDataDebugViewer {
             // Road (3): brown
             case POLYAREA_TYPE_ROAD:
                 return new ColorRGBA(0.2f, 0.08f, 0.05f, 1);
-            // Door (4): cyan
+            // Door (4): magenta
             case POLYAREA_TYPE_DOOR:
                 return ColorRGBA.Magenta;
             // Grass (5): green
