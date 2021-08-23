@@ -1,25 +1,3 @@
-/*
- *  MIT License
- *  Copyright (c) 2018 MeFisto94
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in all
- *  copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- *  SOFTWARE.
- */
 package com.jme3.recast4j.editor;
 
 import com.jme3.app.SimpleApplication;
@@ -45,8 +23,8 @@ public class NavMeshEditorApp extends SimpleApplication {
      * @param args
      */
     public static void main(String[] args) {
-    	NavMeshEditorApp app = new NavMeshEditorApp();
-    	AppSettings settings = new AppSettings(true);
+        NavMeshEditorApp app = new NavMeshEditorApp();
+        AppSettings settings = new AppSettings(true);
         settings.setTitle("NavMeshEditorApp");
         settings.setResolution(1280, 720);
 
@@ -54,36 +32,35 @@ public class NavMeshEditorApp extends SimpleApplication {
         app.setPauseOnLostFocus(false);
         app.start();
     }
-    
+
     private Node worldMap;
 
-	@Override
-	public void simpleInitApp() {
-		
-		cam.setFrustumPerspective(45, (float) cam.getWidth() / cam.getHeight(), 0.1f, 1000f);
-		
-		flyCam.setMoveSpeed(20f);
-		flyCam.setDragToRotate(true);
-		
-		cam.setLocation(Vector3f.UNIT_XYZ.mult(10));
-		cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
-	    
-		setupWorld();
-		
-		stateManager.attach(new NavMeshGeneratorState(worldMap));
-		stateManager.attach(new NavMeshUI());
-	}
-	
-	private void setupWorld() {
-    	//Set the atmosphere of the world, lights, camera, post processing.
-    	viewPort.setBackgroundColor(new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f));
-    	
-    	worldMap = new Node("MainScene");
+    @Override
+    public void simpleInitApp() {
+
+        cam.setFrustumPerspective(45, (float) cam.getWidth() / cam.getHeight(), 0.1f, 1000f);
+
+        flyCam.setMoveSpeed(20f);
+        flyCam.setDragToRotate(true);
+
+        cam.setLocation(Vector3f.UNIT_XYZ.mult(10));
+        cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
+
+        setupWorld();
+
+        stateManager.attach(new NavMeshGeneratorState(worldMap));
+        stateManager.attach(new NavMeshUI());
+    }
+
+    private void setupWorld() {
+        //Set the atmosphere of the world, lights, post processing.
+        viewPort.setBackgroundColor(new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f));
+
+        worldMap = new Node("MainScene");
         worldMap.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        
-        Node level = (Node) assetManager.loadModel("Models/Level/recast_level.mesh.j3o"); 
+
+        Node level = (Node) assetManager.loadModel("Models/Level/recast_level.mesh.j3o");
         worldMap.attachChild(level);
-        
         rootNode.attachChild(worldMap);
 
         DirectionalLight sun = new DirectionalLight();
