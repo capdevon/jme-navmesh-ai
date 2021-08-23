@@ -12,8 +12,8 @@ import com.jme3.app.Application;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.recast4j.debug.NavPathDebugViewer;
 import com.jme3.recast4j.demo.utils.FRotator;
-import com.jme3.recast4j.demo.utils.PathViewer;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Spatial;
@@ -24,7 +24,7 @@ import mygame.controls.AdapterControl;
  * Navigation mesh agent.
  * <p>
  * This component is attached to a mobile character in the game to allow it to
- * navigate the scene using the NavMesh
+ * navigate the Scene using the NavMesh
  * 
  * @author capdevon
  */
@@ -43,7 +43,7 @@ public class NavMeshAgent extends AdapterControl {
     private final Vector3f viewDirection = new Vector3f(0, 0, 1);
     private final Quaternion lookRotation = new Quaternion();
     
-    private PathViewer pathViewer;
+    private NavPathDebugViewer pathViewer;
     private boolean debugEnabled = true;
     private boolean pathChanged;
     
@@ -72,7 +72,7 @@ public class NavMeshAgent extends AdapterControl {
     public NavMeshAgent(NavMesh navMesh, Application app) {
         this.navtool = new NavMeshTool(navMesh);
         this.navPath = new NavMeshPath();
-        this.pathViewer = new PathViewer(app.getAssetManager());
+        this.pathViewer = new NavPathDebugViewer(app.getAssetManager());
         this.executor = Executors.newScheduledThreadPool(1);
     }
     
@@ -288,11 +288,11 @@ public class NavMeshAgent extends AdapterControl {
     /**
      * Assign a new path to this agent.
      * <p>
-     * If the path is successfully assigned the agent will resume movement toward the
-     * new target. If the path cannot be assigned the path will be cleared.
+     * If the path is successfully assigned the agent will resume movement toward
+     * the new target. If the path cannot be assigned the path will be cleared.
      * 
-     * @param path - New path to follow.
-     * @return - True if the path is successfully assigned.
+     * @param path New path to follow.
+     * @return True if the path is successfully assigned.
      */
     public boolean setPath(NavMeshPath path) {
         if (!hasPath) {
@@ -314,9 +314,9 @@ public class NavMeshAgent extends AdapterControl {
      * gameplay when the path is needed. Another use is to check if a target
      * position is reachable before moving the agent.
      * 
-     * @param targetPosition - The final position of the path requested.
-     * @param path           - The resulting path.
-     * @return - True if a path is found.
+     * @param targetPosition The final position of the path requested.
+     * @param path           The resulting path.
+     * @return True if a path is found.
      */
     public boolean calculatePath(Vector3f targetPosition, NavMeshPath path) {
         return navtool.computePath(spatial.getWorldTranslation(), targetPosition, filter, path);
@@ -325,10 +325,10 @@ public class NavMeshAgent extends AdapterControl {
     /**
      * Finds the closest point on NavMesh within specified range.
      * 
-     * @param center - The origin of the sample query.
-     * @param range  - Sample within this distance from center.
-     * @param result - Holds the resulting location.
-     * @return - True if a nearest point is found.
+     * @param center The origin of the sample query.
+     * @param range  Sample within this distance from center.
+     * @param result Holds the resulting location.
+     * @return True if a nearest point is found.
      */
     public boolean samplePosition(Vector3f center, float range, Vector3f result) {
         return navtool.randomPoint(center, range, result, filter);
