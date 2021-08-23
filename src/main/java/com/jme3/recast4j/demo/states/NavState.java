@@ -121,9 +121,11 @@ import com.jme3.recast4j.Recast.IORecast;
 import com.jme3.recast4j.Recast.RecastConfigBuilder;
 import com.jme3.recast4j.Recast.Telemetry;
 import com.jme3.recast4j.ai.NavMeshAgent;
+import com.jme3.recast4j.ai.NavMeshHit;
 import com.jme3.recast4j.ai.NavMeshPath;
 import com.jme3.recast4j.ai.NavMeshPathStatus;
 import com.jme3.recast4j.ai.NavMeshQueryFilter;
+import com.jme3.recast4j.ai.NavMeshTool;
 import com.jme3.recast4j.demo.JmeAreaMods;
 import com.jme3.recast4j.demo.controls.DoorSwingControl;
 import com.jme3.recast4j.demo.utils.GameObject;
@@ -165,7 +167,7 @@ public class NavState extends AbstractNavState {
     float agentRadius = 0.3f;
     float agentHeight = 1.7f;
     float agentMaxClimb = 0.3f; // > 2*ch
-    float cellSize = 0.1f; 		// cs=r/2
+    float cellSize = 0.1f; 	// cs=r/2
     float cellHeight = 0.1f; 	// ch=cs/2 but not < .1f
 
     public NavState() {
@@ -416,7 +418,7 @@ public class NavState extends AbstractNavState {
     	
     	Node character = getCharacters().get(0);
     	character.addControl(new AnimationControl());
-    	character.addControl(new NavMeshAgent(navMesh, app));
+    	character.addControl(new NavMeshAgent(navMesh, getApplication()));
     	character.addControl(new PCControl());
     	
     	int includeFlags = POLYFLAGS_WALK | POLYFLAGS_DOOR | POLYFLAGS_SWIM | POLYFLAGS_JUMP;
@@ -544,7 +546,7 @@ public class NavState extends AbstractNavState {
         }
 
         //Show wireframe. Helps with param tweaks. false = solid color.
-        meshDebugViewer.showDebugMeshes(meshData, true);
+        nmDebugViewer.drawMeshData(meshData, true);
     }
     
     /**
@@ -619,7 +621,7 @@ public class NavState extends AbstractNavState {
 
         //Show wireframe. Helps with param tweaks. false = solid color.
         //meshDebugViewer.showDebugMeshes(meshData, true);
-        meshDebugViewer.showDebugByArea(meshData, true);
+        nmDebugViewer.drawMeshByArea(meshData, true);
     }
     
     /**
@@ -783,7 +785,7 @@ public class NavState extends AbstractNavState {
 
         //Show wireframe. Helps with param tweaks. false = solid color.
         //meshDebugViewer.showDebugMeshes(meshData, true);
-        meshDebugViewer.showDebugByArea(meshData, true);
+        nmDebugViewer.drawMeshByArea(meshData, true);
     }
 
     /**
@@ -883,7 +885,7 @@ public class NavState extends AbstractNavState {
             for (int i = 0; i < maxTiles; i++) {
                 MeshData meshData = navMesh.getTile(i).data;
                 if (meshData != null) {
-                    meshDebugViewer.showDebugByArea(meshData, true);
+                    nmDebugViewer.drawMeshByArea(meshData, true);
                 }
             }
         } catch (IOException ex) {
@@ -973,7 +975,7 @@ public class NavState extends AbstractNavState {
                 MeshTile tile = tc.getNavMesh().getTile(i);
                 MeshData meshData = tile.data;
                 if (meshData != null) {
-                    meshDebugViewer.showDebugByArea(meshData, true);
+                    nmDebugViewer.drawMeshByArea(meshData, true);
                 }
             }
         } catch (IOException ex) {
