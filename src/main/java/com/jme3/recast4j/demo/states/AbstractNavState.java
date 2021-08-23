@@ -8,8 +8,8 @@ import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.input.InputManager;
-import com.jme3.recast4j.demo.utils.MeshDataDebugViewer;
-import com.jme3.recast4j.demo.utils.PathViewer;
+import com.jme3.recast4j.debug.NavMeshDebugViewer;
+import com.jme3.recast4j.debug.NavPathDebugViewer;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -22,11 +22,11 @@ import com.jme3.system.AppSettings;
  */
 public abstract class AbstractNavState extends BaseAppState {
 
-    public PathViewer pathViewer;
-    public MeshDataDebugViewer meshDebugViewer;
+    public NavPathDebugViewer pathViewer;
+    public NavMeshDebugViewer nmDebugViewer;
 
     // cache fields
-    public SimpleApplication app;
+    public SimpleApplication sapp;
     public AppSettings settings;
     public AppStateManager stateManager;
     public AssetManager assetManager;
@@ -37,15 +37,15 @@ public abstract class AbstractNavState extends BaseAppState {
     public Node guiNode;
 
     protected void refreshCacheFields() {
-        this.app 			= (SimpleApplication) getApplication();
-        this.settings 		= app.getContext().getSettings();
-        this.stateManager 	= app.getStateManager();
-        this.assetManager 	= app.getAssetManager();
-        this.inputManager 	= app.getInputManager();
-        this.viewPort 		= app.getViewPort();
-        this.camera 		= app.getCamera();
-        this.rootNode 		= app.getRootNode();
-        this.guiNode 		= app.getGuiNode();
+        this.sapp 			= (SimpleApplication) getApplication();
+        this.settings 		= sapp.getContext().getSettings();
+        this.stateManager 	= sapp.getStateManager();
+        this.assetManager 	= sapp.getAssetManager();
+        this.inputManager 	= sapp.getInputManager();
+        this.viewPort 		= sapp.getViewPort();
+        this.camera 		= sapp.getCamera();
+        this.rootNode 		= sapp.getRootNode();
+        this.guiNode 		= sapp.getGuiNode();
     }
 
     protected PhysicsSpace getPhysicsSpace() {
@@ -54,31 +54,27 @@ public abstract class AbstractNavState extends BaseAppState {
 
     @Override
     protected void initialize(Application app) {
-        // TODO Auto-generated method stub
         refreshCacheFields();
-        pathViewer = new PathViewer(assetManager);
-        meshDebugViewer = new MeshDataDebugViewer(assetManager);
+        pathViewer = new NavPathDebugViewer(assetManager);
+        nmDebugViewer = new NavMeshDebugViewer(assetManager);
     }
 
     @Override
     protected void cleanup(Application app) {
-        // TODO Auto-generated method stub
     }
 
     @Override
     protected void onEnable() {
-        // TODO Auto-generated method stub
     }
 
     @Override
     protected void onDisable() {
-        // TODO Auto-generated method stub
     }
 
     @Override
     public void render(RenderManager rm) {
         pathViewer.show(rm, viewPort);
-        meshDebugViewer.show(rm, viewPort);
+        nmDebugViewer.show(rm, viewPort);
     }
 
 }
