@@ -10,13 +10,14 @@ import org.recast4j.detour.NavMeshBuilder;
 import org.recast4j.detour.NavMeshDataCreateParams;
 import org.recast4j.detour.NavMeshParams;
 import org.recast4j.recast.Recast;
-import org.recast4j.recast.RecastBuilder;
 import org.recast4j.recast.RecastBuilder.RecastBuilderResult;
 import org.recast4j.recast.RecastConfig;
 import org.recast4j.recast.RecastVectors;
 import org.recast4j.recast.geom.InputGeomProvider;
 
 import com.jme3.recast4j.editor.NavMeshBuildSettings;
+import com.jme3.recast4j.geom.JmeInputGeomProvider;
+import com.jme3.recast4j.geom.JmeRecastBuilder;
 
 /**
  * 
@@ -30,7 +31,7 @@ public class TileNavMeshBuilder extends AbstractNavMeshBuilder {
      * @param s
      * @return
      */
-    public NavMesh build(InputGeomProvider m_geom, NavMeshBuildSettings s) {
+    public NavMesh build(JmeInputGeomProvider m_geom, NavMeshBuildSettings s) {
 
         // Initialize build config.
         RecastConfig cfg = new RecastConfig(s.partitionType, s.cellSize, s.cellHeight, s.agentHeight,
@@ -39,7 +40,7 @@ public class TileNavMeshBuilder extends AbstractNavMeshBuilder {
             s.tileSize, s.walkableAreaMod, s.filterLowHangingObstacles, s.filterLedgeSpans, s.filterWalkableLowHeightSpans);
 
         // Build all tiles
-        RecastBuilder rcBuilder = new RecastBuilder();
+        JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
         
         int threads = 1;
         RecastBuilderResult[][] rcResult = rcBuilder.buildTiles(m_geom, cfg, threads);
