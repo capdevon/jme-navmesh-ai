@@ -92,6 +92,11 @@ dependencies {
     implementation 'org.recast4j:recast:' + recast4jVersion
     implementation 'org.recast4j:detour:' + recast4jVersion
     
+    // Logging
+    implementation 'org.slf4j:slf4j-api:1.7.32'
+  	implementation 'org.slf4j:slf4j-simple:1.7.32'
+  
+    // Layout
     implementation 'com.miglayout:miglayout-core:5.2'
         
     // Libraries related to the Lemur GUI and Groovy:
