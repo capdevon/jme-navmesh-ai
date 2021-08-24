@@ -9,13 +9,13 @@ import java.util.logging.Logger;
 
 import org.recast4j.detour.NavMesh;
 import org.recast4j.detour.io.MeshSetWriter;
-import org.recast4j.recast.geom.InputGeomProvider;
 
 import com.jme3.app.Application;
-import com.jme3.recast4j.Recast.SimpleGeomProviderBuilder;
 import com.jme3.recast4j.debug.NavMeshDebugViewer;
 import com.jme3.recast4j.editor.builder.SoloNavMeshBuilder;
 import com.jme3.recast4j.editor.builder.TileNavMeshBuilder;
+import com.jme3.recast4j.geom.JmeGeomProviderBuilder;
+import com.jme3.recast4j.geom.JmeInputGeomProvider;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Node;
 
@@ -31,7 +31,7 @@ public class NavMeshGeneratorState extends SimpleAppState {
     private final TileNavMeshBuilder tileNavMeshBuilder = new TileNavMeshBuilder();
 
     private Node worldMap;
-    private InputGeomProvider m_geom;
+    private JmeInputGeomProvider m_geom;
     private NavMeshDebugViewer nmDebugViewer;
 
     /**
@@ -45,7 +45,7 @@ public class NavMeshGeneratorState extends SimpleAppState {
     @Override
     protected void initialize(Application app) {
         refreshCacheFields();
-        m_geom = new SimpleGeomProviderBuilder(worldMap).build();
+        m_geom = new JmeGeomProviderBuilder(worldMap).build();
         nmDebugViewer = new NavMeshDebugViewer(assetManager);
     }
 
