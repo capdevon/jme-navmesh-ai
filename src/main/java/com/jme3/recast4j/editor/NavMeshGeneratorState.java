@@ -7,8 +7,6 @@ import java.nio.ByteOrder;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.recast4j.detour.NavMesh;
 import org.recast4j.detour.io.MeshSetWriter;
 import org.recast4j.recast.geom.InputGeomProvider;
@@ -67,7 +65,7 @@ public class NavMeshGeneratorState extends SimpleAppState {
 
     public void generateNavMesh(NavMeshBuildSettings settingsUI) {
         try {
-            System.out.println(ReflectionToStringBuilder.toString(settingsUI, ToStringStyle.MULTI_LINE_STYLE));
+            System.out.println(settingsUI);
 
             NavMesh navMesh = null;
             long startTime = System.currentTimeMillis();
