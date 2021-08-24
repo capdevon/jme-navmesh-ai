@@ -66,6 +66,8 @@ dependencies {
 
 
 # 
+⭐NEW Editor
+![Screenshot](images/editor-2.jpg)
 Solo NavMesh
 ![Screenshot](images/buildSoloModified-2.jpg)
 Tiled NavMesh
