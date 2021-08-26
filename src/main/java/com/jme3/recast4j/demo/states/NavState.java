@@ -189,7 +189,7 @@ public class NavState extends AbstractNavState {
         
         //====================================================================
         System.out.println("Building NavMesh... this may freeze your computer for a few seconds, please stand by");
-        long t = System.nanoTime();
+        long startTime = System.currentTimeMillis();
         
 //        //Original implementation using jme3-recast4j methods.
 //        buildSolo();
@@ -201,7 +201,7 @@ public class NavState extends AbstractNavState {
 //        buildTiledRecast4j();
 //        buildTileCache();
         
-        long buildTime = (System.nanoTime() - t) / 1_000_000;
+        long buildTime = (System.currentTimeMillis() - startTime);
         System.out.println("Building succeeded after " + buildTime + " ms");
         //====================================================================
         
@@ -428,6 +428,13 @@ public class NavState extends AbstractNavState {
         
     	NavMeshQueryFilter filter = new NavMeshQueryFilter(includeFlags, excludeFlags);
     	filter.setPolyExtents(polyExtents);
+        // Change costs.
+        filter.setAreaCost(POLYAREA_TYPE_GROUND, 1.0f);
+        filter.setAreaCost(POLYAREA_TYPE_WATER, 10.0f);
+        filter.setAreaCost(POLYAREA_TYPE_ROAD,   1.0f);
+        filter.setAreaCost(POLYAREA_TYPE_DOOR,   1.0f);
+        filter.setAreaCost(POLYAREA_TYPE_GRASS,  2.0f);
+        filter.setAreaCost(POLYAREA_TYPE_JUMP,   1.5f);
     	
     	NavMeshAgent agent = character.getControl(NavMeshAgent.class);
         agent.setQueryFilter(filter);
@@ -459,6 +466,15 @@ public class NavState extends AbstractNavState {
                     } else {
                         System.err.println("Unable to find path");
                     }
+                } else {
+                	pathViewer.clearPath();
+                	
+                	NavMeshTool tool = new NavMeshTool(navMesh);
+                	NavMeshHit hit = new NavMeshHit();
+                	Vector3f sourcePos = character.getWorldTranslation();
+                	Vector3f targetPos = getLocationOnMap();
+                	boolean blocked = tool.raycast(sourcePos, targetPos, hit, filter);
+                	pathViewer.putLine(!blocked ? ColorRGBA.Green : ColorRGBA.Red, sourcePos, targetPos);
                 }
             }
         });
@@ -512,8 +528,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(2.4f) 			// r*8
-                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+                .withEdgeMaxLen(2.4f) 		// r*8
+                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
                 .withDetailSampleDistance(8.0f) // increase if exception
                 .withDetailSampleMaxError(8.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -653,8 +669,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(2.4f) 			// r*8
-                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+                .withEdgeMaxLen(2.4f) 		// r*8
+                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
                 .withDetailSampleDistance(8.0f) // increase if exception
                 .withDetailSampleMaxError(8.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -815,8 +831,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(3.2f) 			// r*8
-                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+                .withEdgeMaxLen(3.2f) 		// r*8
+                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
                 .withDetailSampleDistance(6.0f) // increase if exception
                 .withDetailSampleMaxError(6.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -915,8 +931,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(3.2f) 			// r*8
-                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+                .withEdgeMaxLen(3.2f) 		// r*8
+                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
                 .withDetailSampleDistance(6.0f) // increase if exception
                 .withDetailSampleMaxError(6.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -1040,7 +1056,7 @@ public class NavState extends AbstractNavState {
 			params.offMeshConUserID[i] = offMeshCon.userID;
 		}
 
-		System.out.println(ReflectionToStringBuilder.toString(params, ToStringStyle.MULTI_LINE_STYLE));
+		//System.out.println(ReflectionToStringBuilder.toString(params, ToStringStyle.MULTI_LINE_STYLE));
 		return params;
 	}
     
@@ -1162,7 +1178,7 @@ public class NavState extends AbstractNavState {
                             start[0], start[1], start[2], end[0], end[1], end[2]
                         };
                         
-                        //Determine what side of the tile the vertx is on.
+                        //Determine what side of the tile the vertex is on.
                         offMeshConn.getValue().side = startTile == endTile ? 0xFF :
                             NavMeshBuilder.classifyOffMeshPoint(new VectorPtr(offMeshConn.getValue().pos, 3),
                                 startTile.header.bmin, startTile.header.bmax);
@@ -1485,45 +1501,26 @@ public class NavState extends AbstractNavState {
      * @param poly The polygon id to look for flags.
      */
     private void printFlags(long poly) {
-        if (isBitSet(POLYFLAGS_DOOR, navMesh.getPolyFlags(poly).result)) {
-            LOG.info("POLYFLAGS_DOOR [{}]", POLYFLAGS_DOOR);
-        }
-        if (isBitSet(POLYFLAGS_WALK, navMesh.getPolyFlags(poly).result)) {
-            LOG.info("POLYFLAGS_WALK [{}]", POLYFLAGS_WALK);
-        }
-        if (isBitSet(POLYFLAGS_SWIM, navMesh.getPolyFlags(poly).result)) {
-            LOG.info("POLYFLAGS_SWIM [{}]", POLYFLAGS_SWIM);
-        }
-        if (isBitSet(POLYFLAGS_JUMP, navMesh.getPolyFlags(poly).result)) {
-            LOG.info("POLYFLAGS_JUMP [{}]", POLYFLAGS_JUMP);
-        }
-        if (isBitSet(POLYFLAGS_DISABLED, navMesh.getPolyFlags(poly).result)) {
-            LOG.info("POLYFLAGS_DISABLED [{}]", POLYFLAGS_DISABLED);
-        }
-    }
-
-    /**
-     * Prints any flag found in the supplied flags.
-     * @param flags The flags to print.
-     */
-    private void printFlags(int flags) {
-        if (flags == 0) {
+    	
+    	int flags = navMesh.getPolyFlags(poly).result;
+    	
+    	if (flags == 0) {
             LOG.info("No flag found.");
         }
         if (isBitSet(POLYFLAGS_DOOR, flags)) {
-            LOG.info("POLYFLAGS_DOOR         [{}]", POLYFLAGS_DOOR);
+            LOG.info("POLYFLAGS_DOOR [{}]", POLYFLAGS_DOOR);
         }
         if (isBitSet(POLYFLAGS_WALK, flags)) {
-            LOG.info("POLYFLAGS_WALK         [{}]", POLYFLAGS_WALK);
+            LOG.info("POLYFLAGS_WALK [{}]", POLYFLAGS_WALK);
         }
         if (isBitSet(POLYFLAGS_SWIM, flags)) {
-            LOG.info("POLYFLAGS_SWIM         [{}]", POLYFLAGS_SWIM);
+            LOG.info("POLYFLAGS_SWIM [{}]", POLYFLAGS_SWIM);
         }
         if (isBitSet(POLYFLAGS_JUMP, flags)) {
-            LOG.info("POLYFLAGS_JUMP         [{}]", POLYFLAGS_JUMP);
+            LOG.info("POLYFLAGS_JUMP [{}]", POLYFLAGS_JUMP);
         }
         if (isBitSet(POLYFLAGS_DISABLED, flags)) {
-            LOG.info("POLYFLAGS_DISABLED     [{}]", POLYFLAGS_DISABLED);
+            LOG.info("POLYFLAGS_DISABLED [{}]", POLYFLAGS_DISABLED);
         }
     }
     
