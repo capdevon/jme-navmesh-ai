@@ -36,43 +36,43 @@ public class NavPathDebugViewer {
         this.assetManager = assetManager;
         setupMaterial();
     }
-    
+
     /**
      * Initialize debug material
      */
     private void setupMaterial() {
-    	debugMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-    	debugMat.getAdditionalRenderState().setWireframe(true);
-    	debugMat.setColor("Color", ColorRGBA.Orange);
+        debugMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        debugMat.getAdditionalRenderState().setWireframe(true);
+        debugMat.setColor("Color", ColorRGBA.Orange);
     }
-    
-    public void drawPathCycle(List<Vector3f> points) {
+
+    public void drawPathCycle(List < Vector3f > points) {
         for (int i = 0; i < points.size(); i++) {
             int nextIndex = (i + 1) % points.size();
             drawLine(points.get(i), points.get(nextIndex), i);
             drawSphere(points.get(i), 0.2f, i);
         }
     }
-    
-    public void drawPath(List<Vector3f> points) {
+
+    public void drawPath(List < Vector3f > points) {
         for (int i = 0; i < points.size(); i++) {
-        	int nextIndex = (i + 1);
-        	if (nextIndex < points.size()) {
-        		drawLine(points.get(i), points.get(nextIndex), i);
-        	}
+            int nextIndex = (i + 1);
+            if (nextIndex < points.size()) {
+                drawLine(points.get(i), points.get(nextIndex), i);
+            }
             drawSphere(points.get(i), 0.2f, i);
         }
     }
-    
+
     private void drawLine(Vector3f start, Vector3f end, int i) {
         Line line = new Line(start, end);
         Geometry geo = new Geometry("PathLine-" + i, line);
         geo.setMaterial(debugMat);
         debugNode.attachChild(geo);
     }
-    
+
     private void drawSphere(Vector3f position, float radius, int i) {
-    	Sphere sphere = new Sphere(9, 9, 0.1f);
+        Sphere sphere = new Sphere(9, 9, 0.1f);
         Geometry geo = new Geometry("PathSphere-" + i, sphere);
         geo.setLocalTranslation(position);
         geo.setMaterial(debugMat);
@@ -80,15 +80,14 @@ public class NavPathDebugViewer {
     }
 
     /**
-     * Helper method to place a colored box at a specific location and fill the pathGeometries list with it,
-     * so that later on we can remove all existing pathGeometries (from a previous path finding)
+     * Helper method to place a colored box at a specific location.
      *
-     * @param color The color the box should have
+     * @param color    The color the box should have
      * @param position The position where the box will be placed
-     * @return the box
+     * @return the box Geometry
      */
     public Geometry putBox(ColorRGBA color, Vector3f position) {
-    	float size = 0.15f;
+        float size = 0.15f;
         Geometry result = new Geometry("Box", new Box(size, size, size));
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", color);
@@ -99,13 +98,12 @@ public class NavPathDebugViewer {
     }
 
     /**
-     * Helper method to place a colored line between two specific locations and fill the pathGeometries list with it,
-     * so that later on we can remove all existing pathGeometries (from a previous path finding)
+     * Helper method to place a colored line between two specific locations.
      *
      * @param color The color the box should have
-     * @param from The position where the line starts
-     * @param to The position where the line is finished.
-     * @return the line
+     * @param from  The position where the line starts
+     * @param to    The position where the line is finished.
+     * @return the line Geometry
      */
     public Geometry putLine(ColorRGBA color, Vector3f from, Vector3f to) {
         Geometry result = new Geometry("Line", new Line(from, to));
