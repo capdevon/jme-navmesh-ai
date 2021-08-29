@@ -46,7 +46,7 @@ public class NavPathDebugViewer {
         debugMat.setColor("Color", ColorRGBA.Orange);
     }
 
-    public void drawPathCycle(List < Vector3f > points) {
+    public void drawPathCycle(List<Vector3f> points) {
         for (int i = 0; i < points.size(); i++) {
             int nextIndex = (i + 1) % points.size();
             drawLine(points.get(i), points.get(nextIndex), i);
@@ -54,7 +54,7 @@ public class NavPathDebugViewer {
         }
     }
 
-    public void drawPath(List < Vector3f > points) {
+    public void drawPath(List<Vector3f> points) {
         for (int i = 0; i < points.size(); i++) {
             int nextIndex = (i + 1);
             if (nextIndex < points.size()) {
