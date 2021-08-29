@@ -54,23 +54,23 @@ public abstract class AbstractNavMeshBuilder {
         return params;
     }
     
-	protected MeshData updateAreaAndFlags(MeshData meshData) {
-		// Update poly flags from areas.
-		for (int i = 0; i < meshData.polys.length; ++i) {
-			if (meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_WALKABLE) {
-				meshData.polys[i].setArea(SampleAreaModifications.SAMPLE_POLYAREA_TYPE_GROUND);
-			}
-			if (meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_GROUND
-					|| meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_GRASS
-					|| meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_ROAD) {
-				meshData.polys[i].flags = SampleAreaModifications.SAMPLE_POLYFLAGS_WALK;
-			} else if (meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_WATER) {
-				meshData.polys[i].flags = SampleAreaModifications.SAMPLE_POLYFLAGS_SWIM;
-			} else if (meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_DOOR) {
-				meshData.polys[i].flags = SampleAreaModifications.SAMPLE_POLYFLAGS_DOOR;
-			}
-		}
-		return meshData;
-	}
+    protected MeshData updateAreaAndFlags(MeshData meshData) {
+        // Update poly flags from areas.
+        for (int i = 0; i < meshData.polys.length; ++i) {
+            if (meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_WALKABLE) {
+                meshData.polys[i].setArea(SampleAreaModifications.SAMPLE_POLYAREA_TYPE_GROUND);
+            }
+            if (meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_GROUND ||
+                meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_GRASS ||
+                meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_ROAD) {
+                meshData.polys[i].flags = SampleAreaModifications.SAMPLE_POLYFLAGS_WALK;
+            } else if (meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_WATER) {
+                meshData.polys[i].flags = SampleAreaModifications.SAMPLE_POLYFLAGS_SWIM;
+            } else if (meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_DOOR) {
+                meshData.polys[i].flags = SampleAreaModifications.SAMPLE_POLYFLAGS_DOOR;
+            }
+        }
+        return meshData;
+    }
 
 }
