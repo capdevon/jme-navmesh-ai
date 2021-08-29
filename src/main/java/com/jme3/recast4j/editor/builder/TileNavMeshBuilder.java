@@ -16,6 +16,7 @@ import org.recast4j.recast.RecastVectors;
 import org.recast4j.recast.geom.InputGeomProvider;
 
 import com.jme3.recast4j.editor.NavMeshBuildSettings;
+import com.jme3.recast4j.editor.SampleAreaModifications;
 import com.jme3.recast4j.geom.JmeInputGeomProvider;
 import com.jme3.recast4j.geom.JmeRecastBuilder;
 
@@ -37,7 +38,7 @@ public class TileNavMeshBuilder extends AbstractNavMeshBuilder {
         RecastConfig cfg = new RecastConfig(s.partitionType, s.cellSize, s.cellHeight, s.agentHeight,
             s.agentRadius, s.agentMaxClimb, s.agentMaxSlope, s.regionMinSize, s.regionMergeSize,
             s.edgeMaxLen, s.edgeMaxError, s.vertsPerPoly, s.detailSampleDist, s.detailSampleMaxError,
-            s.tileSize, s.walkableAreaMod, s.filterLowHangingObstacles, s.filterLedgeSpans, s.filterWalkableLowHeightSpans);
+            s.tileSize, SampleAreaModifications.SAMPLE_AREAMOD_WALKABLE, s.filterLowHangingObstacles, s.filterLedgeSpans, s.filterWalkableLowHeightSpans);
 
         // Build all tiles
         JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
@@ -69,7 +70,7 @@ public class TileNavMeshBuilder extends AbstractNavMeshBuilder {
 
                 MeshData md = NavMeshBuilder.createNavMeshData(params);
                 if (md != null) {
-                    meshData.add(md);
+                    meshData.add(updateAreaAndFlags(md));
                 }
             }
         }
