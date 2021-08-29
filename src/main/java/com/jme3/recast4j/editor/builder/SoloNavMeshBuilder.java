@@ -47,18 +47,17 @@ public class SoloNavMeshBuilder extends AbstractNavMeshBuilder {
 
         return navMesh;
     }
-    
-    private MeshData buildMeshData(JmeInputGeomProvider m_geom, float m_cellSize, float m_cellHeight, float m_agentHeight,
-			float m_agentRadius, float m_agentMaxClimb, RecastBuilderResult rcResult) {
 
-		// Set the parameters needed to build our MeshData using the RecastBuilder results.
-		NavMeshDataCreateParams params = getNavMeshCreateParams(m_geom, m_cellSize, m_cellHeight, m_agentHeight,
-				m_agentRadius, m_agentMaxClimb, rcResult);
+    private MeshData buildMeshData(JmeInputGeomProvider m_geom, float m_cellSize, float m_cellHeight, float m_agentHeight, 
+    		float m_agentRadius, float m_agentMaxClimb, RecastBuilderResult rcResult) {
 
-		// Generate MeshData using our parameters object.
-		MeshData data = NavMeshBuilder.createNavMeshData(params);
+        // Set the parameters needed to build our MeshData using the RecastBuilder results.
+        NavMeshDataCreateParams params = getNavMeshCreateParams(m_geom, m_cellSize, m_cellHeight, m_agentHeight, m_agentRadius, m_agentMaxClimb, rcResult);
 
-		return updateAreaAndFlags(data);
-	}
+        // Generate MeshData using our parameters object.
+        MeshData data = NavMeshBuilder.createNavMeshData(params);
+
+        return updateAreaAndFlags(data);
+    }
 
 }
