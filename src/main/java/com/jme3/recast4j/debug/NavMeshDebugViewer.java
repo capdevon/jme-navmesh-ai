@@ -1,10 +1,17 @@
 package com.jme3.recast4j.debug;
 
-import static com.jme3.recast4j.demo.JmeAreaMods.*;
+//import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_DOOR;
+//import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_GRASS;
+//import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_GROUND;
+//import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_JUMP;
+//import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_ROAD;
+//import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_WATER;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.recast4j.detour.MeshData;
 import org.recast4j.detour.MeshTile;
@@ -106,12 +113,23 @@ public class NavMeshDebugViewer {
             }
         }
     }
+    
+    public void drawNavMeshByArea(NavMesh navMesh, boolean wireframe) {
+        int maxTiles = navMesh.getMaxTiles();
+        for (int i = 0; i < maxTiles; i++) {
+            MeshTile tile = navMesh.getTile(i);
+            MeshData meshData = tile.data;
+            if (meshData != null) {
+                drawMeshByArea(meshData, wireframe);
+            }
+        }
+    }
 
     /**
      * Displays a debug mesh
      * 
-     * @param meshData
-     * @param wireframe
+     * @param meshData  MeshData to process.
+     * @param wireframe display as solid or wire frame.
      */
     public void drawMeshData(MeshData meshData, boolean wireframe) {
 
@@ -135,27 +153,34 @@ public class NavMeshDebugViewer {
     /**
      * Displays a debug mesh based off the area type of the poly.
      * 
-     * @param meshData MeshData to process.
-     * @param wireFrame display as solid or wire frame. 
+     * @param meshData  MeshData to process.
+     * @param wireframe display as solid or wire frame.
      */
-    public void drawMeshByArea(MeshData meshData, boolean wireFrame) {
-        sortVertsByArea(meshData, POLYAREA_TYPE_GROUND, wireFrame);
-        sortVertsByArea(meshData, POLYAREA_TYPE_WATER, wireFrame);
-        sortVertsByArea(meshData, POLYAREA_TYPE_ROAD, wireFrame);
-        sortVertsByArea(meshData, POLYAREA_TYPE_DOOR, wireFrame);
-        sortVertsByArea(meshData, POLYAREA_TYPE_GRASS, wireFrame);
-        sortVertsByArea(meshData, POLYAREA_TYPE_JUMP, wireFrame);
+    public void drawMeshByArea(MeshData meshData, boolean wireframe) {
+        //sortVertsByArea(meshData, POLYAREA_TYPE_GROUND, wireframe);
+        //sortVertsByArea(meshData, POLYAREA_TYPE_WATER, wireframe);
+        //sortVertsByArea(meshData, POLYAREA_TYPE_ROAD, wireframe);
+        //sortVertsByArea(meshData, POLYAREA_TYPE_DOOR, wireframe);
+        //sortVertsByArea(meshData, POLYAREA_TYPE_GRASS, wireframe);
+        //sortVertsByArea(meshData, POLYAREA_TYPE_JUMP, wireframe);
+
+        Set<Integer> areaTypes = new HashSet<>();
+        for (Poly poly : meshData.polys) {
+            areaTypes.add(poly.getArea());
+        }
+
+        areaTypes.forEach(t -> sortVertsByArea(meshData, t, wireframe));
     }
 
     /**
-     * Sorts the vertices of MeshData, based off the area type of a polygon, and 
-     * creates one mesh with geometry and material and adds it to the root node.
+     * Sorts the vertices of MeshData, based off the area type of a polygon, and
+     * creates one mesh with geometry and material and adds it to the debug node.
      * 
-     * @param meshData MeshData to parse.
-     * @param areaType The are type to sort the vertices by.
-     * @param wireFrame Display mesh as solid or wire frame.
+     * @param meshData  MeshData to parse.
+     * @param areaType  The are type to sort the vertices by.
+     * @param wireframe Display mesh as solid or wire frame.
      */
-    private void sortVertsByArea(MeshData meshData, int areaType, boolean wireFrame) {
+    private void sortVertsByArea(MeshData meshData, int areaType, boolean wireframe) {
 
         ArrayList<Float> listVerts = new ArrayList<>();
 
@@ -163,9 +188,9 @@ public class NavMeshDebugViewer {
          * If the poly area type equals the supplied area type, add vertices to
          * listVerts.
          */
-        for (Poly p : meshData.polys) {
-            if (p.getArea() == areaType) {
-                for (int idx: p.verts) {
+        for (Poly poly : meshData.polys) {
+            if (poly.getArea() == areaType) {
+                for (int idx : poly.verts) {
                     // Triangle so idx + 0-2.
                     float vertX = meshData.verts[idx * 3];
                     listVerts.add(vertX);
@@ -211,7 +236,7 @@ public class NavMeshDebugViewer {
             float[] colorArray = new float[indexes.length * 4];
 
             // Populate the colorArray based off area type.
-            ColorRGBA areaColor = areaToColorRGBA(areaType);
+            ColorRGBA areaColor = getAreaColor(areaType);
             for (int i = 0; i < indexes.length; i++) {
                 colorArray[colorIndex++] = areaColor.getRed();
                 colorArray[colorIndex++] = areaColor.getGreen();
@@ -232,7 +257,7 @@ public class NavMeshDebugViewer {
             mat.setBoolean("VertexColor", true);
 
             // Set wireframe or solid.
-            mat.getAdditionalRenderState().setWireframe(wireFrame);
+            mat.getAdditionalRenderState().setWireframe(wireframe);
             geo.setMaterial(mat);
             // Move to just above surface.
             geo.move(0, 0.125f, 0);
@@ -248,31 +273,45 @@ public class NavMeshDebugViewer {
      * @param area The area color desired.
      * @return A ColorRGBA based off the supplied area type.
      */
-    private ColorRGBA areaToColorRGBA(int area) {
+//    private ColorRGBA getAreaColor(int area) {
+//
+//        switch (area) {
+//            // Ground (1): light blue
+//            case POLYAREA_TYPE_GROUND:
+//                return new ColorRGBA(0.0f, 0.75f, 1.0f, 1.0f);
+//            // Water (2): blue
+//            case POLYAREA_TYPE_WATER:
+//                return ColorRGBA.Blue;
+//            // Road (3): brown
+//            case POLYAREA_TYPE_ROAD:
+//                return new ColorRGBA(0.2f, 0.08f, 0.05f, 1);
+//            // Door (4): magenta
+//            case POLYAREA_TYPE_DOOR:
+//                return ColorRGBA.Magenta;
+//            // Grass (5): green
+//            case POLYAREA_TYPE_GRASS:
+//                return ColorRGBA.Green;
+//            // Jump (6): yellow
+//            case POLYAREA_TYPE_JUMP:
+//                return ColorRGBA.Yellow;
+//            // Unexpected : red
+//            default:
+//                return ColorRGBA.Red;
+//        }
+//    }
+    
+    private int bit(int a, int b) {
+        return (a & (1 << b)) >> b;
+    }
 
-        switch (area) {
-            // Ground (1): light blue
-            case POLYAREA_TYPE_GROUND:
-                return new ColorRGBA(0.0f, 0.75f, 1.0f, 1.0f);
-            // Water (2): blue
-            case POLYAREA_TYPE_WATER:
-                return ColorRGBA.Blue;
-            // Road (3): brown
-            case POLYAREA_TYPE_ROAD:
-                return new ColorRGBA(0.2f, 0.08f, 0.05f, 1);
-            // Door (4): magenta
-            case POLYAREA_TYPE_DOOR:
-                return ColorRGBA.Magenta;
-            // Grass (5): green
-            case POLYAREA_TYPE_GRASS:
-                return ColorRGBA.Green;
-            // Jump (6): yellow
-            case POLYAREA_TYPE_JUMP:
-                return ColorRGBA.Yellow;
-            // Unexpected : red
-            default:
-                return ColorRGBA.Red;
-        }
+    private ColorRGBA getAreaColor(int i) {
+        if (i == 0)
+            return new ColorRGBA(0, 0.75f, 1.0f, 0.5f);
+
+        int r = (bit(i, 4) + bit(i, 1) * 2 + 1) * 63;
+        int g = (bit(i, 3) + bit(i, 2) * 2 + 1) * 63;
+        int b = (bit(i, 5) + bit(i, 0) * 2 + 1) * 63;
+        return new ColorRGBA((float) r / 255.0f, (float) g / 255.0f, (float) b / 255.0f, 0.5f);
     }
 
 }
