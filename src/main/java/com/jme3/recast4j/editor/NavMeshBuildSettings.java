@@ -185,7 +185,6 @@ public class NavMeshBuildSettings {
     public boolean filterWalkableLowHeightSpans = true;
     
     public PartitionType partitionType = PartitionType.WATERSHED;
-    public AreaModification walkableAreaMod = SampleAreaModifications.SAMPLE_AREAMOD_GROUND;
     
     public boolean tiled = false;
     
