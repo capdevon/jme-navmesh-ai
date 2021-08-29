@@ -167,7 +167,7 @@ public class NavState extends AbstractNavState {
     float agentRadius = 0.3f;
     float agentHeight = 1.7f;
     float agentMaxClimb = 0.3f; // > 2*ch
-    float cellSize = 0.1f; 	// cs=r/2
+    float cellSize = 0.1f; 		// cs=r/2
     float cellHeight = 0.1f; 	// ch=cs/2 but not < .1f
 
     public NavState() {
@@ -194,11 +194,11 @@ public class NavState extends AbstractNavState {
 //        //Original implementation using jme3-recast4j methods.
 //        buildSolo();
 //        //Solo build using jme3-recast4j methods. Implements area and flag types.
-        buildSoloModified();
+//        buildSoloModified();
 //        //Solo build using recast4j methods. Implements area and flag types.
 //        buildSoloRecast4j();
 //        //Tile build using recast4j methods. Implements area and flag types plus offmesh connections.
-//        buildTiledRecast4j();
+        buildTiledRecast4j();
 //        buildTileCache();
         
         long buildTime = (System.currentTimeMillis() - startTime);
@@ -439,21 +439,20 @@ public class NavState extends AbstractNavState {
     	NavMeshAgent agent = character.getControl(NavMeshAgent.class);
         agent.setQueryFilter(filter);
         
-        NavMeshPath navPath = new NavMeshPath();
-    	
         MouseEventControl.addListenersToSpatial(worldMap, new DefaultMouseListener() {
             @Override
             protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
                 super.click(event, target, capture);
+                
+                // First clear existing pathGeometries from the old path finding
+                pathViewer.clearPath();
 
                 if (event.getButtonIndex() == MouseInput.BUTTON_LEFT) {
-                	
-                    // First clear existing pathGeometries from the old path finding
-                    pathViewer.clearPath();
 
                     Vector3f locOnMap = getLocationOnMap();
                     System.out.println("Compute path from " + character.getWorldTranslation() + " to " + locOnMap);
                     
+                    NavMeshPath navPath = new NavMeshPath();
                     agent.calculatePath(locOnMap, navPath);
                     
                     if (navPath.getStatus() == NavMeshPathStatus.PathComplete) {
@@ -467,8 +466,6 @@ public class NavState extends AbstractNavState {
                         System.err.println("Unable to find path");
                     }
                 } else {
-                	pathViewer.clearPath();
-                	
                 	NavMeshTool tool = new NavMeshTool(navMesh);
                 	NavMeshHit hit = new NavMeshHit();
                 	Vector3f sourcePos = character.getWorldTranslation();
@@ -528,8 +525,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(2.4f) 		// r*8
-                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withEdgeMaxLen(2.4f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
                 .withDetailSampleDistance(8.0f) // increase if exception
                 .withDetailSampleMaxError(8.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -636,7 +633,6 @@ public class NavState extends AbstractNavState {
         }
 
         //Show wireframe. Helps with param tweaks. false = solid color.
-        //meshDebugViewer.showDebugMeshes(meshData, true);
         nmDebugViewer.drawMeshByArea(meshData, true);
     }
     
@@ -669,8 +665,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(2.4f) 		// r*8
-                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withEdgeMaxLen(2.4f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
                 .withDetailSampleDistance(8.0f) // increase if exception
                 .withDetailSampleMaxError(8.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -696,27 +692,27 @@ public class NavState extends AbstractNavState {
             // If your input data is multiple meshes, you can transform them here,
             // calculate the are type for each of the meshes and rasterize them.
             
-            // ** START NEW **
+            // ** START NEW CUSTOM CODE **
             //Separate individual triangles into a arrays so we can mark Area Type.
             List<int[]> listTris = new ArrayList<>();
             int fromIndex = 0;
-            for (NavMeshBuildSource mod : m_geom.getModifications()) {
-                int[] triangles = new int[mod.getGeomLength()];
-                System.arraycopy(tris, fromIndex, triangles, 0, mod.getGeomLength());
+            for (NavMeshBuildSource sourceObj : m_geom.getModifications()) {
+                int[] triangles = new int[sourceObj.getGeomLength()];
+                System.arraycopy(tris, fromIndex, triangles, 0, sourceObj.getGeomLength());
                 listTris.add(triangles);
-                fromIndex += mod.getGeomLength();
+                fromIndex += sourceObj.getGeomLength();
             }
 
             List<int[]> areas = new ArrayList<>();
 
-            for (NavMeshBuildSource mod : m_geom.getModifications()) {
+            for (NavMeshBuildSource sourceObj : m_geom.getModifications()) {
                 int[] m_triareas = Recast.markWalkableTriangles(
                     m_ctx,
                     cfg.walkableSlopeAngle,
                     verts,
-                    listTris.get(m_geom.getModifications().indexOf(mod)),
-                    listTris.get(m_geom.getModifications().indexOf(mod)).length / 3,
-                    mod.getAreaModification());
+                    listTris.get(m_geom.getModifications().indexOf(sourceObj)),
+                    listTris.get(m_geom.getModifications().indexOf(sourceObj)).length / 3,
+                    sourceObj.getAreaModification());
 
                 areas.add(m_triareas);
             }
@@ -729,7 +725,7 @@ public class NavState extends AbstractNavState {
                 System.arraycopy(area, 0, m_triareasAll, length, area.length);
                 length += area.length;
             }
-            // ** END NEW **
+            // ** END NEW CUSTOM CODE **
             
             RecastRasterization.rasterizeTriangles(m_ctx, verts, tris, m_triareasAll, ntris, m_solid, cfg.walkableClimb);
         }
@@ -800,7 +796,6 @@ public class NavState extends AbstractNavState {
         }
 
         //Show wireframe. Helps with param tweaks. false = solid color.
-        //meshDebugViewer.showDebugMeshes(meshData, true);
         nmDebugViewer.drawMeshByArea(meshData, true);
     }
 
@@ -831,8 +826,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(3.2f) 		// r*8
-                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withEdgeMaxLen(3.2f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
                 .withDetailSampleDistance(6.0f) // increase if exception
                 .withDetailSampleMaxError(6.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -894,16 +889,8 @@ public class NavState extends AbstractNavState {
             navMesh = msr.read(new FileInputStream(f), cfg.maxVertsPerPoly);
 
             navQuery = new NavMeshQuery(navMesh);
-
-            // Tile data can be null since maxTiles is not an exact science.
-            int maxTiles = navMesh.getMaxTiles();
-
-            for (int i = 0; i < maxTiles; i++) {
-                MeshData meshData = navMesh.getTile(i).data;
-                if (meshData != null) {
-                    nmDebugViewer.drawMeshByArea(meshData, true);
-                }
-            }
+            nmDebugViewer.drawNavMeshByArea(navMesh, true);
+            
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -931,16 +918,15 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(3.2f) 		// r*8
-                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withEdgeMaxLen(3.2f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
                 .withDetailSampleDistance(6.0f) // increase if exception
                 .withDetailSampleMaxError(6.0f) // increase if exception
                 .withVertsPerPoly(3)
                 .withTileSize(16)
                 .build();
 
-        //Build the tile cache which also builds the navMesh.
-        TileCache tc = getTileCache(m_geom, cfg);
+        boolean cCompatibility = false;
 
         /**
          * Layers represent heights for the tile cache. For example, a bridge
@@ -948,8 +934,11 @@ public class NavState extends AbstractNavState {
          * another for traveling over the bridge.
          */
         JmeTileLayerBuilder layerBuilder = new JmeTileLayerBuilder(m_geom, cfg);
-        List<byte[]> layers = layerBuilder.build(ByteOrder.BIG_ENDIAN, false, 1);
-
+        List<byte[]> layers = layerBuilder.build(ByteOrder.BIG_ENDIAN, cCompatibility, 1);
+        
+        //Build the tile cache which also builds the navMesh.
+        TileCache tc = getTileCache(m_geom, cfg, ByteOrder.BIG_ENDIAN, cCompatibility);
+        
         for (byte[] data : layers) {
             try {
                 /**
@@ -971,7 +960,7 @@ public class NavState extends AbstractNavState {
 
             //Write our tile cache.
             TileCacheWriter writer = new TileCacheWriter();
-            writer.write(new FileOutputStream(f), tc, ByteOrder.BIG_ENDIAN, false);
+            writer.write(new FileOutputStream(f), tc, ByteOrder.BIG_ENDIAN, cCompatibility);
             
             //Read our tile cache.
             TileCacheReader reader = new TileCacheReader();
@@ -1397,7 +1386,8 @@ public class NavState extends AbstractNavState {
     }
     
     //Build the tile cache.
-    private TileCache getTileCache(JmeInputGeomProvider geom, RecastConfig cfg) {
+    private TileCache getTileCache(JmeInputGeomProvider geom, RecastConfig cfg, ByteOrder order, boolean cCompatibility) {
+    	
         final int EXPECTED_LAYERS_PER_TILE = 4;
         
         TileCacheParams params = new TileCacheParams();
@@ -1422,9 +1412,11 @@ public class NavState extends AbstractNavState {
         navMeshParams.maxPolys = 16384;
         
         NavMesh navMesh = new NavMesh(navMeshParams, cfg.maxVertsPerPoly);
+        
+        TileCache tc = new TileCache(params, new TileCacheStorageParams(order, cCompatibility), 
+        		navMesh, TileCacheCompressorFactory.get(cCompatibility), new JmeTileCacheMeshProcess());
 
-        return new TileCache(params, new TileCacheStorageParams(ByteOrder.BIG_ENDIAN, false), 
-        		navMesh, TileCacheCompressorFactory.get(false), new JmeTileCacheMeshProcess());
+        return tc;
     }
     
     /**
@@ -1524,13 +1516,13 @@ public class NavState extends AbstractNavState {
         }
     }
     
-    /**
-     * Checks whether a bit flag is set.
-     * 
-     * @param flag The flag to check for.
-     * @param flags The flags to check for the supplied flag.
-     * @return True if the supplied flag is set for the given flags.
-     */
+	/**
+	 * Checks whether a bit flag is set.
+	 * 
+	 * @param flag  The flag to check for.
+	 * @param flags The flags to check for the supplied flag.
+	 * @return True if the supplied flag is set for the given flags.
+	 */
     private boolean isBitSet(int flag, int flags) {
         return (flags & flag) == flag;
     }
