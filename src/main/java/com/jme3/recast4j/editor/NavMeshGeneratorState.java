@@ -83,7 +83,7 @@ public class NavMeshGeneratorState extends BaseAppState {
             System.out.println("Build NavMesh succeeded after: " + endTime + " ms");
 
             nmDebugViewer.clear();
-            nmDebugViewer.drawNavMesh(navMesh, true);
+            nmDebugViewer.drawNavMeshByArea(navMesh, true);
             nmDebugViewer.drawMeshBounds(m_geom);
 
             saveToFile(worldMap.getName(), navMesh);
