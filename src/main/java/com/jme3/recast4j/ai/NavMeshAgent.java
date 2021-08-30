@@ -204,10 +204,10 @@ public class NavMeshAgent extends AdapterControl {
             pathViewer.show(rm, vp);
         }
     }
-    
+
     public NavMeshQueryFilter getQueryFilter() {
-		return filter;
-	}
+        return filter;
+    }
 
     public void setQueryFilter(NavMeshQueryFilter filter) {
         this.filter = filter;
