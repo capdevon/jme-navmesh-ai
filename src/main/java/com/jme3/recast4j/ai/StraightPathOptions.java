@@ -3,6 +3,7 @@ package com.jme3.recast4j.ai;
 import org.recast4j.detour.NavMeshQuery;
 
 /**
+ * Options for NavMeshQuery.findStraightPath.
  * 
  * @author capdevon
  */
