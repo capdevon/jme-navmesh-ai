@@ -2,7 +2,6 @@ package com.jme3.recast4j.ai;
 
 import org.recast4j.detour.MeshTile;
 import org.recast4j.detour.NavMesh;
-import org.recast4j.detour.NavMeshQuery;
 import org.recast4j.detour.Poly;
 import org.recast4j.detour.QueryFilter;
 
@@ -12,11 +11,13 @@ import org.recast4j.detour.QueryFilter;
  */
 public class NavMeshQueryFilter implements QueryFilter {
 
+	//This is a bitfield.
     protected int m_excludeFlags = 0;
+    //This is a bitfield.
     protected int m_includeFlags = 0xffff;
     protected final float[] m_areaCost = new float[NavMesh.DT_MAX_AREAS];
     protected float[] m_polyExtents = new float[] {2, 4, 2};
-    protected int m_straightPathOptions = NavMeshQuery.DT_STRAIGHTPATH_ALL_CROSSINGS;
+    protected StraightPathOptions m_straightPathOptions = StraightPathOptions.None;
 
     public NavMeshQueryFilter() {
     	for (int i = 0; i < m_areaCost.length; ++i) {
@@ -65,11 +66,11 @@ public class NavMeshQueryFilter implements QueryFilter {
         this.m_polyExtents = halfExtents;
     }
 
-    public int getStraightPathOptions() {
+    public StraightPathOptions getStraightPathOptions() {
         return m_straightPathOptions;
     }
 
-    public void setStraightPathOptions(int options) {
+    public void setStraightPathOptions(StraightPathOptions options) {
         this.m_straightPathOptions = options;
     }
 
