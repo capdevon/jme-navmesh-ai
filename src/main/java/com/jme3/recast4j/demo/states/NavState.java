@@ -126,6 +126,7 @@ import com.jme3.recast4j.ai.NavMeshPath;
 import com.jme3.recast4j.ai.NavMeshPathStatus;
 import com.jme3.recast4j.ai.NavMeshQueryFilter;
 import com.jme3.recast4j.ai.NavMeshTool;
+import com.jme3.recast4j.ai.StraightPathOptions;
 import com.jme3.recast4j.demo.JmeAreaMods;
 import com.jme3.recast4j.demo.controls.DoorSwingControl;
 import com.jme3.recast4j.demo.utils.GameObject;
@@ -198,8 +199,8 @@ public class NavState extends AbstractNavState {
 //        //Solo build using recast4j methods. Implements area and flag types.
 //        buildSoloRecast4j();
 //        //Tile build using recast4j methods. Implements area and flag types plus offmesh connections.
-        buildTiledRecast4j();
-//        buildTileCache();
+//        buildTiledRecast4j();
+        buildTileCache();
         
         long buildTime = (System.currentTimeMillis() - startTime);
         System.out.println("Building succeeded after " + buildTime + " ms");
@@ -428,6 +429,7 @@ public class NavState extends AbstractNavState {
         
     	NavMeshQueryFilter filter = new NavMeshQueryFilter(includeFlags, excludeFlags);
     	filter.setPolyExtents(polyExtents);
+    	filter.setStraightPathOptions(StraightPathOptions.AllCrossings);
         // Change costs.
         filter.setAreaCost(POLYAREA_TYPE_GROUND, 1.0f);
         filter.setAreaCost(POLYAREA_TYPE_WATER, 10.0f);
@@ -442,7 +444,6 @@ public class NavState extends AbstractNavState {
         MouseEventControl.addListenersToSpatial(worldMap, new DefaultMouseListener() {
             @Override
             protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
-                super.click(event, target, capture);
                 
                 // First clear existing pathGeometries from the old path finding
                 pathViewer.clearPath();
@@ -788,8 +789,9 @@ public class NavState extends AbstractNavState {
             saveToFile(meshData, "recast4j-solo.md");
             saveToFile(navMesh, "recast4j-solo.nm");
             
-            IORecast.saveObj("recastmesh-solo_" + cfg.partitionType + "_detail.obj", m_dmesh);
-            IORecast.saveObj("recastmesh-solo_" + cfg.partitionType + ".obj", m_pmesh);
+            IORecast.saveObj("recastmesh.obj", navMesh);
+//            IORecast.saveObj("recastmesh-solo_" + cfg.partitionType + "_detail.obj", m_dmesh);
+//            IORecast.saveObj("recastmesh-solo_" + cfg.partitionType + ".obj", m_pmesh);
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -1264,7 +1266,7 @@ public class NavState extends AbstractNavState {
                          * offmesh.1.b
                          */
                         Bone[] roots = skelControl.getSkeleton().getRoots();
-                        for (Bone bone: roots) {
+                        for (Bone bone : roots) {
                             /**
                              * Split the name up using delimiter. 
                              */
@@ -1388,6 +1390,7 @@ public class NavState extends AbstractNavState {
     //Build the tile cache.
     private TileCache getTileCache(JmeInputGeomProvider geom, RecastConfig cfg, ByteOrder order, boolean cCompatibility) {
     	
+        //This value specifies how many layers (or "floors") each navmesh tile is expected to have.
         final int EXPECTED_LAYERS_PER_TILE = 4;
         
         TileCacheParams params = new TileCacheParams();
@@ -1467,7 +1470,6 @@ public class NavState extends AbstractNavState {
         final int DT_TILECACHE_WALKABLE_AREA = 63;
 
         for (int i = 0; i < params.polyCount; ++i) {
-            Poly poly = new Poly(i, 6);
 
             if (params.polyAreas[i] == DT_TILECACHE_WALKABLE_AREA) {
                 params.polyAreas[i] = POLYAREA_TYPE_GROUND;
@@ -1516,13 +1518,13 @@ public class NavState extends AbstractNavState {
         }
     }
     
-	/**
-	 * Checks whether a bit flag is set.
-	 * 
-	 * @param flag  The flag to check for.
-	 * @param flags The flags to check for the supplied flag.
-	 * @return True if the supplied flag is set for the given flags.
-	 */
+    /**
+     * Checks whether a bit flag is set.
+     * 
+     * @param flag  The flag to check for.
+     * @param flags The flags to check for the supplied flag.
+     * @return True if the supplied flag is set for the given flags.
+     */
     private boolean isBitSet(int flag, int flags) {
         return (flags & flag) == flag;
     }
