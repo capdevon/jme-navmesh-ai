@@ -72,7 +72,7 @@ public class NavMeshTool {
         boolean foundPath = false;
         
         float[] m_polyPickExt = m_filter.m_polyExtents;
-        int m_straightPathOptions = m_filter.m_straightPathOptions;
+        int m_straightPathOptions = m_filter.m_straightPathOptions.getValue();
 
         //Get closet poly for start position.
         Result<FindNearestPolyResult> startPoly = navQuery.findNearestPoly(m_spos, m_polyPickExt, m_filter);
