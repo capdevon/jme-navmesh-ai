@@ -62,7 +62,7 @@ dependencies {
 - [Building Process Slides](https://github.com/capdevon/jme3-recast4j-test-1/blob/main/docs/MikkoMononen_RecastSlides.pdf) - A series of slides that explain the build process of Recast.
 
 # Youtube videos
-[Tiled NavMesh](https://youtu.be/rCZWPvcwktQ)
+[Demo](https://www.youtube.com/watch?v=XVWxy30IH7Q)
 
 
 # 
