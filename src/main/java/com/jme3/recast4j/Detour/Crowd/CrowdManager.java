@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 public class CrowdManager {
 
     protected CrowdUpdateType updateType = CrowdUpdateType.SEQUENTIAL;
-    protected List < JmeCrowd > crowdList = new ArrayList < > ();
+    protected List<JmeCrowd> crowdList = new ArrayList<>();
     protected ReentrantLock lock = new ReentrantLock();
 
     public CrowdUpdateType getCrowdUpdateType() {
