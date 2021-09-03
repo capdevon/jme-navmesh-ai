@@ -123,49 +123,4 @@ public class Test_Crowd extends SimpleApplication {
         chaseCam.setDefaultVerticalRotation(0.3f);
     }
     
-    private void initKeys() {
-        inputManager.addMapping("crowd builder", new KeyTrigger(KeyInput.KEY_F1));
-        inputManager.addMapping("crowd pick", new KeyTrigger(KeyInput.KEY_LSHIFT));
-        inputManager.addListener(actionListener, "crowd builder", "crowd pick");
-    }
-    
-    private ActionListener actionListener = new ActionListener() {
-        @Override
-        public void onAction(String name, boolean keyPressed, float tpf) {
-            //This is a chain method of attaching states. CrowdBuilderState needs 
-            //both AgentGridState and AgentParamState to be enabled 
-            //before it can create its GUI. All AppStates do their own cleanup.
-            //Lemur cleanup for all states is done from CrowdBuilderState.
-            //If we activate from key, the current build of navmesh will be used.
-            if (name.equals("crowd builder") && !keyPressed) {
-                //Each state handles its own removal and cleanup.
-                //Check for AgentGridState.class first becasue if its enabled
-                // all are enabled.
-                //CrowdBuilderState(onDisable)=>AgentParamState(onDisable)=>AgentGridState(onDisable)
-                if (stateManager.getState(AgentGridState.class) != null) {
-                	stateManager.getState(CrowdBuilderState.class).setEnabled(false);
-                //If AgentGridState is not attached, it starts the chain from its 
-                //enabled method as shown here.
-                //AgentGridState(onEnable)=>AgentParamState(onEnable)=>CrowdBuilderState(onEnable)    
-                } else {
-                	stateManager.attach(new AgentGridState());
-                }
-            }
-            
-            if (name.equals("crowd pick") && !keyPressed) {
-                if (stateManager.getState(AgentParamState.class) != null) {
-                    Vector3f locOnMap = stateManager.getState(NavState.class).getLocationOnMap(); // Don't calculate three times
-                    if (locOnMap != null) {
-                    	stateManager.getState(AgentParamState.class).setFieldTargetXYZ(locOnMap);
-                    }
-                } 
-                
-                if (stateManager.getState(CrowdState.class) != null) {
-                    Vector3f locOnMap = stateManager.getState(NavState.class).getLocationOnMap(); // Don't calculate three times
-                    stateManager.getState(CrowdState.class).setTarget(locOnMap);
-                }
-            }
-        }
-    };
-    
 }
