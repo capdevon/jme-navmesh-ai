@@ -12,9 +12,6 @@ import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.input.KeyInput;
-import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -24,13 +21,7 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FXAAFilter;
-import com.jme3.recast4j.Detour.Crowd.CrowdManager;
-import com.jme3.recast4j.Detour.Crowd.Impl.CrowdManagerAppState;
 import com.jme3.recast4j.demo.controls.DoorSwingControl;
-import com.jme3.recast4j.demo.states.AgentGridState;
-import com.jme3.recast4j.demo.states.AgentParamState;
-import com.jme3.recast4j.demo.states.CrowdBuilderState;
-import com.jme3.recast4j.demo.states.CrowdState;
 import com.jme3.recast4j.demo.states.LemurConfigState;
 import com.jme3.recast4j.demo.states.NavState;
 import com.jme3.recast4j.demo.states.ThirdPersonCamState;
@@ -60,9 +51,7 @@ public class DemoApplication extends SimpleApplication {
                 new AudioListenerState(),
                 new DebugKeysAppState(),
                 new NavState(),
-                new CrowdManagerAppState(new CrowdManager()),
                 new LemurConfigState(),
-                /*new CrowdState(),*/
                 new ThirdPersonCamState()
         );
     }
@@ -76,7 +65,6 @@ public class DemoApplication extends SimpleApplication {
         AppSettings settings = new AppSettings(true);
         settings.setTitle("jme3-recast4j - DemoApplication");
         settings.setResolution(1280, 720);
-        settings.setGammaCorrection(true);
 
         app.setSettings(settings);
         app.setPauseOnLostFocus(false);
@@ -85,7 +73,6 @@ public class DemoApplication extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {  
-        initKeys();
         initPhysics();
         setupWorld();
 //        loadNavMeshBox();
@@ -143,12 +130,6 @@ public class DemoApplication extends SimpleApplication {
         viewPort.addProcessor(fpp);
     }
     
-    private void initKeys() {
-        inputManager.addMapping("crowd builder", new KeyTrigger(KeyInput.KEY_F1));
-        inputManager.addMapping("crowd pick", new KeyTrigger(KeyInput.KEY_LSHIFT));
-        inputManager.addListener(actionListener, "crowd builder", "crowd pick");
-    }
-
     private void addAJaime(int idx) {
         Node tmp = (Node)assetManager.loadModel("Models/Jaime/Jaime.j3o");
         tmp.setLocalTranslation(idx * 0.5f, 5f * 0f, (idx % 2 != 0 ? 1f : 0f));
@@ -358,45 +339,6 @@ public class DemoApplication extends SimpleApplication {
         offMeshCon.attachChild(crate_offmesh);
     }
     
-    private ActionListener actionListener = new ActionListener() {
-        @Override
-        public void onAction(String name, boolean keyPressed, float tpf) {
-            //This is a chain method of attaching states. CrowdBuilderState needs 
-            //both AgentGridState and AgentParamState to be enabled 
-            //before it can create its GUI. All AppStates do their own cleanup.
-            //Lemur cleanup for all states is done from CrowdBuilderState.
-            //If we activate from key, the current build of navmesh will be used.
-            if (name.equals("crowd builder") && !keyPressed) {
-                //Each state handles its own removal and cleanup.
-                //Check for AgentGridState.class first becasue if its enabled
-                // all are enabled.
-                //CrowdBuilderState(onDisable)=>AgentParamState(onDisable)=>AgentGridState(onDisable)
-                if (stateManager.getState(AgentGridState.class) != null) {
-                	stateManager.getState(CrowdBuilderState.class).setEnabled(false);
-                //If AgentGridState is not attached, it starts the chain from its 
-                //enabled method as shown here.
-                //AgentGridState(onEnable)=>AgentParamState(onEnable)=>CrowdBuilderState(onEnable)    
-                } else {
-                	stateManager.attach(new AgentGridState());
-                }
-            }
-            
-            if (name.equals("crowd pick") && !keyPressed) {
-                if (stateManager.getState(AgentParamState.class) != null) {
-                    Vector3f locOnMap = stateManager.getState(NavState.class).getLocationOnMap(); // Don't calculate three times
-                    if (locOnMap != null) {
-                    	stateManager.getState(AgentParamState.class).setFieldTargetXYZ(locOnMap);
-                    }
-                } 
-                
-                if (stateManager.getState(CrowdState.class) != null) {
-                    Vector3f locOnMap = stateManager.getState(NavState.class).getLocationOnMap(); // Don't calculate three times
-                    stateManager.getState(CrowdState.class).setTarget(locOnMap);
-                }
-            }
-        }
-    };
-
     private WaterFilter setupWater() {
         //Water Filter
         WaterFilter waterPond = new WaterFilter(rootNode, new Vector3f(0.5f, -0.5f, -0.5f));
