@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2019 .
+ * Copyright 2021.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,17 +27,19 @@
 
 package com.jme3.recast4j.demo.controls;
 
+import org.recast4j.detour.crowd.CrowdAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.math.ColorRGBA;
-import com.jme3.recast4j.Detour.Crowd.Crowd;
+import com.jme3.recast4j.Detour.Crowd.JmeCrowd;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.control.AbstractControl;
-import org.recast4j.detour.crowd.CrowdAgent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A debugging control that displays visual, verbose or both debug information 
@@ -50,12 +52,13 @@ public class CrowdDebugControl extends AbstractControl {
     private static final Logger LOG = LoggerFactory.getLogger(CrowdDebugControl.class.getName());
     
     private CrowdAgent agent;
-    private Crowd crowd;
+    private JmeCrowd crowd;
     private Geometry halo;
     private ColorRGBA curColor;
     private boolean visual;
     private boolean verbose;
     private float timer;
+    private float refreshTime = 1f;
     
     /**
      * This control will display a visual, verbose, or both representation of an 
@@ -70,7 +73,7 @@ public class CrowdDebugControl extends AbstractControl {
      * @param halo A Geometry that will be used as the visual representation for
      * the agents MoveRequestState.
      */
-    public CrowdDebugControl(Crowd crowd, CrowdAgent agent, Geometry halo) {
+    public CrowdDebugControl(JmeCrowd crowd, CrowdAgent agent, Geometry halo) {
         this.crowd = crowd;
         this.agent = agent;
         this.halo = halo;
@@ -79,29 +82,15 @@ public class CrowdDebugControl extends AbstractControl {
     @Override
     protected void controlUpdate(float tpf) {
         timer += tpf;
-        if (isEnabled() && spatial != null && timer > 1.0f) {
+        if (timer > refreshTime) {
+        	
             if (visual) {
-                
-                if (crowd.isForming(agent)) {
-                    if (curColor != ColorRGBA.White) {
-                        halo.getMaterial().setColor("Color", ColorRGBA.White);
-                        curColor = ColorRGBA.White;
-                    }
-                } else if (crowd.isMoving(agent)) {
-                    if (curColor != ColorRGBA.Magenta) {
-                        halo.getMaterial().setColor("Color", ColorRGBA.Magenta);
-                        curColor = ColorRGBA.Magenta;
-                    }
+                if (crowd.hasValidTarget(agent)) {
+                	setColor(ColorRGBA.Green);
                 } else if (crowd.hasNoTarget(agent)) {
-                    if (curColor != ColorRGBA.Cyan) {
-                        halo.getMaterial().setColor("Color", ColorRGBA.Cyan);
-                        curColor = ColorRGBA.Cyan;
-                    }
+                	setColor(ColorRGBA.Blue);
                 } else {
-                    if (curColor != ColorRGBA.Black) {
-                        halo.getMaterial().setColor("Color", ColorRGBA.Black);
-                        curColor = ColorRGBA.Black;
-                    }
+                	setColor(ColorRGBA.Red);
                 }
             }
             
@@ -114,6 +103,13 @@ public class CrowdDebugControl extends AbstractControl {
             }
             
             timer = 0;
+        }
+    }
+    
+    protected void setColor(ColorRGBA c) {
+    	if (curColor != c) {
+            halo.getMaterial().setColor("Color", c);
+            curColor = c;
         }
     }
 
@@ -147,15 +143,10 @@ public class CrowdDebugControl extends AbstractControl {
      * 
      * @param visual the visual to set.
      */
-    public void setVisual(boolean visual) {
-        if (visual) {
-            this.halo.setCullHint(Spatial.CullHint.Inherit);
-        } else {
-            this.halo.setCullHint(Spatial.CullHint.Always);
-        }
-        
-        this.visual = visual;
-    }
+	public void setVisual(boolean visual) {
+		this.halo.setCullHint(visual ? CullHint.Inherit : CullHint.Always);
+		this.visual = visual;
+	}
 
     /**
      * If true, logging is on. 
@@ -185,7 +176,7 @@ public class CrowdDebugControl extends AbstractControl {
     /**
      * @param crowd the crowd to set
      */
-    public void setCrowd(Crowd crowd) {
+    public void setCrowd(JmeCrowd crowd) {
         this.crowd = crowd;
     }
 
