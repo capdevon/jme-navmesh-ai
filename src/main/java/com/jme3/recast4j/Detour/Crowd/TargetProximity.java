@@ -12,7 +12,7 @@ public class TargetProximity implements Proximity {
     protected float distanceThreshold;
 
     public TargetProximity(float distanceThreshold) {
-        setDistanceThreshold(distanceThreshold);
+    	this.distanceThreshold = distanceThreshold;
     }
 
     @Override
