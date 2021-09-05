@@ -9,11 +9,11 @@ import org.recast4j.detour.crowd.CrowdAgent;
  * {@link MovementType} to <code>CUSTOM</code> using
  * {@link JmeCrowd#setMovementType(MovementType)}. <br />
  * Then register this function using
- * {@link JmeCrowd#setCustomApplyFunction(ApplyFunction)}.
+ * {@link JmeCrowd#setMoveFunction(ApplyFunction)}.
  * 
  * @author MeFisto94
  */
-public interface ApplyFunction {
+public interface MoveFunction {
 	/**
 	 * Apply the calculations from Recast to your custom representation (e.g. Entity
 	 * Component System).<br />
