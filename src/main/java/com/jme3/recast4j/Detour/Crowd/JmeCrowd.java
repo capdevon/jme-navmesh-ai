@@ -28,16 +28,16 @@ import com.jme3.scene.Spatial;
  */
 public class JmeCrowd extends Crowd {
 
-	private static final Logger log = LoggerFactory.getLogger(JmeCrowd.class);
+    private static final Logger log = LoggerFactory.getLogger(JmeCrowd.class);
 
-	protected MoveFunction moveFunction;
+    protected MoveFunction moveFunction;
     protected MovementType movementType = MovementType.SPATIAL;
     protected Proximity proximityDetector = new TargetProximity(1f);
 
     protected NavMeshQuery m_navQuery;
     protected CrowdAgentDebugInfo m_agentDebug = new CrowdAgentDebugInfo();
     protected boolean debug = false;
-    
+
     /**
      * 
      * @param config
@@ -53,26 +53,26 @@ public class JmeCrowd extends Crowd {
      * @param nav
      * @param queryFilterFactory
      */
-    public JmeCrowd(CrowdConfig config, NavMesh nav, IntFunction<QueryFilter> queryFilterFactory) {
-    	this(100, config.maxAgentRadius, nav, queryFilterFactory);
+    public JmeCrowd(CrowdConfig config, NavMesh nav, IntFunction < QueryFilter > queryFilterFactory) {
+        this(100, config.maxAgentRadius, nav, queryFilterFactory);
     }
-    
+
     @Deprecated
     public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav) {
-        super(maxAgents, maxAgentRadius, nav, i -> new DefaultQueryFilter());
+        super(maxAgents, maxAgentRadius, nav, i - > new DefaultQueryFilter());
         this.m_navQuery = new NavMeshQuery(nav); //TODO:
     }
 
     @Deprecated
-    public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav, IntFunction<QueryFilter> queryFilterFactory) {
-    	super(maxAgents, maxAgentRadius, nav, queryFilterFactory);
-    	this.m_navQuery = new NavMeshQuery(nav); //TODO:
+    public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav, IntFunction < QueryFilter > queryFilterFactory) {
+        super(maxAgents, maxAgentRadius, nav, queryFilterFactory);
+        this.m_navQuery = new NavMeshQuery(nav); //TODO:
     }
-    
+
     public CrowdAgent createAgent(Vector3f pos, CrowdAgentParams params) {
         int idx = addAgent(DetourUtils.toFloatArray(pos), params);
         if (idx != -1) {
-        	return getAgent(idx);
+            return getAgent(idx);
         }
         return null;
     }
@@ -90,8 +90,8 @@ public class JmeCrowd extends Crowd {
     }
 
     public void updateTick(float tpf) {
-    	update(tpf);
-    	applyMovements();
+        update(tpf);
+        applyMovements();
     }
 
     protected void update(float deltaTime) {
@@ -103,11 +103,11 @@ public class JmeCrowd extends Crowd {
     }
 
     protected void applyMovements() {
-    	for (CrowdAgent ca : getActiveAgents()) {
-    		if (hasValidTarget(ca)) {
-    			applyMovement(ca, DetourUtils.toVector3f(ca.npos), DetourUtils.toVector3f(ca.vel));
-    		}
-    	}
+        for (CrowdAgent ca: getActiveAgents()) {
+            if (hasValidTarget(ca)) {
+                applyMovement(ca, DetourUtils.toVector3f(ca.npos), DetourUtils.toVector3f(ca.vel));
+            }
+        }
     }
 
     /**
@@ -122,7 +122,7 @@ public class JmeCrowd extends Crowd {
         log.debug("crowdAgent i={}, newPos={}, velocity={}[{}]", agent.idx, newPos, velocity, vel);
 
         Spatial sp = ((Spatial) agent.params.userData);
-        
+
         switch (movementType) {
             case NONE:
                 break;
@@ -182,25 +182,25 @@ public class JmeCrowd extends Crowd {
      */
     public boolean setMoveTarget(Vector3f to) {
         // if all were successful, return true, else return false.
-        return getActiveAgents().stream().allMatch(ca -> setMoveTarget(ca, to));
+        return getActiveAgents().stream().allMatch(ag -> setMoveTarget(ag, to));
     }
 
-	/**
-	 * Moves a specified Agent to a Location.<br />
-	 * This code implicitly searches for the correct polygon with a constant
-	 * tolerance, in most cases you should prefer to determine the poly ref manually
-	 * with domain specific knowledge.
-	 * 
-	 * @param agent the agent to move
-	 * @param to    where the agent shall move to
-	 * @return whether this operation was successful
-	 */
+    /**
+     * Moves a specified Agent to a Location.<br />
+     * This code implicitly searches for the correct polygon with a constant
+     * tolerance, in most cases you should prefer to determine the poly ref manually
+     * with domain specific knowledge.
+     * 
+     * @param agent the agent to move
+     * @param to    where the agent shall move to
+     * @return whether this operation was successful
+     */
     protected boolean setMoveTarget(CrowdAgent agent, Vector3f to) {
-    	
-    	QueryFilter filter = getFilter(agent.params.queryFilterType);
+
+        QueryFilter filter = getFilter(agent.params.queryFilterType);
         float[] halfExtents = getQueryExtents();
         float[] p = DetourUtils.toFloatArray(to);
-        
+
         FindNearestPolyResult nearestPoly = m_navQuery.findNearestPoly(p, halfExtents, filter).result;
 
         return requestMoveTarget(agent.idx, nearestPoly.getNearestRef(), nearestPoly.getNearestPos());
@@ -212,9 +212,9 @@ public class JmeCrowd extends Crowd {
     }
 
     public boolean hasWalkingState(CrowdAgent agent) {
-    	return agent.active && agent.state == CrowdAgentState.DT_CROWDAGENT_STATE_WALKING;
+        return agent.active && agent.state == CrowdAgentState.DT_CROWDAGENT_STATE_WALKING;
     }
-    
+
     public boolean hasOffMeshState(CrowdAgent agent) {
         return agent.active && agent.state == CrowdAgentState.DT_CROWDAGENT_STATE_OFFMESH;
     }
@@ -226,5 +226,5 @@ public class JmeCrowd extends Crowd {
     public boolean hasNoTarget(CrowdAgent agent) {
         return agent.active && agent.targetState == MoveRequestState.DT_CROWDAGENT_TARGET_NONE;
     }
-    
+
 }
