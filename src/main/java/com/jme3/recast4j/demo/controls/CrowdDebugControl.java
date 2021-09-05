@@ -1,132 +1,136 @@
-/*
- * The MIT License
- *
- * Copyright 2021.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * MODELS/DUNE.J3O:
- * Converted from http://quadropolis.us/node/2584 [Public Domain according to the Tags of this Map]
- */
-
 package com.jme3.recast4j.demo.controls;
 
 import org.recast4j.detour.crowd.CrowdAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jme3.asset.AssetManager;
+import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.recast4j.Detour.Crowd.JmeCrowd;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.control.AbstractControl;
+import com.jme3.scene.shape.Sphere;
 
 /**
- * A debugging control that displays visual, verbose or both debug information 
- * about an agents MoveRequestState inside the crowd. 
+ * A debugging control that displays visual, verbose or both debug information
+ * about an agents MoveRequestState inside the crowd.
  * 
  * @author Robert
+ * @author capdevon
  */
 public class CrowdDebugControl extends AbstractControl {
 
     private static final Logger LOG = LoggerFactory.getLogger(CrowdDebugControl.class.getName());
-    
-    private CrowdAgent agent;
-    private JmeCrowd crowd;
-    private Geometry halo;
+
+    private final CrowdAgent agent;
+    private final Geometry halo;
     private ColorRGBA curColor;
     private boolean visual;
     private boolean verbose;
     private float timer;
     private float refreshTime = 1f;
-    
+
     /**
-     * This control will display a visual, verbose, or both representation of an 
+     * This control will display a visual, verbose, or both representation of an
      * agents MoveRequestState while inside the given crowd.
-     *      White   = isForming
-     *      Magenta = isMoving / MoveRequestState.DT_CROWDAGENT_TARGET_VALID
-     *      Cyan    = hasNoTarget / MoveRequestState.DT_CROWDAGENT_TARGET_NONE
-     *      Black   = none of the above
      * 
-     * @param crowd The crowd the agent is a member of.
      * @param agent The agent to look for inside the crowd.
-     * @param halo A Geometry that will be used as the visual representation for
-     * the agents MoveRequestState.
+     * @param assetManager The AssetManager
      */
-    public CrowdDebugControl(JmeCrowd crowd, CrowdAgent agent, Geometry halo) {
-        this.crowd = crowd;
+    public CrowdDebugControl(CrowdAgent agent, AssetManager assetManager) {
         this.agent = agent;
-        this.halo = halo;
+        this.halo = createHalo(assetManager);
+    }
+
+    /**
+     * A Geometry that will be used as the visual representation for the agents
+     * MoveRequestState.
+     * 
+     * @param assetManager
+     * @return
+     */
+    private Geometry createHalo(AssetManager assetManager) {
+        Sphere sphere = new Sphere(16, 16, 0.1f);
+        Geometry geo = new Geometry("halo", sphere);
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        geo.setMaterial(mat);
+        geo.setShadowMode(RenderQueue.ShadowMode.Off);
+        geo.setLocalTranslation(0, agent.params.height + 0.5f, 0);
+
+        return geo;
+    }
+
+    @Override
+    public void setSpatial(Spatial spatial) {
+        super.setSpatial(spatial);
+        if (spatial != null) {
+            ((Node) spatial).attachChild(halo);
+        } else {
+            halo.removeFromParent();
+        }
     }
 
     @Override
     protected void controlUpdate(float tpf) {
         timer += tpf;
         if (timer > refreshTime) {
-        	
+            timer = 0;
+
             if (visual) {
-                if (crowd.hasValidTarget(agent)) {
-                	setColor(ColorRGBA.Green);
-                } else if (crowd.hasNoTarget(agent)) {
-                	setColor(ColorRGBA.Blue);
-                } else {
-                	setColor(ColorRGBA.Red);
-                }
+                ColorRGBA col = stateToColor(agent);
+                setColor(col);
             }
-            
+
             if (verbose) {
                 LOG.info("<========== BEGIN CrowdDebugControl [{}] index [{}] ==========>", spatial.getName(), agent.idx);
                 LOG.info("isActive              [{}]", agent.active);
-                LOG.info("MoveRequestState      [{}]", agent.targetState );
+                LOG.info("MoveRequestState      [{}]", agent.targetState);
                 LOG.info("CrowdAgentState       [{}]", agent.state);
                 LOG.info("<========== END   CrowdDebugControl [{}] index [{}] ==========>", spatial.getName(), agent.idx);
             }
-            
-            timer = 0;
-        }
-    }
-    
-    protected void setColor(ColorRGBA c) {
-    	if (curColor != c) {
-            halo.getMaterial().setColor("Color", c);
-            curColor = c;
         }
     }
 
-    @Override 
-    public void setSpatial(Spatial spatial) {   
-        super.setSpatial(spatial);
-        //Add the halo to the spatial.
-        if (spatial != null){       
-            ((Node) spatial).attachChild(halo);
-        } else {
-            halo.removeFromParent(); //Must remove when control removed.
+    private ColorRGBA stateToColor(CrowdAgent agent) {
+        if (!agent.active) {
+            return ColorRGBA.Gray;
+        }
+
+        switch (agent.targetState) {
+            case DT_CROWDAGENT_TARGET_REQUESTING:
+            case DT_CROWDAGENT_TARGET_WAITING_FOR_QUEUE:
+                return ColorRGBA.Orange;
+            case DT_CROWDAGENT_TARGET_WAITING_FOR_PATH:
+                return ColorRGBA.Yellow;
+            case DT_CROWDAGENT_TARGET_FAILED:
+                return ColorRGBA.Red;
+            case DT_CROWDAGENT_TARGET_VALID:
+                return ColorRGBA.Green;
+            case DT_CROWDAGENT_TARGET_VELOCITY:
+                return ColorRGBA.Cyan;
+            case DT_CROWDAGENT_TARGET_NONE:
+                return ColorRGBA.Blue;
+            default:
+                return ColorRGBA.Black;
+                //throw new IllegalArgumentException("Unknown MoveRequestState: " + agent.targetState);
         }
     }
 
     @Override
     protected void controlRender(RenderManager rm, ViewPort vp) {
+    }
 
+    protected void setColor(ColorRGBA c) {
+        if (curColor != c) {
+            halo.getMaterial().setColor("Color", c);
+            curColor = c;
+        }
     }
 
     /**
@@ -143,13 +147,13 @@ public class CrowdDebugControl extends AbstractControl {
      * 
      * @param visual the visual to set.
      */
-	public void setVisual(boolean visual) {
-		this.halo.setCullHint(visual ? CullHint.Inherit : CullHint.Always);
-		this.visual = visual;
-	}
+    public void setVisual(boolean visual) {
+        this.halo.setCullHint(visual ? CullHint.Inherit : CullHint.Always);
+        this.visual = visual;
+    }
 
     /**
-     * If true, logging is on. 
+     * If true, logging is on.
      * 
      * @return Whether logging is on or off.
      */
@@ -166,19 +170,4 @@ public class CrowdDebugControl extends AbstractControl {
         this.verbose = verbose;
     }
 
-    /**
-     * @param agent the agent to set
-     */
-    public void setAgent(CrowdAgent agent) {
-        this.agent = agent;
-    }
-
-    /**
-     * @param crowd the crowd to set
-     */
-    public void setCrowd(JmeCrowd crowd) {
-        this.crowd = crowd;
-    }
-
 }
-
