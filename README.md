@@ -5,6 +5,8 @@ This project was born with the aim of creating a bridge API between the recast4j
 Follow me to stay updated on the improvements I am working on.
 Write me your suggestions or report any bugs.
 
+⚠️ The com.jme3.recast4j.Detour.Crowd package is in the design phase and could vary a lot with each update.
+
 ### Recently added features:
 - NavMeshAgent that allows you to move the character in the Scene using the NavMesh.
 - NavMeshQueryFilter - Specifies which areas to consider when searching the NavMesh.
