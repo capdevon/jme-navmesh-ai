@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteOrder;
 
+import org.recast4j.detour.DefaultQueryFilter;
 import org.recast4j.detour.NavMesh;
 import org.recast4j.detour.crowd.CrowdAgent;
 import org.recast4j.detour.crowd.CrowdAgentParams;
@@ -14,11 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
-import com.jme3.app.SimpleApplication;
-import com.jme3.app.state.BaseAppState;
-import com.jme3.asset.AssetManager;
-import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
@@ -26,7 +22,6 @@ import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.collision.CollisionResults;
-import com.jme3.input.InputManager;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.MouseButtonTrigger;
@@ -36,57 +31,43 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.recast4j.Detour.Crowd.CrowdConfig;
 import com.jme3.recast4j.Detour.Crowd.CrowdManagerAppState;
 import com.jme3.recast4j.Detour.Crowd.JmeCrowd;
 import com.jme3.recast4j.Detour.Crowd.MovementType;
-import com.jme3.recast4j.debug.NavMeshDebugViewer;
-import com.jme3.recast4j.debug.NavPathDebugViewer;
 import com.jme3.recast4j.demo.controls.CrowdDebugControl;
 import com.jme3.recast4j.editor.NavMeshBuildSettings;
+import com.jme3.recast4j.editor.SampleAreaModifications;
 import com.jme3.recast4j.editor.builder.TileNavMeshBuilder;
 import com.jme3.recast4j.geom.JmeGeomProviderBuilder;
 import com.jme3.recast4j.geom.JmeInputGeomProvider;
 import com.jme3.renderer.Camera;
-import com.jme3.renderer.RenderManager;
-import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Sphere;
 import com.jme3.texture.Texture;
 
 /**
  * 
  * @author capdevon
  */
-public class CrowdState extends BaseAppState {
+public class CrowdState extends AbstractNavState {
 
     private static final Logger LOG = LoggerFactory.getLogger(CrowdState.class.getName());
 
-    private ViewPort viewPort;
-    private AssetManager assetManager;
-    private InputManager inputManager;
-
-    private NavMeshDebugViewer nmDebugViewer;
-    private NavPathDebugViewer pathViewer;
     private NavMesh navMesh;
-    private JmeCrowd crowd;
+    private JmeCrowd jmeCrowd;
 
     private Node worldMap = new Node("worldMap");
 
     @Override
     protected void initialize(Application app) {
-        this.viewPort = app.getViewPort();
-        this.assetManager = app.getAssetManager();
-        this.inputManager = app.getInputManager();
-
-        nmDebugViewer = new NavMeshDebugViewer(app.getAssetManager());
-        pathViewer = new NavPathDebugViewer(app.getAssetManager());
+    	super.initialize(app);
 
         worldMap.attachChild(createFloor());
-        getRootNode().attachChild(worldMap);
+        rootNode.attachChild(worldMap);
 
         buildTiled();
         buildCrowd();
@@ -98,13 +79,14 @@ public class CrowdState extends BaseAppState {
         initKeys();
     }
 
-    private Node getRootNode() {
-        return ((SimpleApplication) getApplication()).getRootNode();
-    }
+    @Override
+    protected void cleanup(Application app) {}
 
-    protected PhysicsSpace getPhysicsSpace() {
-        return getState(BulletAppState.class).getPhysicsSpace();
-    }
+    @Override
+    protected void onEnable() {}
+
+    @Override
+    protected void onDisable() {}
 
     private void initKeys() {
         inputManager.addMapping("crowd pick", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
@@ -125,6 +107,15 @@ public class CrowdState extends BaseAppState {
             }
         }
     };
+    
+    /**
+     * Set the target for the crowd.
+     * 
+     * @param target The target to set.
+     */
+    public void setTarget(Vector3f target) {
+    	jmeCrowd.setMoveTarget(target);
+    }
 
     /**
      * Returns the Location on the Map which is currently under the Cursor. For this
@@ -209,69 +200,52 @@ public class CrowdState extends BaseAppState {
     }
 
     private void buildCrowd() {
-        // Start crowd.
-        crowd = new JmeCrowd(100, .3f, navMesh);
-        crowd.setMovementType(MovementType.BETTER_CHARACTER_CONTROL);
-        // Add to CrowdManager.
-        getState(CrowdManagerAppState.class).getCrowdManager().addCrowd(crowd);
+        		
+		int includeFlags = SampleAreaModifications.SAMPLE_POLYFLAGS_ALL;
+		int excludeFlags = SampleAreaModifications.SAMPLE_POLYFLAGS_DISABLED;
+		float[] areaCost = new float[] { 1f, 10f, 1f, 1f, 2f, 1.5f };
+		
+		CrowdConfig config = new CrowdConfig(agentRadius);
+		jmeCrowd = new JmeCrowd(config, navMesh, __ -> new DefaultQueryFilter(includeFlags, excludeFlags, areaCost));
 
         // Setup local avoidance params to different qualities.
         // Use mostly default settings, copy from dtCrowd.
-        ObstacleAvoidanceParams params = new ObstacleAvoidanceParams(crowd.getObstacleAvoidanceParams(0));
+        ObstacleAvoidanceParams params = new ObstacleAvoidanceParams(jmeCrowd.getObstacleAvoidanceParams(0));
 
         // Low (11)
         params.velBias = 0.5f;
         params.adaptiveDivs = 5;
         params.adaptiveRings = 2;
         params.adaptiveDepth = 1;
-        crowd.setObstacleAvoidanceParams(0, params);
+        jmeCrowd.setObstacleAvoidanceParams(0, params);
 
         // Medium (22)
         params.velBias = 0.5f;
         params.adaptiveDivs = 5;
         params.adaptiveRings = 2;
         params.adaptiveDepth = 2;
-        crowd.setObstacleAvoidanceParams(1, params);
+        jmeCrowd.setObstacleAvoidanceParams(1, params);
 
         // Good (45)
         params.velBias = 0.5f;
         params.adaptiveDivs = 7;
         params.adaptiveRings = 2;
         params.adaptiveDepth = 3;
-        crowd.setObstacleAvoidanceParams(2, params);
+        jmeCrowd.setObstacleAvoidanceParams(2, params);
 
         // High (66)
         params.velBias = 0.5f;
         params.adaptiveDivs = 7;
         params.adaptiveRings = 3;
         params.adaptiveDepth = 3;
-        crowd.setObstacleAvoidanceParams(3, params);
+        jmeCrowd.setObstacleAvoidanceParams(3, params);
+        
+		// Add to CrowdManager.
+		getState(CrowdManagerAppState.class).addCrowd(jmeCrowd);
     }
 
-    @Override
-    protected void cleanup(Application app) {}
-
-    @Override
-    protected void onEnable() {}
-
-    @Override
-    protected void onDisable() {}
-
-    @Override
-    public void render(RenderManager rm) {
-        nmDebugViewer.show(rm, viewPort);
-        pathViewer.show(rm, viewPort);
-    }
-
-    /**
-     * Set the target for the crowd.
-     * 
-     * @param target The target to set.
-     */
-    public void setTarget(Vector3f target) {
-        crowd.requestMoveToTarget(target);
-    }
-
+    //-------------------------------------------------------
+    // CrowdAgentParams
     public float agentRadius = 0.3f;
     public float agentHeight = 1.7f;
     public boolean m_anticipateTurns;
@@ -279,22 +253,23 @@ public class CrowdState extends BaseAppState {
     public boolean m_optimizeTopo = true;
     public boolean m_obstacleAvoidance;
     public boolean m_separation = true;
+    //-------------------------------------------------------
 
-    private void addAgent(Vector3f location) {
+	private void addAgent(Vector3f location) {
 
-        Node model = createModel(location);
+		Node model = createModel(location);
 
-        CrowdAgentParams ap = getAgentParams(model);
-        // Add agent to the crowd.
-        CrowdAgent agent = crowd.createAgent(model.getWorldTranslation(), ap);
-        // Set the spatial for the agent.
-        //crowd.setSpatialForAgent(agent, model);
-        // Add the debug control and set its visual and verbose state.
-        CrowdDebugControl cwDebug = new CrowdDebugControl(crowd, agent, createHalo(agentHeight));
-        cwDebug.setVisual(true);
-        cwDebug.setVerbose(false);
-        model.addControl(cwDebug);
-    }
+		CrowdAgentParams ap = getAgentParams(model);
+		// Add agent to the crowd.
+		CrowdAgent agent = jmeCrowd.createAgent(model.getWorldTranslation(), ap);
+		if (agent != null) {
+			// Add the debug control and set its visual and verbose state.
+			CrowdDebugControl cwDebug = new CrowdDebugControl(agent, assetManager);
+			cwDebug.setVisual(true);
+			cwDebug.setVerbose(false);
+			model.addControl(cwDebug);
+		}
+	}
 
     private CrowdAgentParams getAgentParams(Spatial model) {
         CrowdAgentParams ap = new CrowdAgentParams();
@@ -339,13 +314,15 @@ public class CrowdState extends BaseAppState {
         //Set translation prior to adding controls.
         model.setLocalTranslation(position);
         //Add agent to the scene.
-        getRootNode().attachChild(model);
+        rootNode.attachChild(model);
 
-        //If we have a physics Crowd we need a physics compatible control to apply
-        //movement and direction to the spatial.
+        // option 1
+        jmeCrowd.setMovementType(MovementType.PHYSICS_CHARACTER);
         model.addControl(new BetterCharacterControl(agentRadius, agentHeight, 20f));
         getPhysicsSpace().add(model);
 
+        // option 2
+        //crowd.setMovementType(MovementType.SPATIAL);
         //RigidBodyControl rbc = createRigidBody(agentRadius, agentHeight);
         //model.addControl(rbc);
         //getPhysicsSpace().add(rbc);
@@ -370,18 +347,6 @@ public class CrowdState extends BaseAppState {
         rbc.setKinematicSpatial(true);
 
         return rbc;
-    }
-
-    private Geometry createHalo(float yHeight) {
-        // Were going to use a debug move control so setup geometry for later use.
-        Sphere sphere = new Sphere(16, 16, 0.2f);
-        Geometry geo = new Geometry("halo", sphere);
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        geo.setMaterial(mat);
-        geo.setLocalTranslation(0, yHeight + 0.5f, 0);
-        geo.setShadowMode(RenderQueue.ShadowMode.Off);
-
-        return geo;
     }
 
 }
