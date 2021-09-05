@@ -2,6 +2,7 @@ package com.jme3.recast4j.Detour.Crowd;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
+import com.jme3.util.SafeArrayList;
 
 /**
  * CrowdManagerAppState is a wrapper around the "CrowdManager" class to provide
@@ -11,6 +12,15 @@ import com.jme3.app.state.BaseAppState;
 public class CrowdManagerAppState extends BaseAppState {
 
     protected CrowdManager crowdManager = new CrowdManager();
+    protected SafeArrayList<JmeCrowd> crowdList = new SafeArrayList<>(JmeCrowd.class, 5);
+    
+    private static class Singleton {
+        private static final CrowdManagerAppState INSTANCE = new CrowdManagerAppState();
+    }
+
+    public static CrowdManagerAppState getInstance() {
+        return Singleton.INSTANCE;
+    }
 
     @Override
     protected void initialize(Application application) {}
@@ -26,7 +36,11 @@ public class CrowdManagerAppState extends BaseAppState {
 
     @Override
     public void update(float tpf) {
-        crowdManager.update(tpf);
+        //crowdManager.update(tpf);
+        
+        for (JmeCrowd crowd : crowdList) {
+        	crowd.updateTick(tpf);
+        }
     }
 
     public CrowdManager getCrowdManager() {
@@ -35,5 +49,13 @@ public class CrowdManagerAppState extends BaseAppState {
 
     public void setCrowdManager(CrowdManager crowdManager) {
         this.crowdManager = crowdManager;
+    }
+    
+    public void addCrowd(JmeCrowd c) {
+    	crowdList.add(c);
+    }
+    
+    public void removeCrowd(JmeCrowd c) {
+    	crowdList.remove(c);
     }
 }
