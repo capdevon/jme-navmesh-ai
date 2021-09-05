@@ -61,26 +61,26 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:3.10'
 
     // Engine:
-    implementation 'org.jmonkeyengine:jme3-core:' + jmonkeyengineVersion
-    implementation 'org.jmonkeyengine:jme3-desktop:' + jmonkeyengineVersion
-    implementation 'org.jmonkeyengine:jme3-effects:' + jmonkeyengineVersion
-    implementation 'org.jmonkeyengine:jme3-terrain:' + jmonkeyengineVersion
+    implementation 'org.jmonkeyengine:jme3-core:' + jmeVersion
+    implementation 'org.jmonkeyengine:jme3-desktop:' + jmeVersion
+    implementation 'org.jmonkeyengine:jme3-effects:' + jmeVersion
+    implementation 'org.jmonkeyengine:jme3-terrain:' + jmeVersion
     
     // BasicGame doesn't use physics. If your game needs physics, select either:
     //    1. Minie
-    //implementation 'com.github.stephengold:Minie:4.2.0+big3'
+    implementation 'com.github.stephengold:Minie:4.2.0+big3'
     //    2. jme3-jbullet
-    implementation 'org.jmonkeyengine:jme3-jbullet:' + jmonkeyengineVersion
+    //implementation 'org.jmonkeyengine:jme3-jbullet:' + jmeVersion
     //    3. jme3-bullet + jme3-bullet-native
-    //implementation 'org.jmonkeyengine:jme3-bullet:' + jmonkeyengineVersion
-    //runtimeOnly 'org.jmonkeyengine:jme3-bullet-native:' + jmonkeyengineVersion
+    //implementation 'org.jmonkeyengine:jme3-bullet:' + jmeVersion
+    //runtimeOnly 'org.jmonkeyengine:jme3-bullet-native:' + jmeVersion
 
     // select one version of LWJGL
-    runtimeOnly 'org.jmonkeyengine:jme3-lwjgl:' + jmonkeyengineVersion  // LWJGL 2.x
-    //runtimeOnly 'org.jmonkeyengine:jme3-lwjgl3:' + jmonkeyengineVersion // LWJGL 3.x
+    runtimeOnly 'org.jmonkeyengine:jme3-lwjgl:' + jmeVersion  // LWJGL 2.x
+    //runtimeOnly 'org.jmonkeyengine:jme3-lwjgl3:' + jmeVersion // LWJGL 3.x
 
-    runtimeOnly 'org.jmonkeyengine:jme3-jogg:' + jmonkeyengineVersion
-    runtimeOnly 'org.jmonkeyengine:jme3-plugins:' + jmonkeyengineVersion
+    runtimeOnly 'org.jmonkeyengine:jme3-jogg:' + jmeVersion
+    runtimeOnly 'org.jmonkeyengine:jme3-plugins:' + jmeVersion
     //runtimeOnly 'org.jmonkeyengine:jme3-testdata:3.1.0-stable'
     //runtimeOnly 'org.jmonkeyengine:jme3-testdata:3.4.0-alpha6'
     
@@ -94,10 +94,7 @@ dependencies {
     
     // Logging
     implementation 'org.slf4j:slf4j-api:1.7.32'
-  	implementation 'org.slf4j:slf4j-simple:1.7.32'
-  
-    // Layout
-    implementation 'com.miglayout:miglayout-core:5.2'
+    implementation 'org.slf4j:slf4j-simple:1.7.32'
         
     // Libraries related to the Lemur GUI and Groovy:
     implementation 'com.simsilica:lemur:1.15.0'
