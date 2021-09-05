@@ -61,7 +61,7 @@ public class CrowdManager {
             // Danger here is that someone is blocking the lock and never releasing,
             // freezing a whole application
             lock.lock();
-            Stream < JmeCrowd > stream;
+            Stream<JmeCrowd> stream;
 
             switch (updateType) {
                 case SEQUENTIAL:
@@ -76,7 +76,6 @@ public class CrowdManager {
                     throw new IllegalArgumentException("Unknown Update Type");
             }
 
-            crowdList.forEach(c -> c.preUpdate(timePassed));
             stream.forEach(c -> c.update(timePassed));
             crowdList.forEach(JmeCrowd::applyMovements);
         } finally {
