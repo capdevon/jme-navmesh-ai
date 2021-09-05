@@ -53,18 +53,18 @@ public class JmeCrowd extends Crowd {
      * @param nav
      * @param queryFilterFactory
      */
-    public JmeCrowd(CrowdConfig config, NavMesh nav, IntFunction < QueryFilter > queryFilterFactory) {
+    public JmeCrowd(CrowdConfig config, NavMesh nav, IntFunction<QueryFilter> queryFilterFactory) {
         this(100, config.maxAgentRadius, nav, queryFilterFactory);
     }
 
     @Deprecated
     public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav) {
-        super(maxAgents, maxAgentRadius, nav, i - > new DefaultQueryFilter());
+        super(maxAgents, maxAgentRadius, nav, i -> new DefaultQueryFilter());
         this.m_navQuery = new NavMeshQuery(nav); //TODO:
     }
 
     @Deprecated
-    public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav, IntFunction < QueryFilter > queryFilterFactory) {
+    public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav, IntFunction<QueryFilter> queryFilterFactory) {
         super(maxAgents, maxAgentRadius, nav, queryFilterFactory);
         this.m_navQuery = new NavMeshQuery(nav); //TODO:
     }
