@@ -175,6 +175,8 @@ public class CrowdState extends AbstractNavState {
     private void buildTiled() {
         JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
         NavMeshBuildSettings s = new NavMeshBuildSettings();
+        s.agentHeight = m_agentHeight;
+        s.agentRadius = m_agentRadius;
         s.tiled = true;
 
         TileNavMeshBuilder builder = new TileNavMeshBuilder();
@@ -200,13 +202,13 @@ public class CrowdState extends AbstractNavState {
     }
 
     private void buildCrowd() {
-        		
-		int includeFlags = SampleAreaModifications.SAMPLE_POLYFLAGS_ALL;
-		int excludeFlags = SampleAreaModifications.SAMPLE_POLYFLAGS_DISABLED;
-		float[] areaCost = new float[] { 1f, 10f, 1f, 1f, 2f, 1.5f };
-		
-		CrowdConfig config = new CrowdConfig(agentRadius);
-		jmeCrowd = new JmeCrowd(config, navMesh, __ -> new DefaultQueryFilter(includeFlags, excludeFlags, areaCost));
+
+        int includeFlags = SampleAreaModifications.SAMPLE_POLYFLAGS_ALL;
+        int excludeFlags = SampleAreaModifications.SAMPLE_POLYFLAGS_DISABLED;
+        float[] areaCost = new float[] { 1f, 10f, 1f, 1f, 2f, 1.5f };
+
+        CrowdConfig config = new CrowdConfig(m_agentRadius);
+        jmeCrowd = new JmeCrowd(config, navMesh, __ -> new DefaultQueryFilter(includeFlags, excludeFlags, areaCost));
 
         // Setup local avoidance params to different qualities.
         // Use mostly default settings, copy from dtCrowd.
@@ -239,15 +241,15 @@ public class CrowdState extends AbstractNavState {
         params.adaptiveRings = 3;
         params.adaptiveDepth = 3;
         jmeCrowd.setObstacleAvoidanceParams(3, params);
-        
-		// Add to CrowdManager.
-		getState(CrowdManagerAppState.class).addCrowd(jmeCrowd);
+
+        // Add to CrowdManager.
+        getState(CrowdManagerAppState.class).addCrowd(jmeCrowd);
     }
 
     //-------------------------------------------------------
     // CrowdAgentParams
-    public float agentRadius = 0.3f;
-    public float agentHeight = 1.7f;
+    public float m_agentRadius = 0.3f;
+    public float m_agentHeight = 1.7f;
     public boolean m_anticipateTurns;
     public boolean m_optimizeVis = true;
     public boolean m_optimizeTopo = true;
@@ -255,26 +257,26 @@ public class CrowdState extends AbstractNavState {
     public boolean m_separation = true;
     //-------------------------------------------------------
 
-	private void addAgent(Vector3f location) {
+    private void addAgent(Vector3f location) {
 
-		Node model = createModel(location);
+        Node model = createModel(location);
 
-		CrowdAgentParams ap = getAgentParams(model);
-		// Add agent to the crowd.
-		CrowdAgent agent = jmeCrowd.createAgent(model.getWorldTranslation(), ap);
-		if (agent != null) {
-			// Add the debug control and set its visual and verbose state.
-			CrowdDebugControl cwDebug = new CrowdDebugControl(agent, assetManager);
-			cwDebug.setVisual(true);
-			cwDebug.setVerbose(false);
-			model.addControl(cwDebug);
-		}
-	}
+        CrowdAgentParams ap = getAgentParams(model);
+        // Add agent to the crowd.
+        CrowdAgent agent = jmeCrowd.createAgent(model.getWorldTranslation(), ap);
+        if (agent != null) {
+            // Add the debug control and set its visual and verbose state.
+            CrowdDebugControl cwDebug = new CrowdDebugControl(agent, assetManager);
+            cwDebug.setVisual(true);
+            cwDebug.setVerbose(false);
+            model.addControl(cwDebug);
+        }
+    }
 
     private CrowdAgentParams getAgentParams(Spatial model) {
         CrowdAgentParams ap = new CrowdAgentParams();
-        ap.radius = agentRadius;
-        ap.height = agentHeight;
+        ap.radius = m_agentRadius;
+        ap.height = m_agentHeight;
         ap.maxAcceleration = 8.0f;
         ap.maxSpeed = 2;
         ap.collisionQueryRange = ap.radius * 12.0f;
@@ -318,7 +320,7 @@ public class CrowdState extends AbstractNavState {
 
         // option 1
         jmeCrowd.setMovementType(MovementType.PHYSICS_CHARACTER);
-        model.addControl(new BetterCharacterControl(agentRadius, agentHeight, 20f));
+        model.addControl(new BetterCharacterControl(m_agentRadius, m_agentHeight, 20f));
         getPhysicsSpace().add(model);
 
         // option 2
