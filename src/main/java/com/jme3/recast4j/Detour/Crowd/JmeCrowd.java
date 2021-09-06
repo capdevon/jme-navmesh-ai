@@ -132,12 +132,12 @@ public class JmeCrowd extends Crowd {
                 break;
 
             case SPATIAL:
-                if (velocity != null) {
+                if (xSpeed > 0.01f) {
                     Quaternion rotation = new Quaternion();
                     rotation.lookAt(velocity.normalize(), Vector3f.UNIT_Y);
                     sp.setLocalRotation(rotation);
+                    sp.setLocalTranslation(newPos);
                 }
-                sp.setLocalTranslation(newPos);
                 break;
 
             case PHYSICS_CHARACTER:
