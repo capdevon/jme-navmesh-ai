@@ -1,5 +1,6 @@
 package com.jme3.recast4j.Detour.Crowd;
 
+import java.util.Arrays;
 import java.util.function.IntFunction;
 
 import org.recast4j.detour.DefaultQueryFilter;
@@ -103,7 +104,7 @@ public class JmeCrowd extends Crowd {
     }
 
     protected void applyMovements() {
-        for (CrowdAgent ca: getActiveAgents()) {
+        for (CrowdAgent ca : getActiveAgents()) {
             if (hasValidTarget(ca)) {
                 applyMovement(ca, DetourUtils.toVector3f(ca.npos), DetourUtils.toVector3f(ca.vel));
             }
@@ -118,10 +119,9 @@ public class JmeCrowd extends Crowd {
      */
     protected void applyMovement(CrowdAgent agent, Vector3f newPos, Vector3f velocity) {
 
-        float vel = (velocity == null) ? 0f : velocity.length();
-        log.debug("crowdAgent i={}, newPos={}, velocity={}[{}]", agent.idx, newPos, velocity, vel);
-
+        float xSpeed = (velocity == null) ? 0f : velocity.length();
         Spatial sp = ((Spatial) agent.params.userData);
+        log.debug("crowdAgent={}, newPos={}, velocity={}[{}]", sp, newPos, velocity, xSpeed);
 
         switch (movementType) {
             case NONE:
@@ -132,23 +132,16 @@ public class JmeCrowd extends Crowd {
                 break;
 
             case SPATIAL:
-                if (vel > 0.01f) {
+                if (velocity != null) {
                     Quaternion rotation = new Quaternion();
                     rotation.lookAt(velocity.normalize(), Vector3f.UNIT_Y);
-                    sp.setLocalTranslation(newPos);
                     sp.setLocalRotation(rotation);
                 }
+                sp.setLocalTranslation(newPos);
                 break;
 
             case PHYSICS_CHARACTER:
                 BetterCharacterControl bcc = sp.getControl(BetterCharacterControl.class);
-
-                if (hasOffMeshState(agent)) {
-                    // Teleport through the air without any feedback.
-                    bcc.warp(newPos);
-                    return;
-                }
-
                 if (velocity != null) {
                     bcc.setWalkDirection(velocity);
                     bcc.setViewDirection(velocity.normalize());
@@ -161,16 +154,15 @@ public class JmeCrowd extends Crowd {
                 throw new IllegalArgumentException("Unknown MovementType: " + movementType);
         }
 
-        if (velocity == null) {
-            // Bugfix: Don't get caught in an endless loop when this code already triggered a movement-stop
-            return;
-        }
-
-        if (proximityDetector.isInTargetProximity(agent, newPos, DetourUtils.toVector3f(agent.targetPos))) {
+        if (velocity != null && proximityDetector.isInTargetProximity(agent, newPos, DetourUtils.toVector3f(agent.targetPos))) {
+            log.info("stop moving crowdAgent={} newPos={} targetPos={}", sp, newPos, Arrays.toString(agent.targetPos));
             resetMoveTarget(agent); // Make him stop moving.
-        } else {
-            log.debug("Crowd Agent i={} not in proximity of {} (Proximity Detection)", agent.idx, DetourUtils.toVector3f(agent.targetPos));
         }
+    }
+
+    public boolean resetMoveTarget(CrowdAgent agent) {
+        applyMovement(agent, DetourUtils.toVector3f(agent.npos), null);
+        return resetMoveTarget(agent.idx);
     }
 
     /**
@@ -204,11 +196,6 @@ public class JmeCrowd extends Crowd {
         FindNearestPolyResult nearestPoly = m_navQuery.findNearestPoly(p, halfExtents, filter).result;
 
         return requestMoveTarget(agent.idx, nearestPoly.getNearestRef(), nearestPoly.getNearestPos());
-    }
-
-    public boolean resetMoveTarget(CrowdAgent agent) {
-        applyMovement(agent, DetourUtils.toVector3f(agent.npos), null);
-        return resetMoveTarget(agent.idx);
     }
 
     public boolean hasWalkingState(CrowdAgent agent) {
