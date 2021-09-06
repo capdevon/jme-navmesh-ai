@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
+import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
@@ -61,6 +62,7 @@ public class CrowdState extends AbstractNavState {
     private JmeCrowd jmeCrowd;
 
     private Node worldMap = new Node("worldMap");
+    private Node npcsNode = new Node("npcs");
 
     @Override
     protected void initialize(Application app) {
@@ -68,14 +70,11 @@ public class CrowdState extends AbstractNavState {
 
         worldMap.attachChild(createFloor());
         rootNode.attachChild(worldMap);
+        rootNode.attachChild(npcsNode);
 
         buildTiled();
         buildCrowd();
-
-        addAgent(new Vector3f(-5, 0, 0));
-        addAgent(new Vector3f(-4f, 0.0f, -1f));
-        addAgent(new Vector3f(-3, 0, 0));
-
+        buildAgents();
         initKeys();
     }
 
@@ -179,9 +178,8 @@ public class CrowdState extends AbstractNavState {
         s.agentRadius = m_agentRadius;
         s.tiled = true;
 
-        TileNavMeshBuilder builder = new TileNavMeshBuilder();
-
-        navMesh = builder.build(m_geom, s);
+        TileNavMeshBuilder tileBuilder = new TileNavMeshBuilder();
+        navMesh = tileBuilder.build(m_geom, s);
 
         nmDebugViewer.drawMeshBounds(m_geom);
         nmDebugViewer.drawNavMesh(navMesh, true);
@@ -198,6 +196,34 @@ public class CrowdState extends AbstractNavState {
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+    
+    private void buildAgents() {
+
+        //addAgent(createModel("Agent1", new Vector3f(-5, 0, 0), npcsNode));
+        //addAgent(createModel("Agent2", new Vector3f(-4, 0, -1), npcsNode));
+        //addAgent(createModel("Agent3", new Vector3f(-3, 0, 0), npcsNode));
+
+        int size = 3;
+        Vector3f center = new Vector3f(0, 0, 0);
+        float distance = 1;
+
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+
+                // Set the start position for each node
+                float x = center.getX() + i * distance;
+                float y = center.getY();
+                float z = center.getZ() + j * distance;
+                Vector3f position = new Vector3f(x, y, z);
+
+                // Add Agent
+                Node model = createModel("Agent_r" + i + "_c" + j, position, npcsNode);
+                addAgent(model);
+
+                LOG.info("Agent Name [{}] Position {}", model.getName(), model.getWorldTranslation());
+            }
         }
     }
 
@@ -243,23 +269,24 @@ public class CrowdState extends AbstractNavState {
         jmeCrowd.setObstacleAvoidanceParams(3, params);
 
         // Add to CrowdManager.
+        jmeCrowd.setMovementType(usePhysics ? MovementType.PHYSICS_CHARACTER : MovementType.SPATIAL);
         getState(CrowdManagerAppState.class).addCrowd(jmeCrowd);
     }
 
     //-------------------------------------------------------
-    // CrowdAgentParams
-    public float m_agentRadius = 0.3f;
-    public float m_agentHeight = 1.7f;
-    public boolean m_anticipateTurns;
-    public boolean m_optimizeVis = true;
-    public boolean m_optimizeTopo = true;
-    public boolean m_obstacleAvoidance;
-    public boolean m_separation = true;
+    // Crowd Agent Settings
+    boolean usePhysics = true;
+    float m_agentRadius = 0.3f;
+    float m_agentHeight = 1.7f;
+    // flags
+    boolean m_anticipateTurns;
+    boolean m_optimizeVis = true;
+    boolean m_optimizeTopo = true;
+    boolean m_obstacleAvoidance;
+    boolean m_separation = true;
     //-------------------------------------------------------
 
-    private void addAgent(Vector3f location) {
-
-        Node model = createModel(location);
+    private void addAgent(Spatial model) {
 
         CrowdAgentParams ap = getAgentParams(model);
         // Add agent to the crowd.
@@ -308,26 +335,26 @@ public class CrowdState extends AbstractNavState {
         return updateFlags;
     }
 
-    private Node createModel(Vector3f position) {
+    private Node createModel(String name, Vector3f position, Node parent) {
 
         //Load the spatial that will represent the agent.
         Node model = (Node) assetManager.loadModel("Models/Jaime/Jaime.j3o");
         model.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+        model.setName(name);
         //Set translation prior to adding controls.
         model.setLocalTranslation(position);
         //Add agent to the scene.
-        rootNode.attachChild(model);
+        parent.attachChild(model);
 
-        // option 1
-        jmeCrowd.setMovementType(MovementType.PHYSICS_CHARACTER);
-        model.addControl(new BetterCharacterControl(m_agentRadius, m_agentHeight, 20f));
-        getPhysicsSpace().add(model);
+        if (usePhysics) {
+            model.addControl(new BetterCharacterControl(m_agentRadius, m_agentHeight, 20f));
+            getPhysicsSpace().add(model);
 
-        // option 2
-        //crowd.setMovementType(MovementType.SPATIAL);
-        //RigidBodyControl rbc = createRigidBody(agentRadius, agentHeight);
-        //model.addControl(rbc);
-        //getPhysicsSpace().add(rbc);
+        } else {
+            RigidBodyControl rbc = createRigidBody(m_agentRadius, m_agentHeight);
+            model.addControl(rbc);
+            getPhysicsSpace().add(rbc);
+        }
 
         return model;
     }
@@ -349,6 +376,20 @@ public class CrowdState extends AbstractNavState {
         rbc.setKinematicSpatial(true);
 
         return rbc;
+    }
+
+    private float[] calcBounds(Spatial sp) {
+        // Auto calculate based on bounds.
+        BoundingBox bounds = (BoundingBox) sp.getWorldBound();
+        float x = bounds.getXExtent();
+        float z = bounds.getZExtent();
+        float y = bounds.getYExtent();
+
+        float xz = x < z ? x : z;
+        float radius = xz / 2;
+        float height = y * 2;
+
+        return new float[] { radius, height };
     }
 
 }
