@@ -5,13 +5,12 @@ import com.jme3.app.state.BaseAppState;
 import com.jme3.util.SafeArrayList;
 
 /**
- * CrowdManagerAppState is a wrapper around the "CrowdManager" class to provide
+ * CrowdManagerAppState provide
  * easier interfacing with the jMonkeyEngine.<br />
  * Use this as starting point for your entity-based approaches.
  */
 public class CrowdManagerAppState extends BaseAppState {
 
-    protected CrowdManager crowdManager = new CrowdManager();
     protected SafeArrayList<JmeCrowd> crowdList = new SafeArrayList<>(JmeCrowd.class, 5);
     
     private static class Singleton {
@@ -36,19 +35,9 @@ public class CrowdManagerAppState extends BaseAppState {
 
     @Override
     public void update(float tpf) {
-        //crowdManager.update(tpf);
-        
-        for (JmeCrowd crowd : crowdList) {
-        	crowd.updateTick(tpf);
+        for (JmeCrowd crowd: crowdList) {
+            crowd.updateTick(tpf);
         }
-    }
-
-    public CrowdManager getCrowdManager() {
-        return crowdManager;
-    }
-
-    public void setCrowdManager(CrowdManager crowdManager) {
-        this.crowdManager = crowdManager;
     }
     
     public void addCrowd(JmeCrowd c) {
