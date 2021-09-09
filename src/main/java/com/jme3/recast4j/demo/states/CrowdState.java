@@ -106,11 +106,10 @@ public class CrowdState extends AbstractNavState {
                     pathViewer.clearPath();
                     pathViewer.putBox(ColorRGBA.Yellow, locOnMap);
                     setTarget(locOnMap);
-                    
-                } else if (name.equals("TOGGLE_PHYSX_DEBUG") && !keyPressed) {
-                    boolean debugEnabled = getState(BulletAppState.class).isDebugEnabled();
-                    getState(BulletAppState.class).setDebugEnabled(!debugEnabled);
-                }
+                } 
+            } else if (name.equals("TOGGLE_PHYSX_DEBUG") && !keyPressed) {
+                boolean debugEnabled = getState(BulletAppState.class).isDebugEnabled();
+                getState(BulletAppState.class).setDebugEnabled(!debugEnabled);
             }
         }
     };
@@ -245,7 +244,8 @@ public class CrowdState extends AbstractNavState {
         jmeCrowd = new JmeCrowd(config, navMesh, __ -> new DefaultQueryFilter(includeFlags, excludeFlags, areaCost));
 
         // Setup local avoidance params to different qualities.
-        ObstacleAvoidanceParams params = new ObstacleAvoidanceParams();
+        // Use mostly default settings, copy from dtCrowd.
+        ObstacleAvoidanceParams params = new ObstacleAvoidanceParams(jmeCrowd.getObstacleAvoidanceParams(0));
 
         // Low (11)
         params.velBias = 0.5f;
