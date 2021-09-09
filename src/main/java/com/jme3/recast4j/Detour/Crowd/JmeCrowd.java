@@ -1,6 +1,7 @@
 package com.jme3.recast4j.Detour.Crowd;
 
-import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.IntFunction;
 
 import org.recast4j.detour.DefaultQueryFilter;
@@ -29,11 +30,13 @@ import com.jme3.scene.Spatial;
  */
 public class JmeCrowd extends Crowd {
 
-    private static final Logger log = LoggerFactory.getLogger(JmeCrowd.class);
+    private static final Logger logger = LoggerFactory.getLogger(JmeCrowd.class);
 
+    private final Map<Integer, Spatial> characterMap = new ConcurrentHashMap<>(64);
+    
     protected MoveFunction moveFunction;
     protected MovementType movementType = MovementType.SPATIAL;
-    protected Proximity proximityDetector = new TargetProximity(1f);
+    protected Proximity proximity = new TargetProximity(1f);
 
     protected NavMeshQuery m_navQuery;
     protected CrowdAgentDebugInfo m_agentDebug = new CrowdAgentDebugInfo();
@@ -70,12 +73,23 @@ public class JmeCrowd extends Crowd {
         this.m_navQuery = new NavMeshQuery(nav); //TODO:
     }
 
-    public CrowdAgent createAgent(Vector3f pos, CrowdAgentParams params) {
-        int idx = addAgent(DetourUtils.toFloatArray(pos), params);
+    public CrowdAgent createAgent(Spatial model, CrowdAgentParams params) {
+        float[] pos = DetourUtils.toFloatArray(model.getWorldTranslation());
+        int idx = addAgent(pos, params);
         if (idx != -1) {
+            characterMap.put(idx, model);
             return getAgent(idx);
         }
         return null;
+    }
+
+    public void removeAgent(CrowdAgent agent) {
+        removeAgent(agent.idx);
+        characterMap.remove(agent.idx);
+    }
+    
+    public void setProximityDetector(Proximity p) {
+        this.proximity = p;
     }
 
     public void setMoveFunction(MoveFunction moveFunction) {
@@ -90,12 +104,23 @@ public class JmeCrowd extends Crowd {
         return movementType;
     }
 
-    public void updateTick(float tpf) {
-        update(tpf);
+    public void update(float tpf) {
+        preUpdateTick(tpf);
+        updateTick(tpf);
         applyMovements();
     }
+    
+    protected void preUpdateTick(float deltaTime) {
+        for (CrowdAgent ca : getActiveAgents()) {
+            //Vector3f oldVec = DetourUtils.toVector3f(ca.npos);
+            Vector3f newVec = characterMap.get(ca.idx).getWorldTranslation();
+            //Vector3f vel = newVec.subtract(oldVec).divide(deltaTime);
+            DetourUtils.toFloatArray(ca.npos, newVec);
+            //DetourUtils.toFloatArray(ca.vel, vel);
+        }
+    }
 
-    protected void update(float deltaTime) {
+    protected void updateTick(float deltaTime) {
         if (debug) {
             update(deltaTime, m_agentDebug);
         } else {
@@ -120,8 +145,8 @@ public class JmeCrowd extends Crowd {
     protected void applyMovement(CrowdAgent agent, Vector3f newPos, Vector3f velocity) {
 
         float xSpeed = (velocity == null) ? 0f : velocity.length();
-        Spatial sp = ((Spatial) agent.params.userData);
-        log.debug("crowdAgent={}, newPos={}, velocity={}[{}]", sp, newPos, velocity, xSpeed);
+        Spatial sp = characterMap.get(agent.idx);
+        logger.debug("crowdAgent={}, newPos={}, velocity={}[{}]", sp, newPos, velocity, xSpeed);
 
         switch (movementType) {
             case NONE:
@@ -154,9 +179,14 @@ public class JmeCrowd extends Crowd {
                 throw new IllegalArgumentException("Unknown MovementType: " + movementType);
         }
 
-        if (velocity != null && proximityDetector.isInTargetProximity(agent, newPos, DetourUtils.toVector3f(agent.targetPos))) {
-            log.info("stop moving crowdAgent={} newPos={} targetPos={}", sp, newPos, Arrays.toString(agent.targetPos));
-            resetMoveTarget(agent); // Make him stop moving.
+        if (velocity != null) {
+            Vector3f targetPos = DetourUtils.toVector3f(agent.targetPos);
+
+            if (proximity.isInTargetProximity(agent, newPos, targetPos)) {
+                // stop moving.
+                logger.info("stop moving dist={} velocity={}", newPos.distance(targetPos), xSpeed);
+                resetMoveTarget(agent);
+            }
         }
     }
 
