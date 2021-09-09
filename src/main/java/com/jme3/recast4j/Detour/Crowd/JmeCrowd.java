@@ -32,7 +32,7 @@ public class JmeCrowd extends Crowd {
 
     private static final Logger logger = LoggerFactory.getLogger(JmeCrowd.class);
 
-    private final Map<Integer, Spatial> characterMap = new ConcurrentHashMap<>(64);
+    private Map<Integer, Spatial> characterMap;
     
     protected MoveFunction moveFunction;
     protected MovementType movementType = MovementType.SPATIAL;
@@ -64,13 +64,15 @@ public class JmeCrowd extends Crowd {
     @Deprecated
     public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav) {
         super(maxAgents, maxAgentRadius, nav, i -> new DefaultQueryFilter());
-        this.m_navQuery = new NavMeshQuery(nav); //TODO:
+        characterMap = new ConcurrentHashMap<>(maxAgents);
+        m_navQuery = new NavMeshQuery(nav); //TODO:
     }
 
     @Deprecated
     public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav, IntFunction<QueryFilter> queryFilterFactory) {
         super(maxAgents, maxAgentRadius, nav, queryFilterFactory);
-        this.m_navQuery = new NavMeshQuery(nav); //TODO:
+        characterMap = new ConcurrentHashMap<>(maxAgents);
+        m_navQuery = new NavMeshQuery(nav); //TODO:
     }
 
     public CrowdAgent createAgent(Spatial model, CrowdAgentParams params) {
@@ -83,9 +85,9 @@ public class JmeCrowd extends Crowd {
         return null;
     }
 
-    public void removeAgent(CrowdAgent agent) {
-        removeAgent(agent.idx);
+    public void deleteAgent(CrowdAgent agent) {
         characterMap.remove(agent.idx);
+        removeAgent(agent.idx);
     }
     
     public void setProximityDetector(Proximity p) {
@@ -146,7 +148,6 @@ public class JmeCrowd extends Crowd {
 
         float xSpeed = (velocity == null) ? 0f : velocity.length();
         Spatial sp = characterMap.get(agent.idx);
-        logger.debug("crowdAgent={}, newPos={}, velocity={}[{}]", sp, newPos, velocity, xSpeed);
 
         switch (movementType) {
             case NONE:
