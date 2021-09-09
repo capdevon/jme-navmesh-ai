@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.bounding.BoundingBox;
+import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
@@ -23,8 +24,10 @@ import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.collision.CollisionResults;
+import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.material.Material;
 import com.jme3.material.Materials;
@@ -88,20 +91,25 @@ public class CrowdState extends AbstractNavState {
     protected void onDisable() {}
 
     private void initKeys() {
-        inputManager.addMapping("crowd pick", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
-        //inputManager.addMapping("crowd pick", new KeyTrigger(KeyInput.KEY_LSHIFT));
-        inputManager.addListener(actionListener, "crowd pick");
+        inputManager.addMapping("CROWD_PICK", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
+        //inputManager.addMapping("CROWD_PICK", new KeyTrigger(KeyInput.KEY_LSHIFT));
+        inputManager.addMapping("TOGGLE_PHYSX_DEBUG", new KeyTrigger(KeyInput.KEY_0));
+        inputManager.addListener(actionListener, "CROWD_PICK", "TOGGLE_PHYSX_DEBUG");
     }
 
     private ActionListener actionListener = new ActionListener() {
         @Override
         public void onAction(String name, boolean keyPressed, float tpf) {
-            if (name.equals("crowd pick") && !keyPressed) {
+            if (name.equals("CROWD_PICK") && !keyPressed) {
                 Vector3f locOnMap = getLocationOnMap();
                 if (locOnMap != null) {
                     pathViewer.clearPath();
                     pathViewer.putBox(ColorRGBA.Yellow, locOnMap);
                     setTarget(locOnMap);
+                    
+                } else if (name.equals("TOGGLE_PHYSX_DEBUG") && !keyPressed) {
+                    boolean debugEnabled = getState(BulletAppState.class).isDebugEnabled();
+                    getState(BulletAppState.class).setDebugEnabled(!debugEnabled);
                 }
             }
         }
@@ -237,8 +245,7 @@ public class CrowdState extends AbstractNavState {
         jmeCrowd = new JmeCrowd(config, navMesh, __ -> new DefaultQueryFilter(includeFlags, excludeFlags, areaCost));
 
         // Setup local avoidance params to different qualities.
-        // Use mostly default settings, copy from dtCrowd.
-        ObstacleAvoidanceParams params = new ObstacleAvoidanceParams(jmeCrowd.getObstacleAvoidanceParams(0));
+        ObstacleAvoidanceParams params = new ObstacleAvoidanceParams();
 
         // Low (11)
         params.velBias = 0.5f;
@@ -290,7 +297,7 @@ public class CrowdState extends AbstractNavState {
 
         CrowdAgentParams ap = getAgentParams(model);
         // Add agent to the crowd.
-        CrowdAgent agent = jmeCrowd.createAgent(model.getWorldTranslation(), ap);
+        CrowdAgent agent = jmeCrowd.createAgent(model, ap);
         if (agent != null) {
             // Add the debug control and set its visual and verbose state.
             CrowdDebugControl cwDebug = new CrowdDebugControl(agent, assetManager);
