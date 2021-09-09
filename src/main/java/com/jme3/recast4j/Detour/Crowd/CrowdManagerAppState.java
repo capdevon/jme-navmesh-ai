@@ -36,7 +36,7 @@ public class CrowdManagerAppState extends BaseAppState {
     @Override
     public void update(float tpf) {
         for (JmeCrowd crowd: crowdList) {
-            crowd.updateTick(tpf);
+            crowd.update(tpf);
         }
     }
     
