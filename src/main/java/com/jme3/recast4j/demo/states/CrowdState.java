@@ -59,7 +59,7 @@ import com.jme3.texture.Texture;
  */
 public class CrowdState extends AbstractNavState {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CrowdState.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CrowdState.class.getName());
 
     private NavMesh navMesh;
     private JmeCrowd jmeCrowd;
@@ -77,7 +77,7 @@ public class CrowdState extends AbstractNavState {
 
         buildTiled();
         buildCrowd();
-        buildAgents();
+        buildAgentGrid();
         initKeys();
     }
 
@@ -133,7 +133,7 @@ public class CrowdState extends AbstractNavState {
      * @return The Location on the Map
      */
     private Vector3f getLocationOnMap() {
-        Ray ray = screenPointToRay(getApplication().getCamera(), inputManager.getCursorPosition());
+        Ray ray = screenPointToRay(camera, inputManager.getCursorPosition());
         CollisionResults collResults = new CollisionResults();
         worldMap.collideWith(ray, collResults);
 
@@ -206,7 +206,7 @@ public class CrowdState extends AbstractNavState {
         }
     }
     
-    private void buildAgents() {
+    private void buildAgentGrid() {
 
         //addAgent(createModel("Agent1", new Vector3f(-5, 0, 0), npcsNode));
         //addAgent(createModel("Agent2", new Vector3f(-4, 0, -1), npcsNode));
@@ -226,10 +226,11 @@ public class CrowdState extends AbstractNavState {
                 Vector3f position = new Vector3f(x, y, z);
 
                 // Add Agent
-                Node model = createModel("Agent_r" + i + "_c" + j, position, npcsNode);
+                String name = String.format("Agent_r%d_c%d", i, j);
+                Node model = createModel(name, position, npcsNode);
                 addAgent(model);
 
-                LOG.info("Agent Name [{}] Position {}", model.getName(), model.getWorldTranslation());
+                logger.info("Agent Name [{}] Position {}", model.getName(), model.getWorldTranslation());
             }
         }
     }
@@ -244,8 +245,7 @@ public class CrowdState extends AbstractNavState {
         jmeCrowd = new JmeCrowd(config, navMesh, __ -> new DefaultQueryFilter(includeFlags, excludeFlags, areaCost));
 
         // Setup local avoidance params to different qualities.
-        // Use mostly default settings, copy from dtCrowd.
-        ObstacleAvoidanceParams params = new ObstacleAvoidanceParams(jmeCrowd.getObstacleAvoidanceParams(0));
+        ObstacleAvoidanceParams params = new ObstacleAvoidanceParams();
 
         // Low (11)
         params.velBias = 0.5f;
@@ -285,6 +285,9 @@ public class CrowdState extends AbstractNavState {
     boolean usePhysics = true;
     float m_agentRadius = 0.3f;
     float m_agentHeight = 1.7f;
+    float m_separationWeight = 2f;
+    int m_obstacleAvoidanceType = 2;
+
     // flags
     boolean m_anticipateTurns;
     boolean m_optimizeVis = true;
@@ -316,14 +319,15 @@ public class CrowdState extends AbstractNavState {
         ap.collisionQueryRange = ap.radius * 12.0f;
         ap.pathOptimizationRange = ap.radius * 30.0f;
         ap.updateFlags = getUpdateFlags();
-        ap.obstacleAvoidanceType = 2;
-        ap.separationWeight = 2f;
+        ap.obstacleAvoidanceType = m_obstacleAvoidanceType;
+        ap.separationWeight = m_separationWeight;
         ap.userData = model;
         return ap;
     }
 
     private int getUpdateFlags() {
         int updateFlags = 0;
+        
         if (m_anticipateTurns) {
             updateFlags |= CrowdAgentParams.DT_CROWD_ANTICIPATE_TURNS;
         }
