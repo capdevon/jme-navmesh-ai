@@ -32,16 +32,17 @@ public class JmeCrowd extends Crowd {
 
     private static final Logger logger = LoggerFactory.getLogger(JmeCrowd.class);
 
+    public boolean debug = false;
+    public float stoppingDistance = 1f;
+
     private Map<Integer, Spatial> characterMap;
+    private NavMeshQuery m_navQuery;
+    private CrowdAgentDebugInfo m_agentDebug = new CrowdAgentDebugInfo();
+
+    private MoveFunction moveFunction;
+    private MovementType movementType = MovementType.SPATIAL;
+    private Proximity proximity = new TargetProximity(stoppingDistance);
     
-    protected MoveFunction moveFunction;
-    protected MovementType movementType = MovementType.SPATIAL;
-    protected Proximity proximity = new TargetProximity(1f);
-
-    protected NavMeshQuery m_navQuery;
-    protected CrowdAgentDebugInfo m_agentDebug = new CrowdAgentDebugInfo();
-    protected boolean debug = false;
-
     /**
      * 
      * @param config
@@ -65,16 +66,16 @@ public class JmeCrowd extends Crowd {
     public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav) {
         super(maxAgents, maxAgentRadius, nav, i -> new DefaultQueryFilter());
         characterMap = new ConcurrentHashMap<>(maxAgents);
-        m_navQuery = new NavMeshQuery(nav); //TODO:
+        m_navQuery = new NavMeshQuery(nav);
     }
 
     @Deprecated
     public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav, IntFunction<QueryFilter> queryFilterFactory) {
         super(maxAgents, maxAgentRadius, nav, queryFilterFactory);
         characterMap = new ConcurrentHashMap<>(maxAgents);
-        m_navQuery = new NavMeshQuery(nav); //TODO:
+        m_navQuery = new NavMeshQuery(nav);
     }
-
+    
     public CrowdAgent createAgent(Spatial model, CrowdAgentParams params) {
         float[] pos = DetourUtils.toFloatArray(model.getWorldTranslation());
         int idx = addAgent(pos, params);
@@ -114,11 +115,8 @@ public class JmeCrowd extends Crowd {
     
     protected void preUpdateTick(float deltaTime) {
         for (CrowdAgent ca : getActiveAgents()) {
-            //Vector3f oldVec = DetourUtils.toVector3f(ca.npos);
             Vector3f newVec = characterMap.get(ca.idx).getWorldTranslation();
-            //Vector3f vel = newVec.subtract(oldVec).divide(deltaTime);
             DetourUtils.toFloatArray(ca.npos, newVec);
-            //DetourUtils.toFloatArray(ca.vel, vel);
         }
     }
 
@@ -200,12 +198,12 @@ public class JmeCrowd extends Crowd {
      * Makes the whole Crowd move to a target. Know that you can also move
      * individual agents.
      * 
-     * @param to The Move Target
+     * @param targetPos The Move Target
      * @return Whether all agents could be scheduled to approach the target
      */
-    public boolean setMoveTarget(Vector3f to) {
+    public boolean setMoveTarget(Vector3f targetPos) {
         // if all were successful, return true, else return false.
-        return getActiveAgents().stream().allMatch(ag -> setMoveTarget(ag, to));
+        return getActiveAgents().stream().allMatch(ag -> setMoveTarget(ag, targetPos));
     }
 
     /**
@@ -214,18 +212,17 @@ public class JmeCrowd extends Crowd {
      * tolerance, in most cases you should prefer to determine the poly ref manually
      * with domain specific knowledge.
      * 
-     * @param agent the agent to move
-     * @param to    where the agent shall move to
+     * @param agent     the agent to move
+     * @param targetPos where the agent shall move to
      * @return whether this operation was successful
      */
-    protected boolean setMoveTarget(CrowdAgent agent, Vector3f to) {
+    public boolean setMoveTarget(CrowdAgent agent, Vector3f targetPos) {
 
         QueryFilter filter = getFilter(agent.params.queryFilterType);
         float[] halfExtents = getQueryExtents();
-        float[] p = DetourUtils.toFloatArray(to);
+        float[] pos = DetourUtils.toFloatArray(targetPos);
 
-        FindNearestPolyResult nearestPoly = m_navQuery.findNearestPoly(p, halfExtents, filter).result;
-
+        FindNearestPolyResult nearestPoly = m_navQuery.findNearestPoly(pos, halfExtents, filter).result;
         return requestMoveTarget(agent.idx, nearestPoly.getNearestRef(), nearestPoly.getNearestPos());
     }
 
