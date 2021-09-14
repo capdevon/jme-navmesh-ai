@@ -115,6 +115,12 @@ public class JmeCrowd extends Crowd {
         return movementType;
     }
 
+    /**
+     * Update this crowd. Invoked (by the CrowdManagerAppState) on per frame while
+     * the app state is attached and enabled.
+     * 
+     * @param tpf time-per-frame
+     */
     public void update(float tpf) {
         preUpdateTick(tpf);
         updateTick(tpf);
@@ -144,12 +150,6 @@ public class JmeCrowd extends Crowd {
         }
     }
 
-    /**
-     * 
-     * @param agent
-     * @param newPos
-     * @param velocity
-     */
     protected void applyMovement(CrowdAgent agent, Vector3f newPos, Vector3f velocity) {
 
         float xSpeed = (velocity == null) ? 0f : velocity.length();
@@ -241,19 +241,19 @@ public class JmeCrowd extends Crowd {
     }
     
     public boolean hasWalkingState(CrowdAgent agent) {
-        return agent.active && agent.state == CrowdAgentState.DT_CROWDAGENT_STATE_WALKING;
+        return agent.state == CrowdAgentState.DT_CROWDAGENT_STATE_WALKING;
     }
 
     public boolean hasOffMeshState(CrowdAgent agent) {
-        return agent.active && agent.state == CrowdAgentState.DT_CROWDAGENT_STATE_OFFMESH;
+        return agent.state == CrowdAgentState.DT_CROWDAGENT_STATE_OFFMESH;
     }
 
     public boolean hasValidTarget(CrowdAgent agent) {
-        return agent.active && agent.targetState == MoveRequestState.DT_CROWDAGENT_TARGET_VALID;
+        return agent.targetState == MoveRequestState.DT_CROWDAGENT_TARGET_VALID;
     }
 
     public boolean hasNoTarget(CrowdAgent agent) {
-        return agent.active && agent.targetState == MoveRequestState.DT_CROWDAGENT_TARGET_NONE;
+        return agent.targetState == MoveRequestState.DT_CROWDAGENT_TARGET_NONE;
     }
 
 }
