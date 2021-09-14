@@ -90,8 +90,13 @@ public class JmeCrowd extends Crowd {
     }
     
     public void hilightAgent(CrowdAgent agent) {
-        m_agentDebug.idx = agent.idx;
-        debugEnabled = (agent != null);
+        if (agent != null) {
+            m_agentDebug.idx = agent.idx;
+            debugEnabled = true;
+        } else {
+            m_agentDebug.idx = -1;
+            debugEnabled = false;
+        }
     }
     
     public void setProximityDetector(Proximity p) {
