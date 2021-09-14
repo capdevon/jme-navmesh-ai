@@ -33,15 +33,9 @@ import com.jme3.math.Vector3f;
 public class DetourUtils {
 
     /**
-     * Simplifies interfacing with float arrays. Create a new Vector3f instance from
-     * a float array.<br />
-     * This method does not check the size of the array, if it's too long, it will
-     * only read the first 3 values, if it's too short, then a IndexOutOfBounds
-     * Exception will be thrown.<br />
+     * Create a new Vector3f instance from a float array.
      *
-     * @see #toFloatArray(Vector3f)
-     * @see #toFloatArray(float[], Vector3f)
-     * @param arr The float array containing the Vector
+     * @param arr The float array to convert
      * @return the created vector
      */
     public static Vector3f toVector3f(float[] arr) {
@@ -49,15 +43,23 @@ public class DetourUtils {
     }
 
     /**
-     * Simplifies interfacing with float arrays. Create a new float array from a
-     * Vector3f instance.<br />
-     * This method does nothing else than Vector3f#toArray, but people might expect
-     * such a method here and didn't know about that method.<br />
-     * When possible, use {@link #toFloatArray(float[], Vector3f)} to reduce garbage
+     * Fill a given Vector3f with values from a float array.
+     * 
+     * @param result
+     * @param arr
+     * @return
+     */
+    public static Vector3f toVector3f(Vector3f result, float[] arr) {
+        result.x = arr[0];
+        result.y = arr[1];
+        result.z = arr[2];
+        return result;
+    }
+
+    /**
+     * Create a new float array from a Vector3f instance.
      *
-     * @see #toVector3f(float[])
-     * @see #toFloatArray(float[], Vector3f)
-     * @param v The vector to convert.
+     * @param v The vector to convert
      * @return the float array
      */
     public static float[] toFloatArray(Vector3f v) {
@@ -65,13 +67,10 @@ public class DetourUtils {
     }
 
     /**
-     * Simplifies interfacing with float arrays. Fill a given float array with
-     * values from a Vector3f instance.
+     * Fill a given float array with values from a Vector3f instance.
      *
-     * @see #toFloatArray(Vector3f)
-     * @see #toVector3f(float[])
      * @param arr The float array
-     * @param v   The vector to convert.
+     * @param v   The vector to convert
      */
     public static void toFloatArray(float[] arr, Vector3f v) {
         arr[0] = v.x;
