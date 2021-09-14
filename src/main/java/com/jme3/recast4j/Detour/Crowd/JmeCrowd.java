@@ -32,16 +32,14 @@ public class JmeCrowd extends Crowd {
 
     private static final Logger logger = LoggerFactory.getLogger(JmeCrowd.class);
 
-    public boolean debug = false;
-    public float stoppingDistance = 1f;
-
     private Map<Integer, Spatial> characterMap;
     private NavMeshQuery m_navQuery;
     private CrowdAgentDebugInfo m_agentDebug = new CrowdAgentDebugInfo();
+    private boolean debugEnabled = false;
 
     private MoveFunction moveFunction;
     private MovementType movementType = MovementType.SPATIAL;
-    private Proximity proximity = new TargetProximity(stoppingDistance);
+    private Proximity proximity = new TargetProximity(1f);
     
     /**
      * 
@@ -91,6 +89,11 @@ public class JmeCrowd extends Crowd {
         removeAgent(agent.idx);
     }
     
+    public void hilightAgent(CrowdAgent agent) {
+        m_agentDebug.idx = agent.idx;
+        debugEnabled = (agent != null);
+    }
+    
     public void setProximityDetector(Proximity p) {
         this.proximity = p;
     }
@@ -121,7 +124,7 @@ public class JmeCrowd extends Crowd {
     }
 
     protected void updateTick(float deltaTime) {
-        if (debug) {
+        if (debugEnabled) {
             update(deltaTime, m_agentDebug);
         } else {
             update(deltaTime, null);
@@ -184,48 +187,54 @@ public class JmeCrowd extends Crowd {
             if (proximity.isInTargetProximity(agent, newPos, targetPos)) {
                 // stop moving.
                 logger.info("stop moving dist={} velocity={}", newPos.distance(targetPos), xSpeed);
-                resetMoveTarget(agent);
+                resetAgentTarget(agent);
             }
         }
     }
 
-    public boolean resetMoveTarget(CrowdAgent agent) {
+    /**
+     * Resets any request for the specified agent.
+     * 
+     * @param agent The agent
+     * @return True if the request was successfully reseted.
+     */
+    public boolean resetAgentTarget(CrowdAgent agent) {
         applyMovement(agent, DetourUtils.toVector3f(agent.npos), null);
         return resetMoveTarget(agent.idx);
     }
 
     /**
-     * Makes the whole Crowd move to a target. Know that you can also move
-     * individual agents.
+     * Makes the whole Crowd move to a target.
      * 
      * @param targetPos The Move Target
      * @return Whether all agents could be scheduled to approach the target
      */
     public boolean setMoveTarget(Vector3f targetPos) {
         // if all were successful, return true, else return false.
-        return getActiveAgents().stream().allMatch(ag -> setMoveTarget(ag, targetPos));
+        return getActiveAgents().stream().allMatch(ag -> setAgentTarget(ag, targetPos));
     }
 
     /**
-     * Moves a specified Agent to a Location.<br />
-     * This code implicitly searches for the correct polygon with a constant
-     * tolerance, in most cases you should prefer to determine the poly ref manually
-     * with domain specific knowledge.
+     * Submits a new move request for the specified agent.<br/>
+     * This method is used when a new target is set.<br/>
+     * The position will be constrained to the surface of the navigation mesh.<br/>
+     * The request will be processed during the next #update().
      * 
-     * @param agent     the agent to move
-     * @param targetPos where the agent shall move to
-     * @return whether this operation was successful
+     * @param agent     The agent
+     * @param targetPos Where the agent shall move to
+     * @return True if the request was successfully submitted.
      */
-    public boolean setMoveTarget(CrowdAgent agent, Vector3f targetPos) {
+    public boolean setAgentTarget(CrowdAgent agent, Vector3f targetPos) {
 
         QueryFilter filter = getFilter(agent.params.queryFilterType);
         float[] halfExtents = getQueryExtents();
         float[] pos = DetourUtils.toFloatArray(targetPos);
 
+        // Find nearest point on navmesh and set move request to that location.
         FindNearestPolyResult nearestPoly = m_navQuery.findNearestPoly(pos, halfExtents, filter).result;
         return requestMoveTarget(agent.idx, nearestPoly.getNearestRef(), nearestPoly.getNearestPos());
     }
-
+    
     public boolean hasWalkingState(CrowdAgent agent) {
         return agent.active && agent.state == CrowdAgentState.DT_CROWDAGENT_STATE_WALKING;
     }
