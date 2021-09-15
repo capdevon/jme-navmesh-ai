@@ -11,13 +11,18 @@ public class TargetProximity implements Proximity {
 
     protected float distanceThreshold;
 
+    /**
+     * Constructor.
+     * 
+     * @param distanceThreshold
+     */
     public TargetProximity(float distanceThreshold) {
-    	this.distanceThreshold = distanceThreshold;
+        this.distanceThreshold = distanceThreshold;
     }
 
     @Override
     public boolean isInTargetProximity(CrowdAgent agent, Vector3f agentPos, Vector3f targetPos) {
-        return targetPos.subtract(agentPos).lengthSquared() < distanceThreshold * distanceThreshold;
+        return targetPos.distanceSquared(agentPos) < distanceThreshold * distanceThreshold;
     }
 
     public float getDistanceThreshold() {
