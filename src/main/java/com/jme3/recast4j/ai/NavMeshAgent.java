@@ -3,10 +3,10 @@ package com.jme3.recast4j.ai;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.recast4j.detour.NavMesh;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.bullet.control.BetterCharacterControl;
@@ -30,13 +30,13 @@ import mygame.controls.AdapterControl;
  */
 public class NavMeshAgent extends AdapterControl {
 
-    private static final Logger LOG = Logger.getLogger(NavMeshAgent.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(NavMeshAgent.class);
 
     private BetterCharacterControl bcc;
     private ScheduledExecutorService executor;
     private NavMeshTool navtool;
     private NavMeshQueryFilter filter = new NavMeshQueryFilter();
-    private NavMeshPath navPath;
+    private NavMeshPath navPath = new NavMeshPath();
     private final Vector3f destination = new Vector3f();
     private final Vector3f position2D = new Vector3f();
     private final Vector3f waypoint2D = new Vector3f();
@@ -71,7 +71,6 @@ public class NavMeshAgent extends AdapterControl {
      */
     public NavMeshAgent(NavMesh navMesh, Application app) {
         this.navtool = new NavMeshTool(navMesh);
-        this.navPath = new NavMeshPath();
         this.pathViewer = new NavPathDebugViewer(app.getAssetManager());
         this.executor = Executors.newScheduledThreadPool(1);
     }
@@ -115,7 +114,7 @@ public class NavMeshAgent extends AdapterControl {
             waypoint2D.set(wayPoint).setY(0);
             float remainingDistance = position2D.distance(waypoint2D);
 
-            // move char between waypoints until waypoint reached, then set null
+            // move char until waypoint reached
             if (remainingDistance > stoppingDistance) {
                 Vector3f direction = waypoint2D.subtract(position2D).normalizeLocal();
                 
@@ -145,7 +144,7 @@ public class NavMeshAgent extends AdapterControl {
                 if (pathPending) {
                 	
                     hasPath = navtool.computePath(spatial.getWorldTranslation(), destination, filter, navPath);
-                    System.out.println("TargetPos: " + destination + ", hasPath: " + hasPath);
+                    logger.debug("TargetPos {}, hasPath {}", destination, hasPath);
 
                     if (hasPath) {
                         // display motion path
@@ -163,13 +162,13 @@ public class NavMeshAgent extends AdapterControl {
         executor.shutdown();
         try {
             if (!executor.awaitTermination(6, TimeUnit.SECONDS)) {
-                LOG.log(Level.SEVERE, "Pool did not terminate {0}", executor);
+                logger.warn("Pool did not terminate {}", executor);
                 executor.shutdownNow();
             }
         } catch (InterruptedException e) {
             executor.shutdownNow();
         }
-        LOG.log(Level.INFO, "shutdown {0}", executor);
+        logger.info("Pool shutdown {}", executor);
     }
     
     /**
@@ -204,10 +203,10 @@ public class NavMeshAgent extends AdapterControl {
             pathViewer.show(rm, vp);
         }
     }
-
+    
     public NavMeshQueryFilter getQueryFilter() {
-        return filter;
-    }
+		return filter;
+	}
 
     public void setQueryFilter(NavMeshQueryFilter filter) {
         this.filter = filter;
