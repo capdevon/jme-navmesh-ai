@@ -12,6 +12,9 @@ Write me your suggestions or report any bugs.
 - NavMeshQueryFilter - Specifies which areas to consider when searching the NavMesh.
 - NavMeshTools - Use the NavMesh class to perform spatial queries such as pathfinding and walkability tests.
 - NavMeshBuildMarkup allows you to control how certain objects are treated during the NavMesh build process, specifically when collecting sources for building.
+- NavMeshBuildSettings allows you to specify a collection of settings which describe the dimensions and limitations of a particular agent type.
+- SoloNavMeshBuilder
+- TileNavMeshBuilder
 - IORecast to export **NavMesh** in .obj format.
 - Graphic editor to modify the NavMesh generation parameters at Runtime.
 
@@ -63,16 +66,15 @@ dependencies {
 - [Building Process Slides](https://github.com/capdevon/jme3-recast4j-test-1/blob/main/docs/MikkoMononen_RecastSlides.pdf) - A series of slides that explain the build process of Recast.
 
 # Youtube videos
-[Demo](https://www.youtube.com/watch?v=XVWxy30IH7Q)
+[Demo Navigation-mesh](https://www.youtube.com/watch?v=XVWxy30IH7Q)
 
+[Demo Agent-based Crowd Simulation](https://www.youtube.com/watch?v=0yvne6mQVy4)
 
 # 
 ⭐NEW Editor
 ![Screenshot](images/editor-2.jpg)
 Solo NavMesh
 ![Screenshot](images/buildSoloModified-2.jpg)
-Tiled NavMesh
-![Screenshot](images/buildTileCache.jpg)
 IORecast export .obj
 ![Screenshot](images/navmesh-obj-export.jpg)
 
