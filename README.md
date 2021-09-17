@@ -39,10 +39,12 @@ dependencies {
     implementation 'org.jmonkeyengine:jme3-desktop:' + jmeVersion
     implementation 'org.jmonkeyengine:jme3-effects:' + jmeVersion
     implementation 'org.jmonkeyengine:jme3-terrain:' + jmeVersion
-    implementation 'org.jmonkeyengine:jme3-jbullet:' + jmeVersion
     runtimeOnly 'org.jmonkeyengine:jme3-lwjgl:' + jmeVersion
     runtimeOnly 'org.jmonkeyengine:jme3-jogg:' + jmeVersion
     runtimeOnly 'org.jmonkeyengine:jme3-plugins:' + jmeVersion
+    
+    // Physics
+    implementation 'com.github.stephengold:Minie:4.2.0+big3'
     
     // recast4j
     implementation 'org.recast4j:parent:' + recast4jVersion
