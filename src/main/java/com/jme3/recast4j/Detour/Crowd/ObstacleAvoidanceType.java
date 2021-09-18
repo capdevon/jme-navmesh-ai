@@ -16,13 +16,10 @@ public enum ObstacleAvoidanceType {
     // Enable highest precision. Highest performance impact.
     HighQuality(3);
 
-    private int id;
+    public final int id;
 
-    private ObstacleAvoidanceType(int value) {
-        this.id = value;
+    private ObstacleAvoidanceType(int id) {
+        this.id = id;
     }
 
-    public int getId() {
-        return id;
-    }
 }
