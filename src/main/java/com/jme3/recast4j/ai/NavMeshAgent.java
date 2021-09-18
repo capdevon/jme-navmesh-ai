@@ -53,7 +53,6 @@ public class NavMeshAgent extends AdapterControl {
     private boolean pathPending;
     //This property holds the stop or resume condition of the NavMesh agent.
     private boolean isStopped;
-    private boolean atGoal = true;
     
     //Stop within this distance from the target position.
     public float stoppingDistance = .25f;
@@ -66,7 +65,7 @@ public class NavMeshAgent extends AdapterControl {
 
     /**
      * 
-     * @param navtool
+     * @param navMesh
      * @param app
      */
     public NavMeshAgent(NavMesh navMesh, Application app) {
@@ -82,7 +81,7 @@ public class NavMeshAgent extends AdapterControl {
         if (spatial != null) {
             this.bcc = getComponent(BetterCharacterControl.class);
             requireNonNull(bcc, BetterCharacterControl.class, NavMeshAgent.class);
-            startPathFinder();
+            startPathfinder();
 
         } else {
             stopPathfinder();
@@ -108,7 +107,6 @@ public class NavMeshAgent extends AdapterControl {
         Vector3f wayPoint = navPath.getNextWaypoint();
         
         if (wayPoint != null) {
-            atGoal = false;
 
             position2D.set(spatial.getWorldTranslation()).setY(0);
             waypoint2D.set(wayPoint).setY(0);
@@ -137,14 +135,14 @@ public class NavMeshAgent extends AdapterControl {
         }
     }
 
-    private void startPathFinder() {
+    private void startPathfinder() {
         executor.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
                 if (pathPending) {
                 	
                     hasPath = navtool.computePath(spatial.getWorldTranslation(), destination, filter, navPath);
-                    logger.debug("TargetPos {}, hasPath {}", destination, hasPath);
+                    logger.info("TargetPos {}, hasPath {}", destination, hasPath);
 
                     if (hasPath) {
                         // display motion path
@@ -177,7 +175,6 @@ public class NavMeshAgent extends AdapterControl {
     public void resetPath() {
     	navPath.clearCorners();
         bcc.setWalkDirection(Vector3f.ZERO);
-        atGoal = true;
         hasPath = false;
 
         if (debugEnabled) {
@@ -203,16 +200,18 @@ public class NavMeshAgent extends AdapterControl {
             pathViewer.show(rm, vp);
         }
     }
-    
+
     public NavMeshQueryFilter getQueryFilter() {
-		return filter;
-	}
+        return filter;
+    }
 
     public void setQueryFilter(NavMeshQueryFilter filter) {
         this.filter = filter;
     }
 
     /**
+     * Gets the destination of the agent in world-space units.
+     * 
      * @return
      */
     public Vector3f getDestination() {
@@ -269,7 +268,7 @@ public class NavMeshAgent extends AdapterControl {
     }
     
     public boolean isAtGoal() {
-        return atGoal;
+        return navPath.isEmpty();
     }
     
     public boolean pathPending() {
