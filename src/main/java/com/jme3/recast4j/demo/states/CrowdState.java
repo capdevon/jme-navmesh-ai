@@ -253,28 +253,28 @@ public class CrowdState extends AbstractNavState {
         params.adaptiveDivs = 5;
         params.adaptiveRings = 2;
         params.adaptiveDepth = 1;
-        jmeCrowd.setObstacleAvoidanceParams(ObstacleAvoidanceType.LowQuality.getId(), params);
+        jmeCrowd.setObstacleAvoidanceParams(ObstacleAvoidanceType.LowQuality.id, params);
 
         // Medium (22)
         params.velBias = 0.5f;
         params.adaptiveDivs = 5;
         params.adaptiveRings = 2;
         params.adaptiveDepth = 2;
-        jmeCrowd.setObstacleAvoidanceParams(ObstacleAvoidanceType.MedQuality.getId(), params);
+        jmeCrowd.setObstacleAvoidanceParams(ObstacleAvoidanceType.MedQuality.id, params);
 
         // Good (45)
         params.velBias = 0.5f;
         params.adaptiveDivs = 7;
         params.adaptiveRings = 2;
         params.adaptiveDepth = 3;
-        jmeCrowd.setObstacleAvoidanceParams(ObstacleAvoidanceType.GoodQuality.getId(), params);
+        jmeCrowd.setObstacleAvoidanceParams(ObstacleAvoidanceType.GoodQuality.id, params);
 
         // High (66)
         params.velBias = 0.5f;
         params.adaptiveDivs = 7;
         params.adaptiveRings = 3;
         params.adaptiveDepth = 3;
-        jmeCrowd.setObstacleAvoidanceParams(ObstacleAvoidanceType.HighQuality.getId(), params);
+        jmeCrowd.setObstacleAvoidanceParams(ObstacleAvoidanceType.HighQuality.id, params);
 
         // Add to CrowdManager.
         jmeCrowd.setMovementType(usePhysics ? MovementType.PHYSICS_CHARACTER : MovementType.SPATIAL);
@@ -287,7 +287,7 @@ public class CrowdState extends AbstractNavState {
     float m_agentRadius = 0.3f;
     float m_agentHeight = 1.7f;
     float m_separationWeight = 2f;
-    int m_obstacleAvoidanceType = ObstacleAvoidanceType.GoodQuality.getId();
+    int m_obstacleAvoidanceType = ObstacleAvoidanceType.GoodQuality.id;
 
     // flags
     boolean m_anticipateTurns;
