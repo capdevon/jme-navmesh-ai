@@ -21,12 +21,8 @@ import com.jme3.math.Vector3f;
  * @author capdevon
  */
 public class NavMeshPath {
-	
-	/**
-	 * message logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(NavMeshPath.class);
 
+    private static final Logger logger = LoggerFactory.getLogger(NavMeshPath.class);
 
     // Status of the path.
     protected NavMeshPathStatus status;
