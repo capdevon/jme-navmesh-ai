@@ -31,6 +31,7 @@ public class NavPathDebugViewer {
     public Node debugNode = new Node("NavPathDebugViewer");
     // Unshaded material
     public Material debugMat;
+    public Sphere sphere = new Sphere(9, 9, 0.1f);
 
     public NavPathDebugViewer(AssetManager assetManager) {
         this.assetManager = assetManager;
@@ -72,7 +73,6 @@ public class NavPathDebugViewer {
     }
 
     private void drawSphere(Vector3f position, float radius, int i) {
-        Sphere sphere = new Sphere(9, 9, 0.1f);
         Geometry geo = new Geometry("PathSphere-" + i, sphere);
         geo.setLocalTranslation(position);
         geo.setMaterial(debugMat);
