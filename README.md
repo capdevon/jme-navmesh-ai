@@ -22,6 +22,7 @@ Write me your suggestions or report any bugs.
 The individual projects and their respective requirements used in this demo can be found by following these links.
 
 - [jmonkeyengine](https://github.com/jMonkeyEngine/jmonkeyengine) - A complete 3D game development suite written purely in Java.
+- [Minie](https://github.com/stephengold/Minie) - A physics library for JMonkeyEngine.
 - [recast4j](https://github.com/ppiastucki/recast4j) - Java Port of Recast & Detour navigation mesh toolset.
 - [Lemur](https://github.com/jMonkeyEngine-Contributions/Lemur) - jMonkeyEngine-based UI toolkit.
 - java 11+
@@ -73,6 +74,8 @@ dependencies {
 [Demo Agent-based Crowd Simulation](https://www.youtube.com/watch?v=0yvne6mQVy4)
 
 # 
+Crowd Agent WIP
+![Screenshot](images/crowd-agent-sim.jpg)
 ⭐NEW Editor
 ![Screenshot](images/editor-2.jpg)
 Solo NavMesh
