@@ -9,7 +9,7 @@ import org.recast4j.detour.crowd.CrowdAgent;
  * {@link MovementType} to <code>CUSTOM</code> using
  * {@link JmeCrowd#setMovementType(MovementType)}. <br />
  * Then register this function using
- * {@link JmeCrowd#setMoveFunction(ApplyFunction)}.
+ * {@link JmeCrowd#setMoveFunction(MoveFunction)}.
  * 
  * @author MeFisto94
  */
