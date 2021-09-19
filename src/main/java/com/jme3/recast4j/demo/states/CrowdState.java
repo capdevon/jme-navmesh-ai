@@ -40,7 +40,9 @@ import com.jme3.recast4j.Detour.Crowd.CrowdManagerAppState;
 import com.jme3.recast4j.Detour.Crowd.JmeCrowd;
 import com.jme3.recast4j.Detour.Crowd.MovementType;
 import com.jme3.recast4j.Detour.Crowd.ObstacleAvoidanceType;
+import com.jme3.recast4j.demo.controls.CrowdControl;
 import com.jme3.recast4j.demo.controls.CrowdDebugControl;
+import com.jme3.recast4j.demo.utils.Circle;
 import com.jme3.recast4j.editor.NavMeshBuildSettings;
 import com.jme3.recast4j.editor.SampleAreaModifications;
 import com.jme3.recast4j.editor.builder.TileNavMeshBuilder;
@@ -53,6 +55,8 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.texture.Texture;
+
+import mygame.controls.AnimationControl;
 
 /**
  * 
@@ -297,12 +301,19 @@ public class CrowdState extends AbstractNavState {
     boolean m_separation = true;
     //-------------------------------------------------------
 
-    private void addAgent(Spatial model) {
+    private void addAgent(Node model) {
 
         CrowdAgentParams ap = getAgentParams(model);
         // Add agent to the crowd.
         CrowdAgent agent = jmeCrowd.createAgent(model, ap);
         if (agent != null) {
+
+            //model.attachChild(createCircle("CollQueryRange", agent.params.collisionQueryRange, ColorRGBA.Yellow));
+            model.attachChild(createCircle("ProximityDetector", 1, ColorRGBA.Red));
+
+            model.addControl(new AnimationControl());
+            model.addControl(new CrowdControl(agent));
+
             // Add the debug control and set its visual and verbose state.
             CrowdDebugControl cwDebug = new CrowdDebugControl(agent, assetManager);
             cwDebug.setVisual(true);
@@ -402,6 +413,16 @@ public class CrowdState extends AbstractNavState {
         float height = y * 2;
 
         return new float[] { radius, height };
+    }
+    
+    private Geometry createCircle(String name, float radius, ColorRGBA color) {
+        Circle circle = new Circle(Vector3f.ZERO, radius, 32);
+        Geometry geo = new Geometry(name, circle);
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", color);
+        geo.setMaterial(mat);
+        geo.setShadowMode(RenderQueue.ShadowMode.Off);
+        return geo;
     }
 
 }
