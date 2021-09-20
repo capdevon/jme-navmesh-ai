@@ -45,8 +45,8 @@ public class DetourUtils {
     /**
      * Fill a given Vector3f with values from a float array.
      * 
-     * @param result
-     * @param arr
+     * @param result The vector
+     * @param arr    The float array to convert
      * @return
      */
     public static Vector3f toVector3f(Vector3f result, float[] arr) {
@@ -69,13 +69,11 @@ public class DetourUtils {
     /**
      * Fill a given float array with values from a Vector3f instance.
      *
-     * @param arr The float array
-     * @param v   The vector to convert
+     * @param result The float array
+     * @param v      The vector to convert
      */
-    public static void toFloatArray(float[] arr, Vector3f v) {
-        arr[0] = v.x;
-        arr[1] = v.y;
-        arr[2] = v.z;
+    public static float[] toFloatArray(float[] result, Vector3f v) {
+        return v.toArray(result);
     }
 
 }
