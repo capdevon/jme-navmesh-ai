@@ -1,6 +1,6 @@
 /*
  *  MIT License
- *  Copyright (c) 2018 MeFisto94
+ *  Copyright (c) 2021 MeFisto94
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +74,23 @@ public class DetourUtils {
      */
     public static float[] toFloatArray(float[] result, Vector3f v) {
         return v.toArray(result);
+    }
+
+    /**
+     * <code>distance</code> calculates the distance between a and b.
+     *
+     * @param a the first vector
+     * @param b the second vector
+     * @return the distance between the two vectors.
+     */
+    public static float distance(float[] a, float[] b) {
+        double dx = b[0] - a[0];
+        double dy = b[1] - a[1];
+        double dz = b[2] - a[2];
+        double distanceSquared = dx * dx + dy * dy + dz * dz;
+        float result = (float) Math.sqrt(distanceSquared);
+
+        return result;
     }
 
 }
