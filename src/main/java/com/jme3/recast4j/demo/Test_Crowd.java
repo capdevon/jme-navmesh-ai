@@ -6,9 +6,6 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.input.KeyInput;
-import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.math.ColorRGBA;
@@ -19,7 +16,6 @@ import com.jme3.post.filters.FXAAFilter;
 import com.jme3.recast4j.Detour.Crowd.CrowdManagerAppState;
 import com.jme3.recast4j.demo.states.CrowdState;
 import com.jme3.recast4j.demo.states.LemurConfigState;
-import com.jme3.recast4j.demo.states.NavState;
 import com.jme3.scene.Node;
 import com.jme3.shadow.DirectionalLightShadowFilter;
 import com.jme3.system.AppSettings;
@@ -29,16 +25,16 @@ import com.jme3.system.AppSettings;
  * @author capdevon
  */
 public class Test_Crowd extends SimpleApplication {
-	
-	private BulletAppState bullet;
-	
+
+    private BulletAppState bullet;
+
     public Test_Crowd() {
         super(new StatsAppState(),
-                new AudioListenerState(),
-                new DebugKeysAppState(),
-                new CrowdManagerAppState(),
-                new LemurConfigState(),
-                new CrowdState()
+            new AudioListenerState(),
+            new DebugKeysAppState(),
+            new CrowdManagerAppState(),
+            new LemurConfigState(),
+            new CrowdState()
         );
     }
 
@@ -47,7 +43,7 @@ public class Test_Crowd extends SimpleApplication {
      * @param args
      */
     public static void main(String[] args) {
-    	Test_Crowd app = new Test_Crowd();
+        Test_Crowd app = new Test_Crowd();
         AppSettings settings = new AppSettings(true);
         settings.setTitle("jme3-recast4j - Test_Crowd");
         settings.setResolution(1280, 720);
@@ -56,26 +52,26 @@ public class Test_Crowd extends SimpleApplication {
         app.setPauseOnLostFocus(false);
         app.start();
     }
-	
-	@Override
-    public void simpleInitApp() {  
+
+    @Override
+    public void simpleInitApp() {
         initPhysics();
         setupWorld();
         setupCamera();
-	}
-	
-	private void initPhysics() {
+    }
+
+    private void initPhysics() {
         bullet = new BulletAppState();
         // Performance is better when threading in parallel
         bullet.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
         stateManager.attach(bullet);
         bullet.setDebugEnabled(true);
     }
-	
+
     private void setupWorld() {
-    	//Set the atmosphere of the world, lights, camera, post processing.
-    	viewPort.setBackgroundColor(new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f));
-    	
+        //Set the atmosphere of the world, lights, camera, post processing.
+        viewPort.setBackgroundColor(new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f));
+
         DirectionalLight sun = new DirectionalLight();
         sun.setDirection(new Vector3f(-0.2f, -1, -0.3f).normalizeLocal());
         sun.setName("sun");
@@ -98,14 +94,14 @@ public class Test_Crowd extends SimpleApplication {
         fpp.addFilter(fxaa);
         viewPort.addProcessor(fpp);
     }
-    
+
     private void setupCamera() {
         // disable the default 1st-person flyCam!
-//        flyCam.setEnabled(false);
-        
+        //flyCam.setEnabled(false);
+
         Node target = new Node("MainCamera");
-//        target.move(0, 1, 0);
-        
+        //target.move(0, 1, 0);
+
         ChaseCameraAppState chaseCam = new ChaseCameraAppState();
         chaseCam.setTarget(target);
         stateManager.attach(chaseCam);
@@ -119,5 +115,5 @@ public class Test_Crowd extends SimpleApplication {
         chaseCam.setRotationSpeed(3);
         chaseCam.setDefaultVerticalRotation(0.3f);
     }
-    
+
 }
