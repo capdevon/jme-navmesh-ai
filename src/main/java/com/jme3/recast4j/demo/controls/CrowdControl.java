@@ -2,6 +2,7 @@ package com.jme3.recast4j.demo.controls;
 
 import java.util.Objects;
 
+import org.recast4j.detour.DetourCommon;
 import org.recast4j.detour.crowd.CrowdAgent;
 import org.recast4j.detour.crowd.CrowdAgent.MoveRequestState;
 
@@ -10,8 +11,6 @@ import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
 
-import mygame.controls.AnimationControl;
-
 /**
  * 
  * @author capdevon
@@ -19,7 +18,7 @@ import mygame.controls.AnimationControl;
 public class CrowdControl extends AbstractControl {
 
     private CrowdAgent agent;
-    private AnimationControl animator;
+    private Animator animator;
 
     /**
      * Constructor.
@@ -33,8 +32,8 @@ public class CrowdControl extends AbstractControl {
     public void setSpatial(Spatial spatial) {
         super.setSpatial(spatial);
         if (spatial != null) {
-            this.animator = spatial.getControl(AnimationControl.class);
-            Objects.requireNonNull(animator, "AnimationControl not found: " + spatial);
+            this.animator = spatial.getControl(Animator.class);
+            Objects.requireNonNull(animator, "Animator not found: " + spatial);
         }
     }
 
@@ -42,8 +41,10 @@ public class CrowdControl extends AbstractControl {
     protected void controlUpdate(float tpf) {
         if (agent.targetState == MoveRequestState.DT_CROWDAGENT_TARGET_VALID) {
             animator.setAnimation("Walk");
+            animator.setSpeed(DetourCommon.vLen(agent.vel));
         } else {
             animator.setAnimation("Idle");
+            animator.setSpeed(1);
         }
     }
 
