@@ -128,7 +128,9 @@ import com.jme3.recast4j.ai.NavMeshQueryFilter;
 import com.jme3.recast4j.ai.NavMeshTool;
 import com.jme3.recast4j.ai.StraightPathOptions;
 import com.jme3.recast4j.demo.JmeAreaMods;
+import com.jme3.recast4j.demo.controls.Animator;
 import com.jme3.recast4j.demo.controls.DoorSwingControl;
+import com.jme3.recast4j.demo.controls.PCControl;
 import com.jme3.recast4j.demo.utils.GameObject;
 import com.jme3.recast4j.geom.JmeGeomProviderBuilder;
 import com.jme3.recast4j.geom.JmeInputGeomProvider;
@@ -146,9 +148,6 @@ import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.scene.Spatial;
 import com.simsilica.lemur.event.DefaultMouseListener;
 import com.simsilica.lemur.event.MouseEventControl;
-
-import mygame.controls.AnimationControl;
-import mygame.controls.PCControl;
 
 /**
  *
@@ -199,8 +198,8 @@ public class NavState extends AbstractNavState {
 //        //Solo build using recast4j methods. Implements area and flag types.
 //        buildSoloRecast4j();
 //        //Tile build using recast4j methods. Implements area and flag types plus offmesh connections.
-//        buildTiledRecast4j();
-        buildTileCache();
+        buildTiledRecast4j();
+//        buildTileCache();
         
         long buildTime = (System.currentTimeMillis() - startTime);
         System.out.println("Building succeeded after " + buildTime + " ms");
@@ -418,7 +417,7 @@ public class NavState extends AbstractNavState {
         }
     	
     	Node character = getCharacters().get(0);
-    	character.addControl(new AnimationControl());
+    	character.addControl(new Animator());
     	character.addControl(new NavMeshAgent(navMesh, getApplication()));
     	character.addControl(new PCControl());
     	
@@ -958,7 +957,7 @@ public class NavState extends AbstractNavState {
 
         try {
             //Save and read back for testing.
-            File f = new File("test-tile-cache_" + cfg.partitionType + ".tc");
+            File f = new File("test-tile-cache.tc");
 
             //Write our tile cache.
             TileCacheWriter writer = new TileCacheWriter();
@@ -1390,7 +1389,7 @@ public class NavState extends AbstractNavState {
     //Build the tile cache.
     private TileCache getTileCache(JmeInputGeomProvider geom, RecastConfig cfg, ByteOrder order, boolean cCompatibility) {
     	
-        //This value specifies how many layers (or "floors") each navmesh tile is expected to have.
+    	//This value specifies how many layers (or "floors") each navmesh tile is expected to have.
         final int EXPECTED_LAYERS_PER_TILE = 4;
         
         TileCacheParams params = new TileCacheParams();
