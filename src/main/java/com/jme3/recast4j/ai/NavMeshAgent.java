@@ -1,5 +1,6 @@
 package com.jme3.recast4j.ai;
 
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -13,12 +14,11 @@ import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.recast4j.debug.NavPathDebugViewer;
+import com.jme3.recast4j.demo.controls.AdapterControl;
 import com.jme3.recast4j.demo.utils.FRotator;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Spatial;
-
-import mygame.controls.AdapterControl;
 
 /**
  * Navigation mesh agent.
@@ -281,6 +281,22 @@ public class NavMeshAgent extends AdapterControl {
     
     public NavMeshPathStatus pathStatus() {
         return navPath.getStatus();
+    }
+    
+    /**
+     * @return The distance between the agent's position and the destination on the current path. (Read Only)
+     */
+    public float remainingDistance() {
+        float pathLength = 0;
+        List<Vector3f> corners = navPath.waypointList;
+
+        for (int j = 0; j < corners.size(); ++j) {
+            Vector3f va = (j == 0) ? spatial.getWorldTranslation() : corners.get(j - 1);
+            Vector3f vb = corners.get(j);
+            pathLength += va.distance(vb);
+        }
+
+        return pathLength;
     }
     
     /**
