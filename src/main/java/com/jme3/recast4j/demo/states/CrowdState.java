@@ -40,6 +40,7 @@ import com.jme3.recast4j.Detour.Crowd.CrowdManagerAppState;
 import com.jme3.recast4j.Detour.Crowd.JmeCrowd;
 import com.jme3.recast4j.Detour.Crowd.MovementType;
 import com.jme3.recast4j.Detour.Crowd.ObstacleAvoidanceType;
+import com.jme3.recast4j.demo.controls.Animator;
 import com.jme3.recast4j.demo.controls.CrowdControl;
 import com.jme3.recast4j.demo.controls.CrowdDebugControl;
 import com.jme3.recast4j.demo.utils.Circle;
@@ -55,8 +56,6 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.texture.Texture;
-
-import mygame.controls.AnimationControl;
 
 /**
  * 
@@ -309,9 +308,9 @@ public class CrowdState extends AbstractNavState {
         if (agent != null) {
 
             //model.attachChild(createCircle("CollQueryRange", agent.params.collisionQueryRange, ColorRGBA.Yellow));
-            model.attachChild(createCircle("ProximityDetector", 1, ColorRGBA.Red));
+            model.attachChild(createCircle("TargetProximity", 1, ColorRGBA.Red));
 
-            model.addControl(new AnimationControl());
+            model.addControl(new Animator());
             model.addControl(new CrowdControl(agent));
 
             // Add the debug control and set its visual and verbose state.
