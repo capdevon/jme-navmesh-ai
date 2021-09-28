@@ -9,7 +9,6 @@ import org.recast4j.detour.DefaultQueryFilter;
 import org.recast4j.detour.NavMesh;
 import org.recast4j.detour.crowd.CrowdAgent;
 import org.recast4j.detour.crowd.CrowdAgentParams;
-import org.recast4j.detour.crowd.ObstacleAvoidanceQuery.ObstacleAvoidanceParams;
 import org.recast4j.detour.io.MeshSetWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +39,7 @@ import com.jme3.recast4j.Detour.Crowd.CrowdManagerAppState;
 import com.jme3.recast4j.Detour.Crowd.JmeCrowd;
 import com.jme3.recast4j.Detour.Crowd.MovementType;
 import com.jme3.recast4j.Detour.Crowd.ObstacleAvoidanceType;
+import com.jme3.recast4j.Detour.Crowd.SimpleCrowd;
 import com.jme3.recast4j.demo.controls.Animator;
 import com.jme3.recast4j.demo.controls.CrowdControl;
 import com.jme3.recast4j.demo.controls.CrowdDebugControl;
@@ -246,39 +246,8 @@ public class CrowdState extends AbstractNavState {
         float[] areaCost = new float[] { 1f, 10f, 1f, 1f, 2f, 1.5f };
 
         CrowdConfig config = new CrowdConfig(m_agentRadius);
-        jmeCrowd = new JmeCrowd(config, navMesh, __ -> new DefaultQueryFilter(includeFlags, excludeFlags, areaCost));
-
-        // Setup local avoidance params to different qualities.
-        ObstacleAvoidanceParams params = new ObstacleAvoidanceParams();
-
-        // Low (11)
-        params.velBias = 0.5f;
-        params.adaptiveDivs = 5;
-        params.adaptiveRings = 2;
-        params.adaptiveDepth = 1;
-        jmeCrowd.setObstacleAvoidanceParams(ObstacleAvoidanceType.LowQuality.id, params);
-
-        // Medium (22)
-        params.velBias = 0.5f;
-        params.adaptiveDivs = 5;
-        params.adaptiveRings = 2;
-        params.adaptiveDepth = 2;
-        jmeCrowd.setObstacleAvoidanceParams(ObstacleAvoidanceType.MedQuality.id, params);
-
-        // Good (45)
-        params.velBias = 0.5f;
-        params.adaptiveDivs = 7;
-        params.adaptiveRings = 2;
-        params.adaptiveDepth = 3;
-        jmeCrowd.setObstacleAvoidanceParams(ObstacleAvoidanceType.GoodQuality.id, params);
-
-        // High (66)
-        params.velBias = 0.5f;
-        params.adaptiveDivs = 7;
-        params.adaptiveRings = 3;
-        params.adaptiveDepth = 3;
-        jmeCrowd.setObstacleAvoidanceParams(ObstacleAvoidanceType.HighQuality.id, params);
-
+        jmeCrowd = new SimpleCrowd(config, navMesh, new DefaultQueryFilter(includeFlags, excludeFlags, areaCost));
+        
         // Add to CrowdManager.
         jmeCrowd.setMovementType(usePhysics ? MovementType.PHYSICS_CHARACTER : MovementType.SPATIAL);
         getState(CrowdManagerAppState.class).addCrowd(jmeCrowd);
