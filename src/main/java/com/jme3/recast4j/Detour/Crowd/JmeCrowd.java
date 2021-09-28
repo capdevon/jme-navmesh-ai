@@ -75,6 +75,10 @@ public class JmeCrowd extends Crowd {
     }
     
     public CrowdAgent createAgent(Spatial model, CrowdAgentParams params) {
+        if (characterMap.containsValue(model)) {
+            throw new IllegalArgumentException("The given model is already registed at this Crowd");
+        }
+
         float[] pos = DetourUtils.toFloatArray(model.getWorldTranslation());
         int idx = addAgent(pos, params);
         if (idx != -1) {
@@ -85,18 +89,39 @@ public class JmeCrowd extends Crowd {
     }
 
     public void deleteAgent(CrowdAgent agent) {
-        characterMap.remove(agent.idx);
-        removeAgent(agent.idx);
-    }
-    
-    public void hilightAgent(CrowdAgent agent) {
-        if (agent != null) {
-            m_agentDebug.idx = agent.idx;
-            debugEnabled = true;
-        } else {
-            m_agentDebug.idx = -1;
-            debugEnabled = false;
+        if (!characterMap.containsKey(agent.idx)) {
+            throw new IllegalArgumentException("The given agent is not registed at this Crowd");
         }
+
+        removeAgent(agent.idx);
+        characterMap.remove(agent.idx);
+
+        if (m_agentDebug.idx == agent.idx) {
+            deselectAgent();
+        }
+    }
+
+    public void removeAll() {
+        characterMap.keySet().forEach(agentId -> removeAgent(agentId));
+        characterMap.clear();
+        deselectAgent();
+    }
+
+    public boolean isEmpty() {
+        return characterMap.isEmpty();
+    }
+
+    public void selectAgent(CrowdAgent agent) {
+        if (!characterMap.containsKey(agent.idx)) {
+            throw new IllegalArgumentException("The given agent is not registed at this Crowd");
+        }
+        m_agentDebug.idx = agent.idx;
+        debugEnabled = true;
+    }
+
+    public void deselectAgent() {
+        m_agentDebug.idx = -1;
+        debugEnabled = false;
     }
     
     public void setProximityDetector(Proximity p) {
@@ -137,6 +162,7 @@ public class JmeCrowd extends Crowd {
     protected void updateTick(float deltaTime) {
         if (debugEnabled) {
             update(deltaTime, m_agentDebug);
+            m_agentDebug.vod.normalizeSamples();
         } else {
             update(deltaTime, null);
         }
