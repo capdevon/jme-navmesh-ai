@@ -1,6 +1,7 @@
 package com.jme3.recast4j.demo.states;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteOrder;
@@ -9,6 +10,7 @@ import org.recast4j.detour.DefaultQueryFilter;
 import org.recast4j.detour.NavMesh;
 import org.recast4j.detour.crowd.CrowdAgent;
 import org.recast4j.detour.crowd.CrowdAgentParams;
+import org.recast4j.detour.io.MeshSetReader;
 import org.recast4j.detour.io.MeshSetWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -189,21 +191,39 @@ public class CrowdState extends AbstractNavState {
         s.agentRadius = m_agentRadius;
         s.tiled = true;
 
+        System.out.println("Building NavMesh... Please wait");
+        
         TileNavMeshBuilder tileBuilder = new TileNavMeshBuilder();
         navMesh = tileBuilder.build(m_geom, s);
 
         nmDebugViewer.drawMeshBounds(m_geom);
         nmDebugViewer.drawNavMesh(navMesh, true);
 
-        //saveToFile(navMesh, "test.nm");
+        //saveNavMesh("test.nm");
     }
 
-    private void saveToFile(NavMesh nm, String fileName) {
+    private void saveNavMesh(String fileName) {
         try {
-            MeshSetWriter msw = new MeshSetWriter();
             File f = new File(fileName);
             System.out.println("Saving NavMesh=" + f.getAbsolutePath());
-            msw.write(new FileOutputStream(f), nm, ByteOrder.BIG_ENDIAN, false);
+
+            MeshSetWriter msw = new MeshSetWriter();
+            msw.write(new FileOutputStream(f), navMesh, ByteOrder.BIG_ENDIAN, false);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadNavMesh(String fileName) {
+        try {
+            File f = new File(fileName);
+            System.out.println("Reading NavMesh=" + f.getAbsolutePath());
+            int maxVertsPerPoly = 3;
+
+            // Read in saved NavMesh.
+            MeshSetReader msr = new MeshSetReader();
+            navMesh = msr.read(new FileInputStream(f), maxVertsPerPoly);
 
         } catch (IOException e) {
             e.printStackTrace();
