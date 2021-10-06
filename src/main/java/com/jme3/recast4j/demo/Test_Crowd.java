@@ -15,7 +15,6 @@ import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FXAAFilter;
 import com.jme3.recast4j.Detour.Crowd.CrowdManagerAppState;
 import com.jme3.recast4j.demo.states.CrowdState;
-import com.jme3.recast4j.demo.states.LemurConfigState;
 import com.jme3.scene.Node;
 import com.jme3.shadow.DirectionalLightShadowFilter;
 import com.jme3.system.AppSettings;
@@ -33,7 +32,6 @@ public class Test_Crowd extends SimpleApplication {
             new AudioListenerState(),
             new DebugKeysAppState(),
             new CrowdManagerAppState(),
-            new LemurConfigState(),
             new CrowdState()
         );
     }
