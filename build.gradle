@@ -68,12 +68,9 @@ dependencies {
     
     // BasicGame doesn't use physics. If your game needs physics, select either:
     //    1. Minie
-    implementation 'com.github.stephengold:Minie:4.2.0+big3'
+    implementation 'com.github.stephengold:Minie:4.3.0'
     //    2. jme3-jbullet
     //implementation 'org.jmonkeyengine:jme3-jbullet:' + jmeVersion
-    //    3. jme3-bullet + jme3-bullet-native
-    //implementation 'org.jmonkeyengine:jme3-bullet:' + jmeVersion
-    //runtimeOnly 'org.jmonkeyengine:jme3-bullet-native:' + jmeVersion
 
     // select one version of LWJGL
     runtimeOnly 'org.jmonkeyengine:jme3-lwjgl:' + jmeVersion  // LWJGL 2.x
@@ -81,8 +78,7 @@ dependencies {
 
     runtimeOnly 'org.jmonkeyengine:jme3-jogg:' + jmeVersion
     runtimeOnly 'org.jmonkeyengine:jme3-plugins:' + jmeVersion
-    //runtimeOnly 'org.jmonkeyengine:jme3-testdata:3.1.0-stable'
-    //runtimeOnly 'org.jmonkeyengine:jme3-testdata:3.4.0-alpha6'
+    //runtimeOnly 'org.jmonkeyengine:jme3-testdata:' + jmeVersion
     
     // recast4j
     implementation 'org.recast4j:parent:' + recast4jVersion
