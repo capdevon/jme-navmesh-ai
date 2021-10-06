@@ -283,7 +283,7 @@ public class NavState extends AbstractNavState {
                 }
 
                 //The filter to use for this search.
-                DefaultQueryFilter filter = new DefaultQueryFilter(); //BetterDefaultQueryFilter();
+                DefaultQueryFilter filter = new DefaultQueryFilter();
 
                 //Limit the search to only door flags.
                 int includeFlags = POLYFLAGS_DOOR;
@@ -525,8 +525,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(2.4f) 			// r*8
-                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+                .withEdgeMaxLen(2.4f) 		// r*8
+                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
                 .withDetailSampleDistance(8.0f) // increase if exception
                 .withDetailSampleMaxError(8.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -590,8 +590,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(2.4f) 			// r*8
-                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+                .withEdgeMaxLen(2.4f) 		// r*8
+                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
                 .withDetailSampleDistance(8.0f) // increase if exception
                 .withDetailSampleMaxError(8.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -665,8 +665,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(2.4f) 			// r*8
-                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+                .withEdgeMaxLen(2.4f) 		// r*8
+                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
                 .withDetailSampleDistance(8.0f) // increase if exception
                 .withDetailSampleMaxError(8.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -827,8 +827,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(3.2f) 			// r*8
-                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+                .withEdgeMaxLen(3.2f) 		// r*8
+                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
                 .withDetailSampleDistance(6.0f) // increase if exception
                 .withDetailSampleMaxError(6.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -919,8 +919,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(3.2f) 			// r*8
-                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
+                .withEdgeMaxLen(3.2f) 		// r*8
+                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
                 .withDetailSampleDistance(6.0f) // increase if exception
                 .withDetailSampleMaxError(6.0f) // increase if exception
                 .withVertsPerPoly(3)
