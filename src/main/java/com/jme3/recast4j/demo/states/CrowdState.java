@@ -264,12 +264,7 @@ public class CrowdState extends AbstractNavState {
 
             model.addControl(new Animator());
             model.addControl(new CrowdControl(agent));
-
-            // Add the debug control and set its visual and verbose state.
-            CrowdDebugControl cwDebug = new CrowdDebugControl(agent, assetManager);
-            cwDebug.setVisual(true);
-            cwDebug.setVerbose(false);
-            model.addControl(cwDebug);
+            model.addControl(new CrowdDebugControl(agent));
         }
     }
 
