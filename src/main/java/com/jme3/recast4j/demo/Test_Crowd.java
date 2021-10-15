@@ -6,18 +6,31 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.collision.shapes.CollisionShape;
+import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.bullet.util.CollisionShapeFactory;
+import com.jme3.input.KeyInput;
+import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
+import com.jme3.material.Material;
+import com.jme3.material.Materials;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FXAAFilter;
 import com.jme3.recast4j.Detour.Crowd.CrowdManagerAppState;
 import com.jme3.recast4j.demo.states.CrowdState;
+import com.jme3.recast4j.demo.states.NavState;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.shape.Box;
 import com.jme3.shadow.DirectionalLightShadowFilter;
 import com.jme3.system.AppSettings;
+import com.jme3.texture.Texture;
 
 /**
  * 
@@ -54,8 +67,10 @@ public class Test_Crowd extends SimpleApplication {
     @Override
     public void simpleInitApp() {
         initPhysics();
-        setupWorld();
+        setupScene();
+        setupLightsAndFilters();
         setupCamera();
+        setupInputKeys();
     }
 
     private void initPhysics() {
@@ -63,11 +78,31 @@ public class Test_Crowd extends SimpleApplication {
         // Performance is better when threading in parallel
         bullet.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
         stateManager.attach(bullet);
-        bullet.setDebugEnabled(true);
     }
 
-    private void setupWorld() {
-        //Set the atmosphere of the world, lights, camera, post processing.
+    private void setupScene() {
+        Node scene = new Node("MainScene");
+        rootNode.attachChild(scene);
+
+        Box box = new Box(40f, .1f, 40f);
+        box.scaleTextureCoordinates(new Vector2f(10, 10));
+        Geometry floor = new Geometry("Floor", box);
+
+        Material mat = new Material(assetManager, Materials.LIGHTING);
+        Texture texture = assetManager.loadTexture("Textures/Level/default_grid.png");
+        texture.setWrap(Texture.WrapMode.Repeat);
+        mat.setTexture("DiffuseMap", texture);
+        floor.setMaterial(mat);
+
+        CollisionShape shape = CollisionShapeFactory.createMeshShape(floor);
+        RigidBodyControl rbc = new RigidBodyControl(shape, 0);
+        floor.addControl(rbc);
+        scene.attachChild(floor);
+        bullet.getPhysicsSpace().add(rbc);
+    }
+
+    private void setupLightsAndFilters() {
+        //Set the atmosphere of the world, lights, post processing.
         viewPort.setBackgroundColor(new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f));
 
         DirectionalLight sun = new DirectionalLight();
@@ -94,11 +129,7 @@ public class Test_Crowd extends SimpleApplication {
     }
 
     private void setupCamera() {
-        // disable the default 1st-person flyCam!
-        //flyCam.setEnabled(false);
-
         Node target = new Node("MainCamera");
-        //target.move(0, 1, 0);
 
         ChaseCameraAppState chaseCam = new ChaseCameraAppState();
         chaseCam.setTarget(target);
@@ -112,6 +143,20 @@ public class Test_Crowd extends SimpleApplication {
         chaseCam.setMinVerticalRotation(-FastMath.HALF_PI);
         chaseCam.setRotationSpeed(3);
         chaseCam.setDefaultVerticalRotation(0.3f);
+    }
+
+    private void setupInputKeys() {
+    	
+        inputManager.addMapping("TOGGLE_PHYSX_DEBUG", new KeyTrigger(KeyInput.KEY_0));
+        inputManager.addListener(new ActionListener() {
+            @Override
+            public void onAction(String name, boolean isPressed, float tpf) {
+                if (isPressed) {
+                    boolean debugEnabled = bullet.isDebugEnabled();
+                    bullet.setDebugEnabled(!debugEnabled);
+                }
+            }
+        }, "TOGGLE_PHYSX_DEBUG");
     }
 
 }
