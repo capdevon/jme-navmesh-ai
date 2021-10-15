@@ -17,24 +17,17 @@ import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.bounding.BoundingBox;
-import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
-import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.collision.CollisionResults;
-import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.material.Material;
-import com.jme3.material.Materials;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.recast4j.Detour.Crowd.CrowdConfig;
 import com.jme3.recast4j.Detour.Crowd.CrowdManagerAppState;
@@ -46,18 +39,16 @@ import com.jme3.recast4j.demo.controls.Animator;
 import com.jme3.recast4j.demo.controls.CrowdControl;
 import com.jme3.recast4j.demo.controls.CrowdDebugControl;
 import com.jme3.recast4j.demo.utils.Circle;
+import com.jme3.recast4j.demo.utils.MainCamera;
 import com.jme3.recast4j.editor.NavMeshBuildSettings;
 import com.jme3.recast4j.editor.SampleAreaModifications;
 import com.jme3.recast4j.editor.builder.TileNavMeshBuilder;
 import com.jme3.recast4j.geom.JmeGeomProviderBuilder;
 import com.jme3.recast4j.geom.JmeInputGeomProvider;
-import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import com.jme3.scene.shape.Box;
-import com.jme3.texture.Texture;
 
 /**
  * 
@@ -69,17 +60,13 @@ public class CrowdState extends AbstractNavState {
 
     private NavMesh navMesh;
     private JmeCrowd jmeCrowd;
-
-    private Node worldMap = new Node("worldMap");
-    private Node npcsNode = new Node("npcs");
+    private Node worldMap;
 
     @Override
     protected void initialize(Application app) {
     	super.initialize(app);
 
-        worldMap.attachChild(createFloor());
-        rootNode.attachChild(worldMap);
-        rootNode.attachChild(npcsNode);
+        worldMap = (Node) rootNode.getChild("MainScene");
 
         buildTiled();
         buildCrowd();
@@ -88,19 +75,24 @@ public class CrowdState extends AbstractNavState {
     }
 
     @Override
-    protected void cleanup(Application app) {}
+    protected void cleanup(Application app) {
+        // TODO Auto-generated method stub
+    }
 
     @Override
-    protected void onEnable() {}
+    protected void onEnable() {
+        // TODO Auto-generated method stub
+    }
 
     @Override
-    protected void onDisable() {}
+    protected void onDisable() {
+        // TODO Auto-generated method stub
+    }
 
     private void initKeys() {
         inputManager.addMapping("CROWD_PICK", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
         //inputManager.addMapping("CROWD_PICK", new KeyTrigger(KeyInput.KEY_LSHIFT));
-        inputManager.addMapping("TOGGLE_PHYSX_DEBUG", new KeyTrigger(KeyInput.KEY_0));
-        inputManager.addListener(actionListener, "CROWD_PICK", "TOGGLE_PHYSX_DEBUG");
+        inputManager.addListener(actionListener, "CROWD_PICK");
     }
 
     private ActionListener actionListener = new ActionListener() {
@@ -113,9 +105,6 @@ public class CrowdState extends AbstractNavState {
                     pathViewer.putBox(ColorRGBA.Yellow, locOnMap);
                     setTarget(locOnMap);
                 } 
-            } else if (name.equals("TOGGLE_PHYSX_DEBUG") && !keyPressed) {
-                boolean debugEnabled = getState(BulletAppState.class).isDebugEnabled();
-                getState(BulletAppState.class).setDebugEnabled(!debugEnabled);
             }
         }
     };
@@ -139,7 +128,7 @@ public class CrowdState extends AbstractNavState {
      * @return The Location on the Map
      */
     private Vector3f getLocationOnMap() {
-        Ray ray = screenPointToRay(camera, inputManager.getCursorPosition());
+        Ray ray = MainCamera.screenPointToRay(camera, inputManager.getCursorPosition());
         CollisionResults collResults = new CollisionResults();
         worldMap.collideWith(ray, collResults);
 
@@ -150,45 +139,15 @@ public class CrowdState extends AbstractNavState {
         }
     }
 
-    private Ray screenPointToRay(Camera camera, Vector2f click2d) {
-        // Convert screen click to 3d position
-        Vector3f click3d = camera.getWorldCoordinates(new Vector2f(click2d), 0f).clone();
-        Vector3f dir = camera.getWorldCoordinates(new Vector2f(click2d), 1f).subtractLocal(click3d).normalizeLocal();
-        // Aim the ray from the clicked spot forwards.
-        Ray ray = new Ray(click3d, dir);
-        return ray;
-    }
-
-    private Geometry createFloor() {
-        Box box = new Box(40f, .1f, 40f);
-        box.scaleTextureCoordinates(new Vector2f(10, 10)); //5x5
-        Geometry geo = new Geometry("Colored Box", box);
-
-        //Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        //mat.setBoolean("UseMaterialColors", true);
-        //mat.setColor("Ambient", ColorRGBA.LightGray);
-        //mat.setColor("Diffuse", ColorRGBA.LightGray);
-
-        Material mat = new Material(assetManager, Materials.LIGHTING);
-        Texture texture = assetManager.loadTexture("Textures/Level/default_grid.png");
-        texture.setWrap(Texture.WrapMode.Repeat);
-        mat.setTexture("DiffuseMap", texture);
-
-        geo.setMaterial(mat);
-
-        CollisionShape shape = CollisionShapeFactory.createMeshShape(geo);
-        RigidBodyControl rgb = new RigidBodyControl(shape, 0);
-        geo.addControl(rgb);
-        getPhysicsSpace().add(rgb);
-
-        return geo;
-    }
-
     private void buildTiled() {
         JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
         NavMeshBuildSettings s = new NavMeshBuildSettings();
         s.agentHeight = m_agentHeight;
         s.agentRadius = m_agentRadius;
+        s.cellSize = 0.1f;
+        s.cellHeight = 0.1f;
+        s.detailSampleDist = 6f;
+        s.detailSampleMaxError = 6f;
         s.tiled = true;
 
         System.out.println("Building NavMesh... Please wait");
@@ -218,7 +177,7 @@ public class CrowdState extends AbstractNavState {
     private void loadNavMesh(String fileName) {
         try {
             File f = new File(fileName);
-            System.out.println("Reading NavMesh=" + f.getAbsolutePath());
+            System.out.println("Loading NavMesh=" + f.getAbsolutePath());
             int maxVertsPerPoly = 3;
 
             // Read in saved NavMesh.
@@ -231,6 +190,9 @@ public class CrowdState extends AbstractNavState {
     }
     
     private void buildAgentGrid() {
+    	
+        Node npcsNode = new Node("npcs");
+        rootNode.attachChild(npcsNode);
 
         //addAgent(createModel("Agent1", new Vector3f(-5, 0, 0), npcsNode));
         //addAgent(createModel("Agent2", new Vector3f(-4, 0, -1), npcsNode));
@@ -269,6 +231,7 @@ public class CrowdState extends AbstractNavState {
         jmeCrowd = new SimpleCrowd(config, navMesh, new DefaultQueryFilter(includeFlags, excludeFlags, areaCost));
         
         // Add to CrowdManager.
+        logger.info("usePhysics={}", usePhysics);
         jmeCrowd.setMovementType(usePhysics ? MovementType.PHYSICS_CHARACTER : MovementType.SPATIAL);
         getState(CrowdManagerAppState.class).addCrowd(jmeCrowd);
     }
@@ -277,8 +240,8 @@ public class CrowdState extends AbstractNavState {
     // Crowd Agent Settings
     boolean usePhysics = true;
     float m_agentRadius = 0.3f;
-    float m_agentHeight = 1.7f;
-    float m_separationWeight = 2f;
+    float m_agentHeight = 1.6f;
+    float m_separationWeight = 1f;
     int m_obstacleAvoidanceType = ObstacleAvoidanceType.GoodQuality.id;
 
     // flags
