@@ -39,7 +39,7 @@ The individual projects and their respective requirements used in this demo can 
 
 # 
 Crowd Agent WIP
-![Screenshot](images/crowd-agent-sim.jpg)
+![Screenshot](images/crowd-agent-2.jpg)
 ⭐NEW Editor
 ![Screenshot](images/editor-2.jpg)
 Solo NavMesh
