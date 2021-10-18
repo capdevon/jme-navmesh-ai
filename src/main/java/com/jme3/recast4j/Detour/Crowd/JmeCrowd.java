@@ -185,6 +185,9 @@ public class JmeCrowd extends Crowd {
         Spatial sp = characterMap.get(agent.idx);
 
         switch (movementType) {
+            case NONE:
+                break;
+
             case CUSTOM:
                 moveFunction.applyMovement(agent, newPos, velocity);
                 break;
@@ -207,9 +210,9 @@ public class JmeCrowd extends Crowd {
                     bcc.setWalkDirection(Vector3f.ZERO);
                 }
                 break;
-                
-			default:
-				logger.warn("MovementType not supported");
+
+            default:
+                logger.warn("MovementType not supported: " + movementType);
         }
 
         if (velocity != null) {
