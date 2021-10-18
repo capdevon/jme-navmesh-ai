@@ -6,9 +6,12 @@ import java.util.function.IntFunction;
 
 import org.recast4j.detour.DefaultQueryFilter;
 import org.recast4j.detour.FindNearestPolyResult;
+import org.recast4j.detour.FindRandomPointResult;
 import org.recast4j.detour.NavMesh;
 import org.recast4j.detour.NavMeshQuery;
 import org.recast4j.detour.QueryFilter;
+import org.recast4j.detour.Result;
+import org.recast4j.detour.NavMeshQuery.FRand;
 import org.recast4j.detour.crowd.Crowd;
 import org.recast4j.detour.crowd.CrowdAgent;
 import org.recast4j.detour.crowd.CrowdAgent.CrowdAgentState;
@@ -182,9 +185,6 @@ public class JmeCrowd extends Crowd {
         Spatial sp = characterMap.get(agent.idx);
 
         switch (movementType) {
-            case NONE:
-                break;
-
             case CUSTOM:
                 moveFunction.applyMovement(agent, newPos, velocity);
                 break;
@@ -194,8 +194,8 @@ public class JmeCrowd extends Crowd {
                     Quaternion rotation = new Quaternion();
                     rotation.lookAt(velocity.normalize(), Vector3f.UNIT_Y);
                     sp.setLocalRotation(rotation);
-                    sp.setLocalTranslation(newPos);
                 }
+                sp.setLocalTranslation(newPos);
                 break;
 
             case PHYSICS_CHARACTER:
@@ -207,9 +207,9 @@ public class JmeCrowd extends Crowd {
                     bcc.setWalkDirection(Vector3f.ZERO);
                 }
                 break;
-
-            default:
-                throw new IllegalArgumentException("Unknown MovementType: " + movementType);
+                
+			default:
+				logger.warn("MovementType not supported");
         }
 
         if (velocity != null) {
@@ -264,6 +264,35 @@ public class JmeCrowd extends Crowd {
         // Find nearest point on navmesh and set move request to that location.
         FindNearestPolyResult nearestPoly = m_navQuery.findNearestPoly(pos, halfExtents, filter).result;
         return requestMoveTarget(agent.idx, nearestPoly.getNearestRef(), nearestPoly.getNearestPos());
+    }
+    
+    /**
+     * Finds the closest point on NavMesh within specified range.<br/>
+     * Submits a new move request for the specified agent.
+     * 
+     * @param agent  The agent
+     * @param center The origin of the sample query.
+     * @param range  Sample within this distance from center.
+     * @return True if a nearest point is found.
+     */
+    public boolean randomPoint(CrowdAgent agent, Vector3f center, float range) {
+
+        QueryFilter filter = getFilter(agent.params.queryFilterType);
+        float[] halfExtents = getQueryExtents();
+        float[] centerPos = DetourUtils.toFloatArray(center);
+
+        Result<FindNearestPolyResult> nearestPoly = m_navQuery.findNearestPoly(agent.npos, halfExtents, filter);
+        if (nearestPoly.succeeded()) {
+
+            Result<FindRandomPointResult> rpResult = m_navQuery.findRandomPointAroundCircle(
+                nearestPoly.result.getNearestRef(), centerPos, range, filter, new FRand());
+
+            if (rpResult.succeeded()) {
+                return requestMoveTarget(agent.idx, rpResult.result.getRandomRef(), rpResult.result.getRandomPt()); 
+            }
+        }
+
+        return false;
     }
     
     public boolean hasWalkingState(CrowdAgent agent) {
