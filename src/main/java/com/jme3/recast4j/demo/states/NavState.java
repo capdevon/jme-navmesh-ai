@@ -54,8 +54,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.recast4j.detour.DefaultQueryFilter;
 import org.recast4j.detour.DetourCommon;
 import org.recast4j.detour.FindNearestPolyResult;
@@ -106,9 +104,11 @@ import org.recast4j.recast.geom.TriMesh;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jme3.anim.util.AnimMigrationUtils;
 import com.jme3.animation.Bone;
 import com.jme3.animation.SkeletonControl;
 import com.jme3.bounding.BoundingBox;
+import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.collision.CollisionResults;
 import com.jme3.input.MouseInput;
 import com.jme3.input.event.MouseButtonEvent;
@@ -142,6 +142,7 @@ import com.jme3.recast4j.geom.NavMeshBuildSource;
 import com.jme3.recast4j.geom.NavMeshBuilderProgressListener;
 import com.jme3.recast4j.geom.OffMeshLink;
 import com.jme3.renderer.Camera;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.SceneGraphVisitorAdapter;
@@ -157,29 +158,22 @@ import com.simsilica.lemur.event.MouseEventControl;
 public class NavState extends AbstractNavState {
 
     private static final Logger LOG = LoggerFactory.getLogger(NavState.class.getName());
+    
+    private static final String MODEL_NAME = "jaime";
 
     private Node worldMap, doorNode, offMeshCon;
     private NavMesh navMesh;
     private NavMeshQuery navQuery;
-    private List<Node> characters;
     private Map<String, OffMeshConnection> mapOffMeshCon;
     
     float agentRadius = 0.3f;
     float agentHeight = 1.7f;
     float agentMaxClimb = 0.3f; // > 2*ch
-    float cellSize = 0.1f; 		// cs=r/2
+    float cellSize = 0.1f; 	// cs=r/2
     float cellHeight = 0.1f; 	// ch=cs/2 but not < .1f
 
     public NavState() {
-        characters = new ArrayList<>(64);
         mapOffMeshCon = new HashMap<>();
-    }
-
-    /**
-     * @return the characters
-     */
-    public List<Node> getCharacters() {
-        return characters;
     }
     
     @Override
@@ -194,11 +188,11 @@ public class NavState extends AbstractNavState {
 //        //Original implementation using jme3-recast4j methods.
 //        buildSolo();
 //        //Solo build using jme3-recast4j methods. Implements area and flag types.
-//        buildSoloModified();
+        buildSoloModified();
 //        //Solo build using recast4j methods. Implements area and flag types.
 //        buildSoloRecast4j();
 //        //Tile build using recast4j methods. Implements area and flag types plus offmesh connections.
-        buildTiledRecast4j();
+//        buildTiledRecast4j();
 //        buildTileCache();
         
         long buildTime = (System.currentTimeMillis() - startTime);
@@ -211,14 +205,11 @@ public class NavState extends AbstractNavState {
     }
     
     @Override
-    protected void onDisable() {
-        for (Node character: characters) {
-            NavMeshAgent agent = character.getControl(NavMeshAgent.class);
-            if (agent != null) {
-                character.removeControl(agent);
-            }
-        }
-    }
+	protected void onDisable() {
+		Spatial jaime = rootNode.getChild(MODEL_NAME);
+		NavMeshAgent agent = jaime.getControl(NavMeshAgent.class);
+		jaime.removeControl(agent);
+	}
 
     private void setupDoors() {
         //If the doorNode in DemoApplication is not null, we will create doors.
@@ -283,7 +274,7 @@ public class NavState extends AbstractNavState {
                 }
 
                 //The filter to use for this search.
-                DefaultQueryFilter filter = new DefaultQueryFilter();
+                DefaultQueryFilter filter = new DefaultQueryFilter(); //BetterDefaultQueryFilter();
 
                 //Limit the search to only door flags.
                 int includeFlags = POLYFLAGS_DOOR;
@@ -408,18 +399,27 @@ public class NavState extends AbstractNavState {
             }
         });
     }
+    
+    private Node loadJaime() {
+        Spatial model = assetManager.loadModel("Models/Jaime/Jaime.j3o");
+        Node npc = (Node) AnimMigrationUtils.migrate(model);
+        npc.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+        npc.setName(MODEL_NAME);
+        //npc.setLocalTranslation(-5f, 5, 0);
+        npc.addControl(new BetterCharacterControl(agentRadius, agentHeight, 20f));
+
+        getPhysicsSpace().add(npc);
+        rootNode.attachChild(npc);
+
+        return npc;
+    }
 
     private void initWorldMouseListener() {
     	
-        if (getCharacters().size() > 1) {
-            System.out.println("WARN: No WorldMouseListener configured");
-            return;
-        }
-    	
-    	Node character = getCharacters().get(0);
-    	character.addControl(new Animator());
-    	character.addControl(new NavMeshAgent(navMesh, getApplication()));
-    	character.addControl(new PCControl());
+    	Node npc = loadJaime();
+    	npc.addControl(new Animator());
+    	npc.addControl(new NavMeshAgent(navMesh, getApplication()));
+    	npc.addControl(new PCControl());
     	
     	int includeFlags = POLYFLAGS_WALK | POLYFLAGS_DOOR | POLYFLAGS_SWIM | POLYFLAGS_JUMP;
         int excludeFlags = POLYFLAGS_DISABLED;
@@ -437,7 +437,7 @@ public class NavState extends AbstractNavState {
         filter.setAreaCost(POLYAREA_TYPE_GRASS,  2.0f);
         filter.setAreaCost(POLYAREA_TYPE_JUMP,   1.5f);
     	
-    	NavMeshAgent agent = character.getControl(NavMeshAgent.class);
+    	NavMeshAgent agent = npc.getControl(NavMeshAgent.class);
         agent.setQueryFilter(filter);
         
         MouseEventControl.addListenersToSpatial(worldMap, new DefaultMouseListener() {
@@ -450,7 +450,7 @@ public class NavState extends AbstractNavState {
                 if (event.getButtonIndex() == MouseInput.BUTTON_LEFT) {
 
                     Vector3f locOnMap = getLocationOnMap();
-                    System.out.println("Compute path from " + character.getWorldTranslation() + " to " + locOnMap);
+                    System.out.println("Compute path from " + npc.getWorldTranslation() + " to " + locOnMap);
                     
                     NavMeshPath navPath = new NavMeshPath();
                     agent.calculatePath(locOnMap, navPath);
@@ -459,7 +459,7 @@ public class NavState extends AbstractNavState {
                     	agent.setPath(navPath);
                     	
                     	float yOffset = .5f;
-                        pathViewer.putBox(ColorRGBA.Green, character.getWorldTranslation().add(0, yOffset, 0));
+                        pathViewer.putBox(ColorRGBA.Green, npc.getWorldTranslation().add(0, yOffset, 0));
                         pathViewer.putBox(ColorRGBA.Yellow, locOnMap.add(0, yOffset, 0));
                         
                     } else {
@@ -468,7 +468,7 @@ public class NavState extends AbstractNavState {
                 } else {
                 	NavMeshTool tool = new NavMeshTool(navMesh);
                 	NavMeshHit hit = new NavMeshHit();
-                	Vector3f sourcePos = character.getWorldTranslation();
+                	Vector3f sourcePos = npc.getWorldTranslation();
                 	Vector3f targetPos = getLocationOnMap();
                 	boolean blocked = tool.raycast(sourcePos, targetPos, hit, filter);
                 	pathViewer.putLine(!blocked ? ColorRGBA.Green : ColorRGBA.Red, sourcePos, targetPos);
@@ -525,8 +525,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(2.4f) 		// r*8
-                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withEdgeMaxLen(2.4f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
                 .withDetailSampleDistance(8.0f) // increase if exception
                 .withDetailSampleMaxError(8.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -590,8 +590,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(2.4f) 		// r*8
-                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withEdgeMaxLen(2.4f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
                 .withDetailSampleDistance(8.0f) // increase if exception
                 .withDetailSampleMaxError(8.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -665,8 +665,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(2.4f) 		// r*8
-                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withEdgeMaxLen(2.4f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
                 .withDetailSampleDistance(8.0f) // increase if exception
                 .withDetailSampleMaxError(8.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -827,8 +827,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(3.2f) 		// r*8
-                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withEdgeMaxLen(3.2f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
                 .withDetailSampleDistance(6.0f) // increase if exception
                 .withDetailSampleMaxError(6.0f) // increase if exception
                 .withVertsPerPoly(3)
@@ -919,8 +919,8 @@ public class NavState extends AbstractNavState {
                 .withCellHeight(cellHeight)
                 .withAgentMaxClimb(agentMaxClimb)
                 .withAgentMaxSlope(45f)
-                .withEdgeMaxLen(3.2f) 		// r*8
-                .withEdgeMaxError(1.3f) 	// 1.1 - 1.5
+                .withEdgeMaxLen(3.2f) 			// r*8
+                .withEdgeMaxError(1.3f) 		// 1.1 - 1.5
                 .withDetailSampleDistance(6.0f) // increase if exception
                 .withDetailSampleMaxError(6.0f) // increase if exception
                 .withVertsPerPoly(3)
