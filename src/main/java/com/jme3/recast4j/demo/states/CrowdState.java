@@ -15,6 +15,8 @@ import org.recast4j.detour.io.MeshSetWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jme3.anim.SkinningControl;
+import com.jme3.anim.util.AnimMigrationUtils;
 import com.jme3.app.Application;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
@@ -49,6 +51,7 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Box;
 
 /**
  * 
@@ -76,17 +79,17 @@ public class CrowdState extends AbstractNavState {
 
     @Override
     protected void cleanup(Application app) {
-        // TODO Auto-generated method stub
+    	// TODO Auto-generated method stub
     }
 
     @Override
     protected void onEnable() {
-        // TODO Auto-generated method stub
+    	// TODO Auto-generated method stub
     }
 
     @Override
     protected void onDisable() {
-        // TODO Auto-generated method stub
+    	// TODO Auto-generated method stub
     }
 
     private void initKeys() {
@@ -191,7 +194,7 @@ public class CrowdState extends AbstractNavState {
     
     private void buildAgentGrid() {
     	
-        Node npcsNode = new Node("npcs");
+    	Node npcsNode = new Node("npcs");
         rootNode.attachChild(npcsNode);
 
         //addAgent(createModel("Agent1", new Vector3f(-5, 0, 0), npcsNode));
@@ -303,29 +306,55 @@ public class CrowdState extends AbstractNavState {
         }
         return updateFlags;
     }
+    
+    private Spatial model;
+
+    private Spatial loadModel() {
+        /*
+         * Load the Jaime model and convert it 
+         * from the old animation system to the new one.
+         */
+        if (model == null) {
+            Spatial sp = assetManager.loadModel("Models/Jaime/Jaime.j3o");
+            model = AnimMigrationUtils.migrate(sp);
+
+            Box box = new Box(0.3f, 0.02f, 0.02f);
+            Geometry saber = new Geometry("saber", box);
+            saber.move(0.4f, 0.05f, 0.01f);
+            Material red = assetManager.loadMaterial("Common/Materials/RedColor.j3m");
+            saber.setMaterial(red);
+            /*
+             * Create an attachments node for Jaime's right hand,
+             * and attach the saber to that Node.
+             */
+            SkinningControl skeletonControl = model.getControl(SkinningControl.class);
+            Node n = skeletonControl.getAttachmentsNode("hand.R");
+            n.attachChild(saber);
+        }
+
+        return model.clone(false);
+    }
 
     private Node createModel(String name, Vector3f position, Node parent) {
 
-        //Load the spatial that will represent the agent.
-        Node model = (Node) assetManager.loadModel("Models/Jaime/Jaime.j3o");
-        model.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        model.setName(name);
+        Node npc = (Node) loadModel();
+        npc.setName(name);
         //Set translation prior to adding controls.
-        model.setLocalTranslation(position);
+        npc.setLocalTranslation(position);
         //Add agent to the scene.
-        parent.attachChild(model);
+        parent.attachChild(npc);
 
         if (usePhysics) {
-            model.addControl(new BetterCharacterControl(m_agentRadius, m_agentHeight, 20f));
-            getPhysicsSpace().add(model);
+            npc.addControl(new BetterCharacterControl(m_agentRadius, m_agentHeight, 20f));
+            getPhysicsSpace().add(npc);
 
         } else {
             RigidBodyControl rbc = createRigidBody(m_agentRadius, m_agentHeight);
-            model.addControl(rbc);
+            npc.addControl(rbc);
             getPhysicsSpace().add(rbc);
         }
-
-        return model;
+        
+        return npc;
     }
 
     private RigidBodyControl createRigidBody(float radius, float height) {
