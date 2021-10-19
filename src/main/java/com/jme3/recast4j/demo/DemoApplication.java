@@ -10,8 +10,12 @@ import com.jme3.app.StatsAppState;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.control.BetterCharacterControl;
+import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.bullet.util.CollisionShapeFactory;
+import com.jme3.input.KeyInput;
+import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -35,10 +39,13 @@ import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture2D;
 import com.jme3.water.WaterFilter;
 
-
+/**
+ * 
+ * @author capdevon
+ */
 public class DemoApplication extends SimpleApplication {
 	
-    private static final Logger LOG = LoggerFactory.getLogger(DemoApplication.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(DemoApplication.class.getName());
     
     private final Quaternion YAW180 = new Quaternion().fromAngleAxis(FastMath.PI, new Vector3f(0,1,0));
     private Node worldMap;
@@ -75,16 +82,31 @@ public class DemoApplication extends SimpleApplication {
     public void simpleInitApp() {  
         initPhysics();
         setupWorld();
+        addLighting();
 //        loadNavMeshBox();
 //        loadNavMeshDune();
-        loadJaime();
         loadNavMeshLevel();
 //        loadPond();
 //        loadPondSurface();
 //        loadCrate();
         
-        cam.setLocation(new Vector3f(0f, 40f, 0f));
-        cam.lookAtDirection(new Vector3f(0f, -1f, 0f), Vector3f.UNIT_Z);
+        configureInput();
+    }
+    
+    /**
+     * Configure keyboard input during startup.
+     */
+    private void configureInput() {
+        inputManager.addMapping("TOGGLE_PHYSX_DEBUG", new KeyTrigger(KeyInput.KEY_0));
+        inputManager.addListener(new ActionListener() {
+            @Override
+            public void onAction(String name, boolean isPressed, float tpf) {
+                if (isPressed) {
+                    boolean debugEnabled = bullet.isDebugEnabled();
+                    bullet.setDebugEnabled(!debugEnabled);
+                }
+            }
+        }, "TOGGLE_PHYSX_DEBUG");
     }
     
     private void initPhysics() {
@@ -96,16 +118,22 @@ public class DemoApplication extends SimpleApplication {
     }
     
     private void setupWorld() {
-    	//Set the atmosphere of the world, lights, camera, post processing.
-    	viewPort.setBackgroundColor(new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f));
-    	
         worldMap = new Node("worldmap");
         worldMap.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         rootNode.attachChild(worldMap);
 
         offMeshCon = new Node("offMeshCon");
         rootNode.attachChild(offMeshCon);
-        
+    }
+    
+    /**
+     * Add lighting and shadows.
+     */
+    private void addLighting() {
+        //Set the atmosphere of the world, lights, and post processing.
+        ColorRGBA skyColor = new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f);
+        viewPort.setBackgroundColor(skyColor);
+
         DirectionalLight sun = new DirectionalLight();
         sun.setDirection(new Vector3f(-0.2f, -1, -0.3f).normalizeLocal());
         sun.setName("sun");
@@ -116,44 +144,36 @@ public class DemoApplication extends SimpleApplication {
         ambient.setName("ambient");
         rootNode.addLight(ambient);
 
-        DirectionalLightShadowFilter shadowFilter = new DirectionalLightShadowFilter(assetManager, 4096, 2);
-        shadowFilter.setLight(sun);
-        shadowFilter.setShadowIntensity(0.4f);
-        shadowFilter.setShadowZExtend(256);
+        DirectionalLightShadowFilter dlsf = new DirectionalLightShadowFilter(assetManager, 4096, 2);
+        dlsf.setLight(sun);
+        dlsf.setShadowIntensity(0.4f);
+        dlsf.setShadowZExtend(256);
 
         FXAAFilter fxaa = new FXAAFilter();
 
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-        fpp.addFilter(shadowFilter);
+        fpp.addFilter(dlsf);
         fpp.addFilter(fxaa);
-//        fpp.addFilter(setupWater());
+        //fpp.addFilter(setupWater());
         viewPort.addProcessor(fpp);
     }
     
-    private void addAJaime(int idx) {
-        Node tmp = (Node)assetManager.loadModel("Models/Jaime/Jaime.j3o");
-        tmp.setLocalTranslation(idx * 0.5f, 5f * 0f, (idx % 2 != 0 ? 1f : 0f));
-        //tmp.addControl(new BetterCharacterControl(0.3f, 1.5f, 20f)); // values taken from recast defaults
-
-        //tmp.addControl(new PhysicsAgentControl());
-        //bullet.getPhysicsSpace().add(tmp);
-        rootNode.attachChild(tmp);
-        stateManager.getState(NavState.class).getCharacters().add(tmp);
-    }
-
     private void loadNavMeshBox() {
+
+        Box box = new Box(8f, 1f, 8f);
+        Geometry floor = new Geometry("Floor", box);
         Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         mat.setColor("Diffuse", ColorRGBA.Red);
         mat.setColor("Ambient", ColorRGBA.White);
         mat.setBoolean("UseMaterialColors", true);
-        
-        Geometry worldMapGeo = new Geometry("", new Box(8f, 1f, 8f));
-        worldMapGeo.setMaterial(mat);
-        worldMapGeo.addControl(new RigidBodyControl(0f));
-        
-        bullet.getPhysicsSpace().add(worldMapGeo);
-        
-        worldMap.attachChild(worldMapGeo);
+        floor.setMaterial(mat);
+
+        CollisionShape shape = CollisionShapeFactory.createMeshShape(floor);
+        RigidBodyControl rbc = new RigidBodyControl(shape, 0);
+        floor.addControl(rbc);
+
+        bullet.getPhysicsSpace().add(rbc);
+        worldMap.attachChild(floor);
     }
 
 //    private void loadNavMeshDune() {
@@ -274,20 +294,6 @@ public class DemoApplication extends SimpleApplication {
         doorNode.attachChild(door);
     }      
         
-    private void loadJaime() {
-        Node player = (Node) assetManager.loadModel("Models/Jaime/Jaime.j3o");
-        player.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        player.setName("jaime");
-//        player.setLocalTranslation(-5f, 5,0);
-        player.addControl(new BetterCharacterControl(0.3f, 1.5f, 20f)); // values taken from recast defaults
-//        player.addControl(new CrowdBCC(0.3f, 1.5f, 20f)); // values taken from recast defaults
-//        player.addControl(new PhysicsAgentControl());
-        
-        bullet.getPhysicsSpace().add(player);
-        stateManager.getState(NavState.class).getCharacters().add(player);
-        rootNode.attachChild(player);
-    }
-    
     private void loadFish() {
         Node fish = (Node) assetManager.loadModel("Models/Fish/Fish1.j3o");
         fish.setName("fish");
@@ -313,8 +319,9 @@ public class DemoApplication extends SimpleApplication {
     private void loadPondSurface() {
         Node surface = (Node) assetManager.loadModel("Models/Pond/Water/water_surface.mesh.j3o");
         surface.setName("water");
-        Vector3f localTranslation = surface.getLocalTranslation();
-        surface.setLocalTranslation(localTranslation.x, 4f, localTranslation.z);
+        Vector3f pos = surface.getLocalTranslation();
+        surface.setLocalTranslation(pos.x, 4f, pos.z);
+        
         surface.addControl(new RigidBodyControl(0));
         bullet.getPhysicsSpace().add(surface);
         worldMap.attachChild(surface);
@@ -329,6 +336,7 @@ public class DemoApplication extends SimpleApplication {
         Node crate = (Node) assetManager.loadModel("Models/Crate/crate.mesh.j3o");
         crate.setName("crate");
         crate.setLocalTranslation(4.0f, 0.0f, 0.0f);
+        
         crate.addControl(new RigidBodyControl(0));
         bullet.getPhysicsSpace().add(crate);
         worldMap.attachChild(crate);
