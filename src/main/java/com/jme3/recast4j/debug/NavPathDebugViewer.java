@@ -86,6 +86,7 @@ public class NavPathDebugViewer {
      * @param position The position where the box will be placed
      * @return the box Geometry
      */
+    @Deprecated
     public Geometry putBox(ColorRGBA color, Vector3f position) {
         float size = 0.15f;
         Geometry result = new Geometry("Box", new Box(size, size, size));
@@ -105,6 +106,7 @@ public class NavPathDebugViewer {
      * @param to    The position where the line is finished.
      * @return the line Geometry
      */
+    @Deprecated
     public Geometry putLine(ColorRGBA color, Vector3f from, Vector3f to) {
         Geometry result = new Geometry("Line", new Line(from, to));
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
