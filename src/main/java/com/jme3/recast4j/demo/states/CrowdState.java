@@ -104,8 +104,8 @@ public class CrowdState extends AbstractNavState {
             if (name.equals("CROWD_PICK") && !keyPressed) {
                 Vector3f locOnMap = getLocationOnMap();
                 if (locOnMap != null) {
-                    pathViewer.clearPath();
-                    pathViewer.putBox(ColorRGBA.Yellow, locOnMap);
+                	clearDebug();
+                    drawBox(ColorRGBA.Yellow, locOnMap);
                     setTarget(locOnMap);
                 } 
             }
@@ -267,6 +267,7 @@ public class CrowdState extends AbstractNavState {
 
             model.addControl(new Animator());
             model.addControl(new CrowdControl(agent));
+            // Add the debug control and set its visual and verbose state.
             model.addControl(new CrowdDebugControl(agent));
         }
     }
