@@ -56,5 +56,4 @@ public class SimpleCrowd extends JmeCrowd {
         setObstacleAvoidanceParams(ObstacleAvoidanceType.HighQuality.id, params);
     }
 
-
 }
