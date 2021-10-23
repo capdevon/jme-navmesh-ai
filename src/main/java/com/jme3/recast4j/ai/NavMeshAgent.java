@@ -219,7 +219,7 @@ public class NavMeshAgent extends AdapterControl {
     }
 
     /**
-     * Set the destination of the agent in world-space units.
+     * Sets or updates the destination thus triggering the calculation for a new path.
      * <p>
      * Note that the path may not become available until after a few frames later.
      * While the path is being computed, pathPending will be true. If a valid path
@@ -346,6 +346,18 @@ public class NavMeshAgent extends AdapterControl {
      */
     public boolean samplePosition(Vector3f center, float range, Vector3f result) {
         return navtool.randomPoint(center, range, result, filter);
+    }
+    
+    /**
+     * Trace a straight path towards a target position 
+     * in the NavMesh without moving the agent.
+     * 
+     * @param targetPosition The desired end position of movement.
+     * @param hit            Properties of the obstacle detected by the ray (if any).
+     * @return True if there is an obstacle between the agent and the target position, otherwise false.
+     */
+    public boolean raycast(Vector3f targetPosition, NavMeshHit hit) {
+        return navtool.raycast(spatial.getWorldTranslation(), targetPosition, hit, filter);
     }
 
 }
