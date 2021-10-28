@@ -1,5 +1,7 @@
 # jme3-recast4j-test-1
 This project was born with the aim of creating a bridge API between the recast4j library and jMonkeyEngine.
+
+This project optimizes and adds new tools and features to the original project [jme3-recast4j](https://github.com/MeFisto94/jme3-recast4j-demo/wiki)
  
 ⚠️ This library is still under active development! 
 Follow me to stay updated on the improvements I am working on.
@@ -13,6 +15,9 @@ Write me your suggestions or report any bugs.
 - NavMeshTools - Use the NavMesh class to perform spatial queries such as pathfinding and walkability tests.
 - NavMeshBuildMarkup allows you to control how certain objects are treated during the NavMesh build process, specifically when collecting sources for building.
 - NavMeshBuildSettings allows you to specify a collection of settings which describe the dimensions and limitations of a particular agent type.
+- StraightPathOptions
+- NavMeshDebugViewer
+- NavPathDebugViewer
 - SoloNavMeshBuilder
 - TileNavMeshBuilder
 - IORecast to export **NavMesh** in .obj format.
@@ -28,7 +33,6 @@ The individual projects and their respective requirements used in this demo can 
 - java 11+
 
 # Documentation
-- [jme3-recast4j](https://github.com/MeFisto94/jme3-recast4j-demo/wiki)
 - [Recast Navigation for JME](https://wiki.jmonkeyengine.org/docs/3.4/contributions/ai/recast.html)
 - [Building Process Slides](https://github.com/capdevon/jme3-recast4j-test-1/blob/main/docs/MikkoMononen_RecastSlides.pdf) - A series of slides that explain the build process of Recast.
 
