@@ -68,7 +68,7 @@ dependencies {
     
     // BasicGame doesn't use physics. If your game needs physics, select either:
     //    1. Minie
-    implementation 'com.github.stephengold:Minie:4.3.0'
+    implementation 'com.github.stephengold:Minie:4.5.0+big3'
     //    2. jme3-jbullet
     //implementation 'org.jmonkeyengine:jme3-jbullet:' + jmeVersion
 
