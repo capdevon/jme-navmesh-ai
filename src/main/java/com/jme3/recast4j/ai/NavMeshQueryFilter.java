@@ -144,7 +144,7 @@ public class NavMeshQueryFilter implements QueryFilter {
      */
     public float getAreaCost(int areaIndex) {
         if (areaIndex < 0 || areaIndex >= m_areaCost.length) {
-            String msg = String.format("The valid range is [0:{0}]", m_areaCost.length - 1);
+            String msg = String.format("The valid range is [0:%d]", m_areaCost.length - 1);
             throw new ArrayIndexOutOfBoundsException(msg);
         }
         return m_areaCost[areaIndex];
