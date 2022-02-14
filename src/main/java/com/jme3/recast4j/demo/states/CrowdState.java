@@ -54,7 +54,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 
 /**
- * 
+ *
  * @author capdevon
  */
 public class CrowdState extends AbstractNavState {
@@ -67,7 +67,7 @@ public class CrowdState extends AbstractNavState {
 
     @Override
     protected void initialize(Application app) {
-    	super.initialize(app);
+        super.initialize(app);
 
         worldMap = (Node) rootNode.getChild("MainScene");
 
@@ -79,17 +79,17 @@ public class CrowdState extends AbstractNavState {
 
     @Override
     protected void cleanup(Application app) {
-    	// TODO Auto-generated method stub
+        // TODO Auto-generated method stub
     }
 
     @Override
     protected void onEnable() {
-    	// TODO Auto-generated method stub
+        // TODO Auto-generated method stub
     }
 
     @Override
     protected void onDisable() {
-    	// TODO Auto-generated method stub
+        // TODO Auto-generated method stub
     }
 
     private void initKeys() {
@@ -104,30 +104,30 @@ public class CrowdState extends AbstractNavState {
             if (name.equals("CROWD_PICK") && !keyPressed) {
                 Vector3f locOnMap = getLocationOnMap();
                 if (locOnMap != null) {
-                	clearDebug();
+                    clearDebug();
                     drawBox(ColorRGBA.Yellow, locOnMap);
                     setTarget(locOnMap);
-                } 
+                }
             }
         }
     };
-    
+
     /**
      * Set the target for the crowd.
-     * 
+     *
      * @param target The target to set.
      */
     public void setTarget(Vector3f target) {
-    	jmeCrowd.setMoveTarget(target);
+        jmeCrowd.setMoveTarget(target);
     }
 
     /**
-     * Returns the Location on the Map which is currently under the Cursor. For this
-     * we use the Camera to project the point onto the near and far plane (because
-     * we don'from have the depth information [map height]). Then we can use this
-     * information to do a raycast, ideally the world is in between those planes and
-     * we hit it at the correct place.
-     * 
+     * Returns the Location on the Map which is currently under the Cursor. For
+     * this we use the Camera to project the point onto the near and far plane
+     * (because we don'from have the depth information [map height]). Then we
+     * can use this information to do a raycast, ideally the world is in between
+     * those planes and we hit it at the correct place.
+     *
      * @return The Location on the Map
      */
     private Vector3f getLocationOnMap() {
@@ -154,7 +154,7 @@ public class CrowdState extends AbstractNavState {
         s.tiled = true;
 
         System.out.println("Building NavMesh... Please wait");
-        
+
         TileNavMeshBuilder tileBuilder = new TileNavMeshBuilder();
         navMesh = tileBuilder.build(m_geom, s);
 
@@ -191,16 +191,15 @@ public class CrowdState extends AbstractNavState {
             e.printStackTrace();
         }
     }
-    
+
     private void buildAgentGrid() {
-    	
-    	Node npcsNode = new Node("npcs");
+
+        Node npcsNode = new Node("npcs");
         rootNode.attachChild(npcsNode);
 
         //addAgent(createModel("Agent1", new Vector3f(-5, 0, 0), npcsNode));
         //addAgent(createModel("Agent2", new Vector3f(-4, 0, -1), npcsNode));
         //addAgent(createModel("Agent3", new Vector3f(-3, 0, 0), npcsNode));
-
         int size = 3;
         Vector3f center = new Vector3f(0, 0, 0);
         float distance = 1;
@@ -228,11 +227,11 @@ public class CrowdState extends AbstractNavState {
 
         int includeFlags = SampleAreaModifications.SAMPLE_POLYFLAGS_ALL;
         int excludeFlags = SampleAreaModifications.SAMPLE_POLYFLAGS_DISABLED;
-        float[] areaCost = new float[] { 1f, 10f, 1f, 1f, 2f, 1.5f };
+        float[] areaCost = new float[]{1f, 10f, 1f, 1f, 2f, 1.5f};
 
         CrowdConfig config = new CrowdConfig(m_agentRadius);
         jmeCrowd = new SimpleCrowd(config, navMesh, new DefaultQueryFilter(includeFlags, excludeFlags, areaCost));
-        
+
         // Add to CrowdManager.
         logger.info("usePhysics={}", usePhysics);
         jmeCrowd.setMovementType(usePhysics ? MovementType.PHYSICS_CHARACTER : MovementType.SPATIAL);
@@ -289,7 +288,7 @@ public class CrowdState extends AbstractNavState {
 
     private int getUpdateFlags() {
         int updateFlags = 0;
-        
+
         if (m_anticipateTurns) {
             updateFlags |= CrowdAgentParams.DT_CROWD_ANTICIPATE_TURNS;
         }
@@ -307,7 +306,7 @@ public class CrowdState extends AbstractNavState {
         }
         return updateFlags;
     }
-    
+
     private Spatial model;
 
     private Spatial loadModel() {
@@ -354,7 +353,7 @@ public class CrowdState extends AbstractNavState {
             npc.addControl(rbc);
             getPhysicsSpace().add(rbc);
         }
-        
+
         return npc;
     }
 
@@ -384,13 +383,12 @@ public class CrowdState extends AbstractNavState {
         float z = bounds.getZExtent();
         float y = bounds.getYExtent();
 
-        float xz = x < z ? x : z;
-        float radius = xz / 2;
+        float radius = Math.max(x, z) / 2;
         float height = y * 2;
 
-        return new float[] { radius, height };
+        return new float[]{radius, height};
     }
-    
+
     private Geometry createCircle(String name, float radius, ColorRGBA color) {
         Circle circle = new Circle(Vector3f.ZERO, radius, 32);
         Geometry geo = new Geometry(name, circle);
