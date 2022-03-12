@@ -62,7 +62,7 @@ public class DoorSwingControl extends AbstractControl implements AnimEventListen
         }
 
         if (animChannel == null) {
-            AnimControl animControl = GameObject.getComponentInChild(spatial, AnimControl.class);
+            AnimControl animControl = GameObject.getComponentInChildren(spatial, AnimControl.class);
             Objects.requireNonNull(animControl, "AnimControl not found: " + spatial);
 
             animChannel = animControl.createChannel();

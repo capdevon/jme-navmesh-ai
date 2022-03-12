@@ -22,12 +22,12 @@ import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Node;
 
 /**
- * 
+ *
  * @author capdevon
  */
 public class NavMeshGeneratorState extends BaseAppState {
 
-    private static final Logger LOG = Logger.getLogger(NavMeshGeneratorState.class.getName());
+    private static final Logger logger = Logger.getLogger(NavMeshGeneratorState.class.getName());
 
     private final SoloNavMeshBuilder soloNavMeshBuilder = new SoloNavMeshBuilder();
     private final TileNavMeshBuilder tileNavMeshBuilder = new TileNavMeshBuilder();
@@ -39,6 +39,7 @@ public class NavMeshGeneratorState extends BaseAppState {
 
     /**
      * Constructor.
+     *
      * @param worldMap
      */
     public NavMeshGeneratorState(Node worldMap) {
@@ -53,13 +54,16 @@ public class NavMeshGeneratorState extends BaseAppState {
     }
 
     @Override
-    protected void cleanup(Application app) {}
+    protected void cleanup(Application app) {
+    }
 
     @Override
-    protected void onEnable() {}
+    protected void onEnable() {
+    }
 
     @Override
-    protected void onDisable() {}
+    protected void onDisable() {
+    }
 
     @Override
     public void render(RenderManager rm) {
@@ -94,7 +98,7 @@ public class NavMeshGeneratorState extends BaseAppState {
     }
 
     /**
-     * 
+     *
      * @param fileName
      * @param nm
      * @throws IOException

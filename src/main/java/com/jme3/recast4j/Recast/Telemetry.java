@@ -14,7 +14,7 @@ freely, subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be
  misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
-*/
+ */
 package com.jme3.recast4j.Recast;
 
 import java.util.HashMap;
@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.recast4j.recast.Context;
 
 /**
- * 
+ *
  * @author capdevon
  */
 public class Telemetry extends Context {

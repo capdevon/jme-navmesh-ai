@@ -7,13 +7,14 @@ import com.jme3.math.Vector3f;
 import com.jme3.recast4j.debug.NavMeshDebugViewer;
 import com.jme3.recast4j.debug.NavPathDebugViewer;
 import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Line;
 
 /**
- * 
+ *
  * @author capdevon
  */
 public abstract class AbstractNavState extends SimpleAppState {
@@ -25,20 +26,22 @@ public abstract class AbstractNavState extends SimpleAppState {
     Node debugNode = new Node("DebugViewer");
 
     @Override
-    protected void initialize(Application app) {
-        refreshCacheFields();
-        pathViewer = new NavPathDebugViewer(app.getAssetManager());
-        nmDebugViewer = new NavMeshDebugViewer(app.getAssetManager());
+    protected void simpleInit() {
+        pathViewer = new NavPathDebugViewer(assetManager);
+        nmDebugViewer = new NavMeshDebugViewer(assetManager);
     }
 
     @Override
-    protected void cleanup(Application app) {}
+    protected void cleanup(Application app) {
+    }
 
     @Override
-    protected void onEnable() {}
+    protected void onEnable() {
+    }
 
     @Override
-    protected void onDisable() {}
+    protected void onDisable() {
+    }
 
     @Override
     public void render(RenderManager rm) {
@@ -57,19 +60,20 @@ public abstract class AbstractNavState extends SimpleAppState {
     /**
      * Helper method to place a colored box at a specific location.
      *
-     * @param color    The color the box should have
-     * @param position The position where the box will be placed
+     * @param color     The color the box should have
+     * @param position  The position where the box will be placed
      * @return the box Geometry
      */
     public Geometry drawBox(ColorRGBA color, Vector3f position) {
         float size = 0.15f;
-        Geometry result = new Geometry("Box", new Box(size, size, size));
+        Geometry geo = new Geometry("Box", new Box(size, size, size));
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", color);
-        result.setMaterial(mat);
-        result.setLocalTranslation(position);
-        debugNode.attachChild(result);
-        return result;
+        geo.setMaterial(mat);
+        geo.setLocalTranslation(position);
+        geo.setShadowMode(ShadowMode.Off);
+        debugNode.attachChild(geo);
+        return geo;
     }
 
     /**
@@ -81,13 +85,14 @@ public abstract class AbstractNavState extends SimpleAppState {
      * @return the line Geometry
      */
     public Geometry drawLine(ColorRGBA color, Vector3f from, Vector3f to) {
-        Geometry result = new Geometry("Line", new Line(from, to));
+        Geometry geo = new Geometry("Line", new Line(from, to));
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", color);
         mat.getAdditionalRenderState().setLineWidth(2f);
-        result.setMaterial(mat);
-        debugNode.attachChild(result);
-        return result;
+        geo.setMaterial(mat);
+        geo.setShadowMode(ShadowMode.Off);
+        debugNode.attachChild(geo);
+        return geo;
     }
 
 }

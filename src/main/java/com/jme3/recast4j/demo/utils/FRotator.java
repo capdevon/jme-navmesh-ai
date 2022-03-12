@@ -17,6 +17,12 @@ import com.jme3.scene.Spatial;
 public class FRotator {
     
     /**
+     * A private constructor to inhibit instantiation of this class.
+     */
+    private FRotator() {
+    }
+    
+    /**
      * Creates a rotation which rotates from fromDirection to toDirection.
      * (Default fromDirection = Vector3f.UNIT_Y)
      *

@@ -44,33 +44,20 @@ public class JmeCrowd extends Crowd {
     private MovementType movementType = MovementType.SPATIAL;
     private Proximity proximity = new TargetProximity(1f);
     
-    /**
-     * 
-     * @param config
-     * @param nav
-     */
     public JmeCrowd(CrowdConfig config, NavMesh nav) {
         this(config, nav, i -> new DefaultQueryFilter());
     }
 
-    /**
-     * 
-     * @param config
-     * @param nav
-     * @param queryFilterFactory
-     */
     public JmeCrowd(CrowdConfig config, NavMesh nav, IntFunction<QueryFilter> queryFilterFactory) {
-        this(100, config.maxAgentRadius, nav, queryFilterFactory);
+        this(config.maxAgents, config.maxAgentRadius, nav, queryFilterFactory);
     }
 
-    @Deprecated
     public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav) {
         super(maxAgents, maxAgentRadius, nav, i -> new DefaultQueryFilter());
         characterMap = new ConcurrentHashMap<>(maxAgents);
         m_navQuery = new NavMeshQuery(nav);
     }
 
-    @Deprecated
     public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav, IntFunction<QueryFilter> queryFilterFactory) {
         super(maxAgents, maxAgentRadius, nav, queryFilterFactory);
         characterMap = new ConcurrentHashMap<>(maxAgents);

@@ -22,15 +22,16 @@ public class NavMeshUI extends BaseAppState {
 
     @Override
     protected void initialize(Application app) {
+        this.navMeshState = getState(NavMeshGeneratorState.class, true);
+
         // initialize lemur
         GuiGlobals.initialize(app);
         BaseStyles.loadGlassStyle();
         GuiGlobals.getInstance().getStyles().setDefaultStyle("glass");
 
-        this.navMeshState = getState(NavMeshGeneratorState.class, true);
         initComponents();
     }
-
+    
     private Container initComponents() {
 
         NavMeshBuildSettings settings = new NavMeshBuildSettings();
@@ -92,7 +93,6 @@ public class NavMeshUI extends BaseAppState {
 
     @Override
     protected void cleanup(Application app) {
-        // TODO Auto-generated method stub
     }
 
     @Override

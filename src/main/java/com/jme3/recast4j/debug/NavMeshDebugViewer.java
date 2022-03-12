@@ -28,6 +28,7 @@ import com.jme3.recast4j.Detour.DetourUtils;
 import com.jme3.recast4j.Recast.Utils.RecastUtils;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
@@ -81,6 +82,7 @@ public class NavMeshDebugViewer {
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", ColorRGBA.White);
         geo.setMaterial(mat);
+        geo.setShadowMode(ShadowMode.Off);
         debugNode.attachChild(geo);
     }
 
@@ -145,6 +147,9 @@ public class NavMeshDebugViewer {
         mat2.getAdditionalRenderState().setWireframe(wireframe);
         sgeom.setMaterial(mat2);
         sgeom.move(0, 0.125f, 0);
+        
+        sgeom.setShadowMode(ShadowMode.Off);
+        dgeom.setShadowMode(ShadowMode.Off);
 
         debugNode.attachChild(sgeom);
         debugNode.attachChild(dgeom);
@@ -261,6 +266,7 @@ public class NavMeshDebugViewer {
             geo.setMaterial(mat);
             // Move to just above surface.
             geo.move(0, 0.125f, 0);
+            geo.setShadowMode(ShadowMode.Off);
 
             // Add to root node.
             debugNode.attachChild(geo);

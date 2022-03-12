@@ -42,6 +42,7 @@ public class NavMeshEditorApp extends SimpleApplication {
 
         flyCam.setMoveSpeed(20f);
         flyCam.setDragToRotate(true);
+        setDisplayStatView(false);
 
         cam.setLocation(Vector3f.UNIT_XYZ.mult(10));
         cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);

@@ -31,6 +31,8 @@ import com.jme3.math.Vector3f;
  * @author MeFisto94
  */
 public class DetourUtils {
+	
+    private DetourUtils() {}
 
     /**
      * Create a new Vector3f instance from a float array.

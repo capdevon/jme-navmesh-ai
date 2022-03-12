@@ -235,7 +235,7 @@ public class NavState extends AbstractNavState {
              */
             for (Spatial child : children) {
 
-                DoorSwingControl swingControl = GameObject.getComponentInChild(child, DoorSwingControl.class);
+                DoorSwingControl swingControl = GameObject.getComponentInChildren(child, DoorSwingControl.class);
 
                 if (swingControl != null) {
                     /**
@@ -245,7 +245,7 @@ public class NavState extends AbstractNavState {
                      * always throws an exception when doing so. The hitBox is
                      * attached to the root bones attachment node.
                      */
-                    SkeletonControl skelControl = GameObject.getComponentInChild(child, SkeletonControl.class);
+                    SkeletonControl skelControl = GameObject.getComponentInChildren(child, SkeletonControl.class);
                     String name = skelControl.getSkeleton().getBone(0).getName();
                     Spatial hitBox = skelControl.getAttachmentsNode(name).getChild(0);
 
@@ -1212,7 +1212,7 @@ public class NavState extends AbstractNavState {
                  */
                 if (!node.getName().equals(offMeshCon.getName())) {
 
-                    SkeletonControl skelControl = GameObject.getComponentInChild(node, SkeletonControl.class);
+                    SkeletonControl skelControl = GameObject.getComponentInChildren(node, SkeletonControl.class);
 
                     if (skelControl != null) {
                         /**

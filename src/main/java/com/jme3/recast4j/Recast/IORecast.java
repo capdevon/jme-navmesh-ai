@@ -58,6 +58,7 @@ public class IORecast {
                     vertexOffset += tile.data.header.vertCount;
                 }
             }
+            
             fw.close();
 
         } catch (Exception e) {
@@ -94,7 +95,9 @@ public class IORecast {
                 }
                 fw.write("\n");
             }
+            
             fw.close();
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -126,7 +129,9 @@ public class IORecast {
                         (vfirst + dmesh.tris[(tfirst + f) * 4 + 2] + 1) + "\n");
                 }
             }
+            
             fw.close();
+            
         } catch (Exception e) {
             e.printStackTrace();
         }

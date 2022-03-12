@@ -236,7 +236,7 @@ public class DemoApplication extends SimpleApplication {
         Node door = (Node) assetManager.loadModel("Models/Level/Door.mesh.j3o");
         door.setName("door-" + id);
         
-        SkeletonControl skelControl = GameObject.getComponentInChild(door, SkeletonControl.class);
+        SkeletonControl skelControl = GameObject.getComponentInChildren(door, SkeletonControl.class);
         /**
          * Couldn't get hardware skinning to turn off which would allow the 
          * bounding box to move with the door as it opens or closes so added

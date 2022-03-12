@@ -207,16 +207,16 @@ public class CrowdDebugControl extends AbstractControl {
     private Geometry createCircle(int samples, float radius) {
         Circle circle = new Circle(radius, samples);
         Geometry geo = new Geometry("Circle", circle);
-        geo.setShadowMode(ShadowMode.Off);
         geo.setMaterial(wireMaterial);
+        geo.setShadowMode(ShadowMode.Off);
         return geo;
     }
 
     private Geometry createLine(Vector3f start, Vector3f end) {
         Line line = new Line(start, end);
         Geometry geo = new Geometry("Line", line);
-        geo.setShadowMode(ShadowMode.Off);
         geo.setMaterial(wireMaterial);
+        geo.setShadowMode(ShadowMode.Off);
         return geo;
     }
 

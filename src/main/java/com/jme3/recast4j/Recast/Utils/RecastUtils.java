@@ -37,16 +37,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Class consisting of helper methods to simplify interfacing between recast4j and jMonkeyEngine
+ * Class consisting of helper methods to simplify interfacing between recast4j
+ * and jMonkeyEngine
+ *
  * @author MeFisto94
  */
 public class RecastUtils {
+	
+    private RecastUtils() {}
 
     public static Mesh getDebugMesh(PolyDetail[] meshes, float[] detailVerts, int[] detailTris) {
         Mesh mesh = new Mesh();
         List<Geometry> geometryList = new ArrayList<>(meshes.length);
 
-        for (PolyDetail pd: meshes) {
+        for (PolyDetail pd : meshes) {
             geometryList.add(new Geometry("", getDebugMesh(pd, detailVerts, detailTris)));
         }
 
@@ -59,13 +63,13 @@ public class RecastUtils {
         IntBuffer indexBuffer = BufferUtils.createIntBuffer(3 * dmesh.triCount);
 
         for (int i = 0; i < dmesh.triCount; ++i) {
-            indexBuffer.put(detailTris[3 * (dmesh.triBase + i)    ]);
+            indexBuffer.put(detailTris[3 * (dmesh.triBase + i)]);
             indexBuffer.put(detailTris[3 * (dmesh.triBase + i) + 1]);
             indexBuffer.put(detailTris[3 * (dmesh.triBase + i) + 2]);
         }
 
         for (int i = 0; i < dmesh.vertCount; ++i) {
-            vertices.put(detailVerts[3 * (dmesh.vertBase + i)    ]);
+            vertices.put(detailVerts[3 * (dmesh.vertBase + i)]);
             vertices.put(detailVerts[3 * (dmesh.vertBase + i) + 1]);
             vertices.put(detailVerts[3 * (dmesh.vertBase + i) + 2]);
         }
@@ -78,8 +82,10 @@ public class RecastUtils {
     }
 
     /**
-     * Builds a Debug Mesh out of the Poly Data passed to this.
-     * Warning: This requires a max vert per poly setting of 3, if you don't respect it, the debug mesh won't work.
+     * Builds a Debug Mesh out of the Poly Data passed to this. Warning: This
+     * requires a max vert per poly setting of 3, if you don't respect it, the
+     * debug mesh won't work.
+     *
      * @param meshData The mesh data containing the polygons
      * @return
      */
@@ -87,18 +93,18 @@ public class RecastUtils {
         FloatBuffer vertices = BufferUtils.createFloatBuffer(meshData.verts);
 
         int sumIndices = 0;
-        for (Poly p: meshData.polys) {
+        for (Poly p : meshData.polys) {
             if (p.verts.length != 3) {
                 throw new IllegalArgumentException("Error: Cannot display a polygon mesh, Triangle Mesh required. "
-                + "Please ensure that the vertsPerPoly setting in the RecastConfig is set to 3");
+                        + "Please ensure that the vertsPerPoly setting in the RecastConfig is set to 3");
             } // @TODO: Delaunay Traingulation, if you're brave enough.
             sumIndices += p.verts.length;
         }
 
         IntBuffer indexBuffer = BufferUtils.createIntBuffer(sumIndices);
 
-        for (Poly p: meshData.polys) {
-            for (int idx: p.verts) {
+        for (Poly p : meshData.polys) {
+            for (int idx : p.verts) {
                 indexBuffer.put(idx);
             }
         }

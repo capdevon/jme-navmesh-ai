@@ -47,7 +47,7 @@ import com.jme3.recast4j.editor.SampleAreaModifications;
 import com.jme3.recast4j.editor.builder.TileNavMeshBuilder;
 import com.jme3.recast4j.geom.JmeGeomProviderBuilder;
 import com.jme3.recast4j.geom.JmeInputGeomProvider;
-import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -66,10 +66,10 @@ public class CrowdState extends AbstractNavState {
     private Node worldMap;
 
     @Override
-    protected void initialize(Application app) {
-        super.initialize(app);
+    protected void simpleInit() {
+        super.simpleInit();
 
-        worldMap = (Node) rootNode.getChild("MainScene");
+        worldMap = (Node) find("MainScene");
 
         buildTiled();
         buildCrowd();
@@ -395,7 +395,7 @@ public class CrowdState extends AbstractNavState {
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", color);
         geo.setMaterial(mat);
-        geo.setShadowMode(RenderQueue.ShadowMode.Off);
+        geo.setShadowMode(ShadowMode.Off);
         return geo;
     }
 
