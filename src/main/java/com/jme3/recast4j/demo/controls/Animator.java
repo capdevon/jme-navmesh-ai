@@ -23,7 +23,7 @@ public class Animator extends AdapterControl {
         super.setSpatial(spatial);
 
         if (spatial != null) {
-            animComposer = getComponentInChild(AnimComposer.class);
+            animComposer = getComponentInChildren(AnimComposer.class);
             requireNonNull(animComposer, AnimComposer.class, Animator.class);
 
             logger.info("{} --Animations: {}", spatial, animComposer.getAnimClipsNames());
