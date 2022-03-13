@@ -1,4 +1,4 @@
-package com.jme3.recast4j.editor;
+package com.jme3.recast4j.demo;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.light.AmbientLight;
@@ -7,6 +7,8 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FXAAFilter;
+import com.jme3.recast4j.editor.NavMeshGeneratorState;
+import com.jme3.recast4j.editor.NavMeshUI;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.shadow.DirectionalLightShadowFilter;
