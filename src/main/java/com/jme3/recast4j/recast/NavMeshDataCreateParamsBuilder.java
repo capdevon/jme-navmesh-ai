@@ -1,4 +1,4 @@
-package com.jme3.recast4j.Recast;
+package com.jme3.recast4j.recast;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;

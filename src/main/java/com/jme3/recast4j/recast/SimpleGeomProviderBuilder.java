@@ -1,4 +1,4 @@
-package com.jme3.recast4j.Recast;
+package com.jme3.recast4j.recast;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;

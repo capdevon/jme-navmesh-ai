@@ -20,7 +20,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *  SOFTWARE.
  */
-package com.jme3.recast4j.Recast.Utils;
+package com.jme3.recast4j.recast.utils;
 
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;

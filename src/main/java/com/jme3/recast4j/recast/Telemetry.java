@@ -15,7 +15,7 @@ freely, subject to the following restrictions:
  misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
  */
-package com.jme3.recast4j.Recast;
+package com.jme3.recast4j.recast;
 
 import java.util.HashMap;
 import java.util.Map;

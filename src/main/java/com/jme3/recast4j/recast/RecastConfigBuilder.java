@@ -20,7 +20,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *  SOFTWARE.
  */
-package com.jme3.recast4j.Recast;
+package com.jme3.recast4j.recast;
 
 import org.recast4j.recast.AreaModification;
 import org.recast4j.recast.RecastConfig;
