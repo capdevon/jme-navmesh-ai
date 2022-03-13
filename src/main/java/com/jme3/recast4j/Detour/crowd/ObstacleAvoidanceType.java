@@ -1,4 +1,4 @@
-package com.jme3.recast4j.Detour.Crowd;
+package com.jme3.recast4j.Detour.crowd;
 
 /**
  * Level of obstacle avoidance.

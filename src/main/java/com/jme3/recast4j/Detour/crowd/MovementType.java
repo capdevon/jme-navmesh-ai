@@ -1,4 +1,4 @@
-package com.jme3.recast4j.Detour.Crowd;
+package com.jme3.recast4j.Detour.crowd;
 
 /**
  * This class defines how the results of Detour Crowd calculation are applied to
