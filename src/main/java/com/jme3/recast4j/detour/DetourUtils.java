@@ -20,7 +20,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *  SOFTWARE.
  */
-package com.jme3.recast4j.Detour;
+package com.jme3.recast4j.detour;
 
 import com.jme3.math.Vector3f;
 

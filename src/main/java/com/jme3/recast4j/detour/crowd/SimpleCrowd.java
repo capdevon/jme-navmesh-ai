@@ -1,4 +1,4 @@
-package com.jme3.recast4j.Detour.crowd;
+package com.jme3.recast4j.detour.crowd;
 
 import org.recast4j.detour.NavMesh;
 import org.recast4j.detour.QueryFilter;

@@ -14,7 +14,7 @@ import org.recast4j.detour.Result;
 import org.recast4j.detour.StraightPathItem;
 
 import com.jme3.math.Vector3f;
-import com.jme3.recast4j.Detour.DetourUtils;
+import com.jme3.recast4j.detour.DetourUtils;
 
 /**
  * 

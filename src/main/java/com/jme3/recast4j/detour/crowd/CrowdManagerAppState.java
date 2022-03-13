@@ -1,4 +1,4 @@
-package com.jme3.recast4j.Detour.crowd;
+package com.jme3.recast4j.detour.crowd;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;

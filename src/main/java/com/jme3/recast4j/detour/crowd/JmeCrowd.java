@@ -1,4 +1,4 @@
-package com.jme3.recast4j.Detour.crowd;
+package com.jme3.recast4j.detour.crowd;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import com.jme3.recast4j.Detour.DetourUtils;
+import com.jme3.recast4j.detour.DetourUtils;
 import com.jme3.scene.Spatial;
 
 /**
