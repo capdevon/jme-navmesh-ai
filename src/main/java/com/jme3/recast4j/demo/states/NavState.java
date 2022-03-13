@@ -776,13 +776,14 @@ public class NavState extends AbstractNavState {
         m_ctx.print();
 
         //Create offmesh connections here.
+        
         try {
             saveToFile(meshData, "recast4j-solo.md");
             saveToFile(navMesh, "recast4j-solo.nm");
 
-            IORecast.saveObj("recastmesh.obj", navMesh);
-//            IORecast.saveObj("recastmesh-solo_" + cfg.partitionType + "_detail.obj", m_dmesh);
-//            IORecast.saveObj("recastmesh-solo_" + cfg.partitionType + ".obj", m_pmesh);
+            IORecast.saveObj("recast4j-solo.obj", navMesh);
+            IORecast.saveObj("recast4j-solo_" + cfg.partitionType + "_detail.obj", m_dmesh);
+            IORecast.saveObj("recast4j-solo_" + cfg.partitionType + ".obj", m_pmesh);
 
         } catch (IOException ex) {
             ex.printStackTrace();

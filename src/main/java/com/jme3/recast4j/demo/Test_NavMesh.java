@@ -43,9 +43,9 @@ import com.jme3.water.WaterFilter;
  * 
  * @author capdevon
  */
-public class DemoApplication extends SimpleApplication {
+public class Test_NavMesh extends SimpleApplication {
 	
-    private static final Logger logger = LoggerFactory.getLogger(DemoApplication.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Test_NavMesh.class.getName());
     
     private final Quaternion YAW180 = new Quaternion().fromAngleAxis(FastMath.PI, new Vector3f(0,1,0));
     private Node worldMap;
@@ -53,7 +53,7 @@ public class DemoApplication extends SimpleApplication {
     private Node offMeshCon;
     private BulletAppState bullet;
     
-    public DemoApplication() {
+    public Test_NavMesh() {
         super(new StatsAppState(),
                 new AudioListenerState(),
                 new DebugKeysAppState(),
@@ -68,9 +68,9 @@ public class DemoApplication extends SimpleApplication {
      * @param args
      */
     public static void main(String[] args) {
-        DemoApplication app = new DemoApplication();
+        Test_NavMesh app = new Test_NavMesh();
         AppSettings settings = new AppSettings(true);
-        settings.setTitle("jme3-recast4j - DemoApplication");
+        settings.setTitle("jme3-recast4j - Test_NavMesh");
         settings.setResolution(1280, 720);
 
         app.setSettings(settings);

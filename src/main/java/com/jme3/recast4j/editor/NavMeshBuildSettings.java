@@ -2,7 +2,6 @@ package com.jme3.recast4j.editor;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.recast4j.recast.AreaModification;
 import org.recast4j.recast.RecastConstants.PartitionType;
 
 /**
