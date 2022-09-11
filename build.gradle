@@ -7,8 +7,8 @@ plugins {
 description = 'Navigation-mesh Toolset for jMonkeyEngine3'
 
 // select one source-code (JDK) option
-sourceCompatibility = '1.11'
-targetCompatibility = '1.11'
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 
 ext {
     jmeVersion = '3.5.2-stable'
@@ -59,7 +59,7 @@ dependencies {
     implementation 'org.jmonkeyengine:jme3-terrain:' + jmeVersion
     
     // Physics
-    implementation 'com.github.stephengold:Minie:5.1.0+big3'
+    implementation 'com.github.stephengold:Minie:6.0.1+big3'
 
     // select one version of LWJGL
     runtimeOnly 'org.jmonkeyengine:jme3-lwjgl:' + jmeVersion  // LWJGL 2.x
