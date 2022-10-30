@@ -1,6 +1,7 @@
 package com.jme3.recast4j.ai;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -9,16 +10,14 @@ import org.recast4j.detour.NavMesh;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jme3.app.Application;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import com.jme3.recast4j.debug.NavPathDebugViewer;
-import com.jme3.recast4j.demo.controls.AdapterControl;
 import com.jme3.recast4j.demo.utils.FRotator;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.control.AbstractControl;
 
 /**
  * Navigation mesh agent.
@@ -28,7 +27,7 @@ import com.jme3.scene.Spatial;
  * 
  * @author capdevon
  */
-public class NavMeshAgent extends AdapterControl {
+public class NavMeshAgent extends AbstractControl {
 
     private static final Logger logger = LoggerFactory.getLogger(NavMeshAgent.class);
 
@@ -42,10 +41,6 @@ public class NavMeshAgent extends AdapterControl {
     private final Vector3f waypoint2D = new Vector3f();
     private final Vector3f viewDirection = new Vector3f(0, 0, 1);
     private final Quaternion lookRotation = new Quaternion();
-    
-    private NavPathDebugViewer pathViewer;
-    private boolean debugEnabled = true;
-    private boolean pathChanged;
     
     //Does the agent currently have a path? (Read Only)
     private boolean hasPath;
@@ -68,9 +63,8 @@ public class NavMeshAgent extends AdapterControl {
      * @param navMesh
      * @param app
      */
-    public NavMeshAgent(NavMesh navMesh, Application app) {
+    public NavMeshAgent(NavMesh navMesh) {
         this.navtool = new NavMeshTool(navMesh);
-        this.pathViewer = new NavPathDebugViewer(app.getAssetManager());
         this.executor = Executors.newScheduledThreadPool(1);
     }
     
@@ -79,8 +73,8 @@ public class NavMeshAgent extends AdapterControl {
         super.setSpatial(sp);
 
         if (spatial != null) {
-            this.bcc = getComponent(BetterCharacterControl.class);
-            requireNonNull(bcc, BetterCharacterControl.class, NavMeshAgent.class);
+            this.bcc = spatial.getControl(BetterCharacterControl.class);
+            Objects.requireNonNull(bcc, "BetterCharacterControl not found: " + spatial);
             startPathfinder();
 
         } else {
@@ -92,12 +86,6 @@ public class NavMeshAgent extends AdapterControl {
     protected void controlUpdate(float tpf) {
         if (pathPending || isStopped) {
             return;
-        }
-        
-        //must be called from the update loop
-        if (pathChanged) {
-            drawPath();
-            pathChanged = false;
         }
         
         /**
@@ -140,16 +128,9 @@ public class NavMeshAgent extends AdapterControl {
             @Override
             public void run() {
                 if (pathPending) {
-                	
                     hasPath = navtool.computePath(spatial.getWorldTranslation(), destination, filter, navPath);
-                    logger.info("TargetPos {}, hasPath {}", destination, hasPath);
-
-                    if (hasPath) {
-                        // display motion path
-                        pathChanged = true;
-                    }
-
                     pathPending = false;
+                    logger.info("TargetPos {}, hasPath {}", destination, hasPath);
                 }
             }
         }, 0, 500, TimeUnit.MILLISECONDS);
@@ -176,29 +157,11 @@ public class NavMeshAgent extends AdapterControl {
     	navPath.clearCorners();
         bcc.setWalkDirection(Vector3f.ZERO);
         hasPath = false;
-
-        if (debugEnabled) {
-            pathViewer.clearPath();
-        }
-    }
-
-    /**
-     * Displays a motion path showing each waypoint. Stays in scene until
-     * another path is set.
-     */
-    private void drawPath() {
-        if (debugEnabled) {
-            pathViewer.clearPath();
-            pathViewer.drawPath(navPath.getCorners());
-        }
     }
 
     @Override
     protected void controlRender(RenderManager rm, ViewPort vp) {
         // To change body of generated methods, choose Tools | Templates.
-        if (debugEnabled) {
-            pathViewer.show(rm, vp);
-        }
     }
 
     public NavMeshQueryFilter getQueryFilter() {
@@ -311,14 +274,16 @@ public class NavMeshAgent extends AdapterControl {
     public boolean setPath(NavMeshPath path) {
         if (!hasPath) {
             navPath = path;
-            // display motion path
-            pathChanged = true;
             return true;
 
         } else {
             navPath.clearCorners();
             return false;
         }
+    }
+    
+    public NavMeshPath getPath() {
+    	return navPath;
     }
 
     /**
