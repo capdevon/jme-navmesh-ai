@@ -24,7 +24,7 @@ public class DebugHelper {
     protected final AssetManager assetManager;
 
     // Node for attaching debug geometries.
-    public Node debugNode = new Node("DebugShapeNode");
+    public Node debugNode = new Node("DebugHelper");
 
     public ColorRGBA color = ColorRGBA.Red;
     public float lineWidth = 1f;
@@ -41,6 +41,7 @@ public class DebugHelper {
         Arrow arrow = new Arrow(dir);
         Geometry geo = new Geometry("Arrow", arrow);
         geo.setMaterial(createWireMat());
+        debugNode.attachChild(geo);
         return geo;
     }
 

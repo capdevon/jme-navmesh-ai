@@ -95,14 +95,14 @@ public class NavMeshAgentDebug extends AbstractControl {
         debugNode.attachChild(geo);
     }
 
-    public void clearPath() {
+    private void clearPath() {
         debugNode.detachAllChildren();
     }
 
     /**
      * Render all the debug geometries to the specified view port.
      */
-    public void show(RenderManager rm, ViewPort vp) {
+    private void show(RenderManager rm, ViewPort vp) {
         debugNode.updateLogicalState(0f);
         debugNode.updateGeometricState();
         rm.renderScene(debugNode, vp);
