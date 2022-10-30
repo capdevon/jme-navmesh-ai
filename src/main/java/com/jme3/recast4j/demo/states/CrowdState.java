@@ -79,17 +79,14 @@ public class CrowdState extends AbstractNavState {
 
     @Override
     protected void cleanup(Application app) {
-        // TODO Auto-generated method stub
     }
 
     @Override
     protected void onEnable() {
-        // TODO Auto-generated method stub
     }
 
     @Override
     protected void onDisable() {
-        // TODO Auto-generated method stub
     }
 
     private void initKeys() {
@@ -104,8 +101,9 @@ public class CrowdState extends AbstractNavState {
             if (name.equals("CROWD_PICK") && !keyPressed) {
                 Vector3f locOnMap = getLocationOnMap();
                 if (locOnMap != null) {
-                    clearDebug();
-                    drawBox(ColorRGBA.Yellow, locOnMap);
+                    debugHelper.clear();
+                    debugHelper.color = ColorRGBA.Yellow;
+                    debugHelper.drawCube(locOnMap, .15f);
                     setTarget(locOnMap);
                 }
             }

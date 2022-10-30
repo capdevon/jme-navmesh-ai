@@ -116,6 +116,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.recast4j.ai.NavMeshAgent;
+import com.jme3.recast4j.ai.NavMeshAgentDebug;
 import com.jme3.recast4j.ai.NavMeshHit;
 import com.jme3.recast4j.ai.NavMeshPath;
 import com.jme3.recast4j.ai.NavMeshPathStatus;
@@ -162,17 +163,13 @@ public class NavState extends AbstractNavState {
     private Node worldMap, doorNode, offMeshCon;
     private NavMesh navMesh;
     private NavMeshQuery navQuery;
-    private Map<String, OffMeshConnection> mapOffMeshCon;
+    private Map<String, OffMeshConnection> mapOffMeshCon = new HashMap<>();
 
-    float agentRadius = 0.3f;
-    float agentHeight = 1.7f;
-    float agentMaxClimb = 0.3f; // > 2*ch
-    float cellSize = 0.1f; 	// cs=r/2
-    float cellHeight = 0.1f; 	// ch=cs/2 but not < .1f
-
-    public NavState() {
-        mapOffMeshCon = new HashMap<>();
-    }
+    private float agentRadius = 0.3f;
+    private float agentHeight = 1.7f;
+    private float agentMaxClimb = 0.3f; // > 2*ch
+    private float cellSize = 0.1f;      // cs=r/2
+    private float cellHeight = 0.1f;    // ch=cs/2 but not < .1f
 
     @Override
     protected void onEnable() {
@@ -425,7 +422,8 @@ public class NavState extends AbstractNavState {
 
         Node npc = loadJaime();
         npc.addControl(new Animator());
-        npc.addControl(new NavMeshAgent(navMesh, getApplication()));
+        npc.addControl(new NavMeshAgent(navMesh));
+        npc.addControl(new NavMeshAgentDebug(assetManager));
         npc.addControl(new PCControl());
 
         int includeFlags = POLYFLAGS_WALK | POLYFLAGS_DOOR | POLYFLAGS_SWIM | POLYFLAGS_JUMP;
@@ -452,7 +450,7 @@ public class NavState extends AbstractNavState {
             protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
 
                 // First clear existing pathGeometries from the old path finding
-                clearDebug();
+                debugHelper.clear();
 
                 if (event.getButtonIndex() == MouseInput.BUTTON_LEFT) {
 
@@ -466,8 +464,11 @@ public class NavState extends AbstractNavState {
                         agent.setPath(navPath);
 
                         float yOffset = .5f;
-                        drawBox(ColorRGBA.Green, npc.getWorldTranslation().add(0, yOffset, 0));
-                        drawBox(ColorRGBA.Yellow, locOnMap.add(0, yOffset, 0));
+                        debugHelper.color = ColorRGBA.Green;
+                        debugHelper.drawCube(npc.getWorldTranslation().add(0, yOffset, 0), .15f);
+                        
+                        debugHelper.color = ColorRGBA.Yellow;
+                        debugHelper.drawCube(locOnMap.add(0, yOffset, 0), .15f);
 
                     } else {
                         System.err.println("Unable to find path");
@@ -476,7 +477,9 @@ public class NavState extends AbstractNavState {
                     NavMeshHit hit = new NavMeshHit();
                     Vector3f targetPos = getLocationOnMap();
                     boolean blocked = agent.raycast(targetPos, hit);
-                    drawLine(!blocked ? ColorRGBA.Green : ColorRGBA.Red, npc.getWorldTranslation(), targetPos);
+                    
+                    debugHelper.color = blocked ? ColorRGBA.Red : ColorRGBA.Green;
+                    debugHelper.drawLine(npc.getWorldTranslation(), targetPos);
                 }
             }
         });
