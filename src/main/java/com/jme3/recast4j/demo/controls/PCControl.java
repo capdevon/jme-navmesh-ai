@@ -1,9 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.jme3.recast4j.demo.controls;
+
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,16 +24,16 @@ public class PCControl extends AdapterControl {
         super.setSpatial(spatial);
         if (spatial != null) {
             this.agent = getComponent(NavMeshAgent.class);
-            requireNonNull(agent, NavMeshAgent.class, PCControl.class);
+            Objects.requireNonNull(agent, "NavMeshAgent not found: " + spatial);
 
             this.animator = getComponent(Animator.class);
-            requireNonNull(animator, Animator.class, PCControl.class);
+            Objects.requireNonNull(animator, "Animator not found: " + spatial);
         }
     }
 
     @Override
     public void controlUpdate(float tpf) {
-        if (agent.isAtGoal() && !agent.pathPending()) {
+        if (agent.remainingDistance() < agent.stoppingDistance && !agent.pathPending()) {
             animator.setAnimation("Idle");
             animator.setSpeed(1);
         } else {

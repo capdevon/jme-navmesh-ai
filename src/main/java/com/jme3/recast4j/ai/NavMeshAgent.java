@@ -230,10 +230,6 @@ public class NavMeshAgent extends AbstractControl {
         }
     }
     
-    public boolean isAtGoal() {
-        return navPath.isEmpty();
-    }
-    
     public boolean pathPending() {
         return pathPending;
     }

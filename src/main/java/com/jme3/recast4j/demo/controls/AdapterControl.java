@@ -1,7 +1,5 @@
 package com.jme3.recast4j.demo.controls;
 
-import java.util.Objects;
-
 import com.jme3.recast4j.demo.utils.GameObject;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -12,12 +10,7 @@ import com.jme3.scene.control.Control;
  *
  * @author capdevon
  */
-public class AdapterControl extends AbstractControl {
-
-    public void requireNonNull(Object obj, Class to, Class ts) {
-        String message = "Error: Component of type %s on GameObject %s expected to find an object of type %s, but none were found.";
-        Objects.requireNonNull(obj, String.format(message, ts.getName(), spatial.toString(), to.getName()));
-    }
+public abstract class AdapterControl extends AbstractControl {
 
     /**
      * Returns all components of Type type in the GameObject.

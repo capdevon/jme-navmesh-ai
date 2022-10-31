@@ -407,13 +407,12 @@ public class NavState extends AbstractNavState {
     private Node loadJaime() {
         Spatial model = assetManager.loadModel("Models/Jaime/Jaime.j3o");
         Node npc = (Node) AnimMigrationUtils.migrate(model);
-        npc.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         npc.setName(MODEL_NAME);
-        //npc.setLocalTranslation(-5f, 5, 0);
-        npc.addControl(new BetterCharacterControl(agentRadius, agentHeight, 20f));
-
-        getPhysicsSpace().add(npc);
+        npc.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         rootNode.attachChild(npc);
+        
+        npc.addControl(new BetterCharacterControl(agentRadius, agentHeight, 10f));
+        getPhysicsSpace().add(npc);
 
         return npc;
     }

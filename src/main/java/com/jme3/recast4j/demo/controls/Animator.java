@@ -1,13 +1,15 @@
 package com.jme3.recast4j.demo.controls;
 
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jme3.anim.AnimComposer;
+import com.jme3.anim.SkinningControl;
 import com.jme3.scene.Spatial;
 
 /**
- * Spatial must have AnimComposer to use this control.
  *
  * @author capdevon
  */
@@ -15,22 +17,34 @@ public class Animator extends AdapterControl {
 
     private static final Logger logger = LoggerFactory.getLogger(Animator.class);
 
+    private SkinningControl skControl;
     private AnimComposer animComposer;
-    private String currAnim;
+    private String currAnimName;
 
     @Override
     public void setSpatial(Spatial spatial) {
         super.setSpatial(spatial);
 
         if (spatial != null) {
-            animComposer = getComponentInChildren(AnimComposer.class);
-            requireNonNull(animComposer, AnimComposer.class, Animator.class);
+            skControl = getComponentInChildren(SkinningControl.class);
+            Objects.requireNonNull(skControl, "SkinningControl not found: " + spatial);
 
-            logger.info("{} --Animations: {}", spatial, animComposer.getAnimClipsNames());
-            for (String name: animComposer.getAnimClipsNames()) {
-                animComposer.action(name);
-            }
+            animComposer = getComponentInChildren(AnimComposer.class);
+            Objects.requireNonNull(animComposer, "AnimComposer not found: " + spatial);
+
+            configureAnimClips();
         }
+    }
+
+    private void configureAnimClips() {
+        for (String name : animComposer.getAnimClipsNames()) {
+            logger.info("{}, make action [{}]", spatial, name);
+            animComposer.action(name);
+        }
+    }
+
+    public void setHWSkinning(boolean enabled) {
+        skControl.setHardwareSkinningPreferred(enabled);
     }
 
     public void setSpeed(float speed) {
@@ -38,10 +52,14 @@ public class Animator extends AdapterControl {
     }
 
     public void setAnimation(String animName) {
-        if (!animName.equals(currAnim)) {
+        if (!animName.equals(currAnimName)) {
             animComposer.setCurrentAction(animName);
-            currAnim = animName;
+            currAnimName = animName;
         }
+    }
+
+    public String getCurrentAnimName() {
+        return currAnimName;
     }
 
 }
