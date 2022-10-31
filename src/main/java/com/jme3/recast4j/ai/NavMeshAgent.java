@@ -11,9 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jme3.bullet.control.BetterCharacterControl;
+import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import com.jme3.recast4j.demo.utils.FRotator;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Spatial;
@@ -31,14 +31,13 @@ public class NavMeshAgent extends AbstractControl {
 
     private static final Logger logger = LoggerFactory.getLogger(NavMeshAgent.class);
 
-    private BetterCharacterControl bcc;
+    protected BetterCharacterControl bcc;
     private ScheduledExecutorService executor;
     private NavMeshTool navtool;
     private NavMeshQueryFilter filter = new NavMeshQueryFilter();
     private NavMeshPath navPath = new NavMeshPath();
+    
     private final Vector3f destination = new Vector3f();
-    private final Vector3f position2D = new Vector3f();
-    private final Vector3f waypoint2D = new Vector3f();
     private final Vector3f viewDirection = new Vector3f(0, 0, 1);
     private final Quaternion lookRotation = new Quaternion();
     
@@ -61,7 +60,6 @@ public class NavMeshAgent extends AbstractControl {
     /**
      * 
      * @param navMesh
-     * @param app
      */
     public NavMeshAgent(NavMesh navMesh) {
         this.navtool = new NavMeshTool(navMesh);
@@ -87,40 +85,47 @@ public class NavMeshAgent extends AbstractControl {
         if (pathPending || isStopped) {
             return;
         }
-        
+
         /**
          * getNextWayPoint will return always the same waypoint until we
          * manually advance to the next
          */
         Vector3f wayPoint = navPath.getNextWaypoint();
-        
-        if (wayPoint != null) {
 
-            position2D.set(spatial.getWorldTranslation()).setY(0);
-            waypoint2D.set(wayPoint).setY(0);
-            float remainingDistance = position2D.distance(waypoint2D);
+        if (wayPoint != null) {
+            float remainingDistance = spatial.getWorldTranslation().distance(wayPoint);
 
             // move char until waypoint reached
             if (remainingDistance > stoppingDistance) {
-                Vector3f direction = waypoint2D.subtract(position2D).normalizeLocal();
-                
+                Vector3f direction = wayPoint.subtract(spatial.getWorldTranslation(), viewDirection).setY(0);
+                direction.normalizeLocal();
+
                 //smooth rotation
                 if (updateRotation && direction.lengthSquared() > 0) {
                     lookRotation.lookAt(direction, Vector3f.UNIT_Y);
-                    FRotator.smoothDamp(spatial.getWorldRotation(), lookRotation, angularSpeed * tpf, viewDirection);
+                    smoothDamp(spatial.getWorldRotation(), lookRotation, angularSpeed * tpf, viewDirection);
                     bcc.setViewDirection(viewDirection);
                 }
                 bcc.setWalkDirection(direction.multLocal(speed));
-                
+
             } //If at the final waypoint set at goal to true 
             else if (navPath.isAtGoalWaypoint()) {
                 resetPath();
 
             } //If less than one from current waypoint and not the goal. Go to next waypoint 
             else {
-            	navPath.goToNextWaypoint();
+                navPath.goToNextWaypoint();
             }
         }
+    }
+    
+    /**
+     * Spherically interpolates between quaternions a and b by ratio t. The
+     * parameter t is clamped to the range [0, 1].
+     */
+    private Vector3f smoothDamp(Quaternion from, Quaternion to, float smoothTime, Vector3f viewDirection) {
+        from.slerp(to, FastMath.clamp(smoothTime, 0, 1));
+        return from.mult(Vector3f.UNIT_Z, viewDirection);
     }
 
     private void startPathfinder() {
@@ -145,6 +150,8 @@ public class NavMeshAgent extends AbstractControl {
                 executor.shutdownNow();
             }
         } catch (InterruptedException e) {
+            logger.warn("Interrupted!", e);
+            Thread.currentThread().interrupt();
             executor.shutdownNow();
         }
         logger.info("Pool shutdown {}", executor);
@@ -154,7 +161,7 @@ public class NavMeshAgent extends AbstractControl {
      * Clears the current path.
      */
     public void resetPath() {
-    	navPath.clearCorners();
+        navPath.clearCorners();
         bcc.setWalkDirection(Vector3f.ZERO);
         hasPath = false;
     }
@@ -194,34 +201,50 @@ public class NavMeshAgent extends AbstractControl {
         this.destination.set(target);
         pathPending = true;
     }
+    
+    public float getSpeed() {
+        return speed;
+    }
 
     /**
      * Set the maximum movement speed when following a path.
+     *
      * @param speed
      */
     public void setSpeed(float speed) {
         this.speed = speed;
     }
-    
+
+    public float getAngularSpeed() {
+        return angularSpeed;
+    }
+
     /**
      * Maximum turning speed in (deg/s) while following a path.
-     * @param angularSpeed 
+     *
+     * @param angularSpeed
      */
     public void setAngularSpeed(float angularSpeed) {
         this.angularSpeed = angularSpeed;
     }
 
+    public float getStoppingDistance() {
+        return stoppingDistance;
+    }
+
     /**
      * Stop within this distance from the target position.
+     *
      * @param stoppingDistance
      */
     public void setStoppingDistance(float stoppingDistance) {
         this.stoppingDistance = stoppingDistance;
     }
-    
+
     /**
      * This property holds the stop or resume condition of the NavMesh agent.
-     * @param stopped 
+     *
+     * @param stopped
      */
     public void setStopped(boolean stopped) {
         this.isStopped = stopped;
@@ -229,33 +252,21 @@ public class NavMeshAgent extends AbstractControl {
             bcc.setWalkDirection(Vector3f.ZERO);
         }
     }
-    
+
     public boolean pathPending() {
         return pathPending;
     }
-    
+
     public boolean hasPath() {
-    	return hasPath;
+        return hasPath;
     }
-    
+
     public NavMeshPathStatus pathStatus() {
         return navPath.getStatus();
     }
-    
-    /**
-     * @return The distance between the agent's position and the destination on the current path. (Read Only)
-     */
-    public float remainingDistance() {
-        float pathLength = 0;
-        List<Vector3f> corners = navPath.waypointList;
 
-        for (int j = 0; j < corners.size(); ++j) {
-            Vector3f va = (j == 0) ? spatial.getWorldTranslation() : corners.get(j - 1);
-            Vector3f vb = corners.get(j);
-            pathLength += va.distance(vb);
-        }
-
-        return pathLength;
+    public NavMeshPath getPath() {
+        return navPath;
     }
     
     /**
@@ -278,10 +289,22 @@ public class NavMeshAgent extends AbstractControl {
         }
     }
     
-    public NavMeshPath getPath() {
-    	return navPath;
-    }
+    /**
+     * @return The distance between the agent's position and the destination on the current path. (Read Only)
+     */
+    public float remainingDistance() {
+        float pathLength = 0;
+        List<Vector3f> corners = navPath.waypointList;
 
+        for (int j = 0; j < corners.size(); ++j) {
+            Vector3f va = (j == 0) ? spatial.getWorldTranslation() : corners.get(j - 1);
+            Vector3f vb = corners.get(j);
+            pathLength += va.distance(vb);
+        }
+
+        return pathLength;
+    }
+    
     /**
      * Calculate a path to a specified point and store the resulting path.
      * <p>
