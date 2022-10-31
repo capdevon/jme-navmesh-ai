@@ -181,7 +181,6 @@ public class NavMeshAgent extends AbstractControl {
 
     /**
      * Gets the destination of the agent in world-space units.
-     * 
      * @return
      */
     public Vector3f getDestination() {
@@ -208,7 +207,6 @@ public class NavMeshAgent extends AbstractControl {
 
     /**
      * Set the maximum movement speed when following a path.
-     *
      * @param speed
      */
     public void setSpeed(float speed) {
@@ -221,7 +219,6 @@ public class NavMeshAgent extends AbstractControl {
 
     /**
      * Maximum turning speed in (deg/s) while following a path.
-     *
      * @param angularSpeed
      */
     public void setAngularSpeed(float angularSpeed) {
@@ -234,7 +231,6 @@ public class NavMeshAgent extends AbstractControl {
 
     /**
      * Stop within this distance from the target position.
-     *
      * @param stoppingDistance
      */
     public void setStoppingDistance(float stoppingDistance) {
@@ -243,7 +239,6 @@ public class NavMeshAgent extends AbstractControl {
 
     /**
      * This property holds the stop or resume condition of the NavMesh agent.
-     *
      * @param stopped
      */
     public void setStopped(boolean stopped) {
