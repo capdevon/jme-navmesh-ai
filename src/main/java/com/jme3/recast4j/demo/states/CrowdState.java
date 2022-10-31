@@ -29,6 +29,7 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.recast4j.demo.controls.Animator;
@@ -42,6 +43,7 @@ import com.jme3.recast4j.detour.crowd.JmeCrowd;
 import com.jme3.recast4j.detour.crowd.MovementType;
 import com.jme3.recast4j.detour.crowd.ObstacleAvoidanceType;
 import com.jme3.recast4j.detour.crowd.SimpleCrowd;
+import com.jme3.recast4j.detour.crowd.TargetProximity;
 import com.jme3.recast4j.editor.NavMeshBuildSettings;
 import com.jme3.recast4j.editor.SampleAreaModifications;
 import com.jme3.recast4j.editor.builder.TileNavMeshBuilder;
@@ -64,6 +66,24 @@ public class CrowdState extends AbstractNavState {
     private NavMesh navMesh;
     private JmeCrowd jmeCrowd;
     private Node worldMap;
+    
+    //-------------------------------------------------------
+    // Crowd Agent Settings
+    private Spatial model;
+    private boolean usePhysics = false;
+    private float m_agentRadius = 0.3f;
+    private float m_agentHeight = 1.6f;
+    private float m_separationWeight = 1f;
+    private int m_obstacleAvoidanceType = ObstacleAvoidanceType.GoodQuality.id;
+    private float stoppingDistance = 0.1f;
+
+    // flags
+    private boolean m_anticipateTurns;
+    private boolean m_optimizeVis = true;
+    private boolean m_optimizeTopo = true;
+    private boolean m_obstacleAvoidance;
+    private boolean m_separation = true;
+    //-------------------------------------------------------
 
     @Override
     protected void simpleInit() {
@@ -104,11 +124,26 @@ public class CrowdState extends AbstractNavState {
                     debugHelper.clear();
                     debugHelper.color = ColorRGBA.Yellow;
                     debugHelper.drawCube(locOnMap, .15f);
-                    setTarget(locOnMap);
+                    //setTarget(locOnMap);
+                    makeAgentsCircleTarget(locOnMap);
                 }
             }
         }
     };
+    
+    public void makeAgentsCircleTarget(Vector3f v) {
+        float radius = 2f;
+        int i = 0;
+        int activeAgents = jmeCrowd.getActiveAgents().size();
+        for (CrowdAgent agent : jmeCrowd.getActiveAgents()) {
+            float angle = FastMath.TWO_PI * i / activeAgents;
+            float x = FastMath.cos(angle) * radius;
+            float z = FastMath.sin(angle) * radius;
+            Vector3f targetPos = new Vector3f(v.x + x, v.y, v.z + z);
+            jmeCrowd.setAgentTarget(agent, targetPos);
+            i++;
+        }
+    }
 
     /**
      * Set the target for the crowd.
@@ -195,9 +230,6 @@ public class CrowdState extends AbstractNavState {
         Node npcsNode = new Node("npcs");
         rootNode.attachChild(npcsNode);
 
-        //addAgent(createModel("Agent1", new Vector3f(-5, 0, 0), npcsNode));
-        //addAgent(createModel("Agent2", new Vector3f(-4, 0, -1), npcsNode));
-        //addAgent(createModel("Agent3", new Vector3f(-3, 0, 0), npcsNode));
         int size = 3;
         Vector3f center = new Vector3f(0, 0, 0);
         float distance = 1;
@@ -233,24 +265,9 @@ public class CrowdState extends AbstractNavState {
         // Add to CrowdManager.
         logger.info("usePhysics={}", usePhysics);
         jmeCrowd.setMovementType(usePhysics ? MovementType.PHYSICS_CHARACTER : MovementType.SPATIAL);
+        ((TargetProximity) jmeCrowd.getProximity()).setDistanceThreshold(stoppingDistance);
         getState(CrowdManagerAppState.class).addCrowd(jmeCrowd);
     }
-
-    //-------------------------------------------------------
-    // Crowd Agent Settings
-    boolean usePhysics = true;
-    float m_agentRadius = 0.3f;
-    float m_agentHeight = 1.6f;
-    float m_separationWeight = 1f;
-    int m_obstacleAvoidanceType = ObstacleAvoidanceType.GoodQuality.id;
-
-    // flags
-    boolean m_anticipateTurns;
-    boolean m_optimizeVis = true;
-    boolean m_optimizeTopo = true;
-    boolean m_obstacleAvoidance;
-    boolean m_separation = true;
-    //-------------------------------------------------------
 
     private void addAgent(Node model) {
 
@@ -260,7 +277,7 @@ public class CrowdState extends AbstractNavState {
         if (agent != null) {
 
             //model.attachChild(createCircle("CollQueryRange", agent.params.collisionQueryRange, ColorRGBA.Yellow));
-            model.attachChild(createCircle("TargetProximity", 1, ColorRGBA.Red));
+            model.attachChild(createCircle("TargetProximity", stoppingDistance, ColorRGBA.Red));
 
             model.addControl(new Animator());
             model.addControl(new CrowdControl(agent));
@@ -304,8 +321,6 @@ public class CrowdState extends AbstractNavState {
         }
         return updateFlags;
     }
-
-    private Spatial model;
 
     private Spatial loadModel() {
         /*
