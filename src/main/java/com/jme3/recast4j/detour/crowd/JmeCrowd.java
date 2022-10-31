@@ -38,26 +38,38 @@ public class JmeCrowd extends Crowd {
     private Map<Integer, Spatial> characterMap;
     private NavMeshQuery m_navQuery;
     private CrowdAgentDebugInfo m_agentDebug = new CrowdAgentDebugInfo();
-    private boolean debugEnabled = false;
+    private boolean agentDebugEnabled = false;
 
     private MoveFunction moveFunction;
     private MovementType movementType = MovementType.SPATIAL;
     private Proximity proximity = new TargetProximity(1f);
     
+    /**
+     * Constructs a JmeCrowd object.
+     */
     public JmeCrowd(CrowdConfig config, NavMesh nav) {
         this(config, nav, i -> new DefaultQueryFilter());
     }
 
+    /**
+     * Constructs a JmeCrowd object.
+     */
     public JmeCrowd(CrowdConfig config, NavMesh nav, IntFunction<QueryFilter> queryFilterFactory) {
         this(config.maxAgents, config.maxAgentRadius, nav, queryFilterFactory);
     }
 
+    /**
+     * Constructs a JmeCrowd object.
+     */
     public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav) {
         super(maxAgents, maxAgentRadius, nav, i -> new DefaultQueryFilter());
         characterMap = new ConcurrentHashMap<>(maxAgents);
         m_navQuery = new NavMeshQuery(nav);
     }
 
+    /**
+     * Constructs a JmeCrowd object.
+     */
     public JmeCrowd(int maxAgents, float maxAgentRadius, NavMesh nav, IntFunction<QueryFilter> queryFilterFactory) {
         super(maxAgents, maxAgentRadius, nav, queryFilterFactory);
         characterMap = new ConcurrentHashMap<>(maxAgents);
@@ -87,47 +99,55 @@ public class JmeCrowd extends Crowd {
         characterMap.remove(agent.idx);
 
         if (m_agentDebug.idx == agent.idx) {
-            deselectAgent();
+            deselectAgentDebugInfo();
         }
     }
 
     public void removeAll() {
         characterMap.keySet().forEach(agentId -> removeAgent(agentId));
         characterMap.clear();
-        deselectAgent();
+        deselectAgentDebugInfo();
     }
 
     public boolean isEmpty() {
         return characterMap.isEmpty();
     }
 
-    public void selectAgent(CrowdAgent agent) {
+    public void selectAgentDebugInfo(CrowdAgent agent) {
         if (!characterMap.containsKey(agent.idx)) {
             throw new IllegalArgumentException("The given agent is not registed at this Crowd");
         }
         m_agentDebug.idx = agent.idx;
-        debugEnabled = true;
+        agentDebugEnabled = true;
     }
 
-    public void deselectAgent() {
+    public void deselectAgentDebugInfo() {
         m_agentDebug.idx = -1;
-        debugEnabled = false;
+        agentDebugEnabled = false;
     }
     
-    public void setProximityDetector(Proximity p) {
-        this.proximity = p;
+    public MoveFunction getMoveFunction() {
+        return moveFunction;
     }
 
     public void setMoveFunction(MoveFunction moveFunction) {
         this.moveFunction = moveFunction;
     }
 
-    public void setMovementType(MovementType movementType) {
-        this.movementType = movementType;
+    public Proximity getProximity() {
+        return proximity;
+    }
+
+    public void setProximity(Proximity proximity) {
+        this.proximity = proximity;
     }
 
     public MovementType getMovementType() {
         return movementType;
+    }
+
+    public void setMovementType(MovementType movementType) {
+        this.movementType = movementType;
     }
 
     /**
@@ -150,7 +170,7 @@ public class JmeCrowd extends Crowd {
     }
 
     protected void updateTick(float deltaTime) {
-        if (debugEnabled) {
+        if (agentDebugEnabled) {
             update(deltaTime, m_agentDebug);
             m_agentDebug.vod.normalizeSamples();
         } else {
@@ -207,7 +227,7 @@ public class JmeCrowd extends Crowd {
 
             if (proximity.isInTargetProximity(agent, newPos, targetPos)) {
                 // stop moving.
-                logger.info("stop moving dist={} velocity={}", newPos.distance(targetPos), xSpeed);
+                logger.debug("stop moving dist={} velocity={}", newPos.distance(targetPos), xSpeed);
                 resetAgentTarget(agent);
             }
         }
