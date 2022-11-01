@@ -19,6 +19,7 @@ import com.jme3.anim.SkinningControl;
 import com.jme3.anim.util.AnimMigrationUtils;
 import com.jme3.app.Application;
 import com.jme3.bounding.BoundingBox;
+import com.jme3.bullet.collision.PhysicsCollisionObject;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
 import com.jme3.bullet.control.BetterCharacterControl;
@@ -131,7 +132,7 @@ public class CrowdState extends AbstractNavState {
         }
     };
     
-    public void makeAgentsCircleTarget(Vector3f v) {
+    public void makeAgentsCircleTarget(Vector3f target) {
         float radius = 2f;
         int i = 0;
         int activeAgents = jmeCrowd.getActiveAgents().size();
@@ -139,8 +140,7 @@ public class CrowdState extends AbstractNavState {
             float angle = FastMath.TWO_PI * i / activeAgents;
             float x = FastMath.cos(angle) * radius;
             float z = FastMath.sin(angle) * radius;
-            Vector3f targetPos = new Vector3f(v.x + x, v.y, v.z + z);
-            jmeCrowd.setAgentTarget(agent, targetPos);
+            jmeCrowd.setAgentTarget(agent, target.add(x, 0, z));
             i++;
         }
     }
@@ -244,7 +244,7 @@ public class CrowdState extends AbstractNavState {
                 Vector3f position = new Vector3f(x, y, z);
 
                 // Add Agent
-                String name = String.format("Agent_r%d_c%d", i, j);
+                String name = String.format("Agent_%d%d", i, j);
                 Node model = createModel(name, position, npcsNode);
                 addAgent(model);
 
@@ -381,6 +381,7 @@ public class CrowdState extends AbstractNavState {
 
         // Setup root motion physics control
         RigidBodyControl rbc = new RigidBodyControl(collShape);
+        rbc.setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         // Kinematic mode must be enabled so character is not influenced by physics
         rbc.setKinematic(true);
         // Apply spatial transform to the collision shape

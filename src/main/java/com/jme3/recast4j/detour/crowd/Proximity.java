@@ -5,7 +5,7 @@ import org.recast4j.detour.crowd.CrowdAgent;
 
 /**
  * An interface to detect when an agent is in the acceptable range of a target.
- * <br />
+ * <p>
  * DetourCrowd uses Steering Behaviors and as such might not perfectly navigate
  * on the waypoints (especially when doing collision avoidance). That's why we
  * need a way to determine when the agent has reached it's target to make him
@@ -14,5 +14,5 @@ import org.recast4j.detour.crowd.CrowdAgent;
  */
 public interface Proximity {
 
-	boolean isInTargetProximity(CrowdAgent agent, Vector3f agentPos, Vector3f targetPos);
+    boolean isInTargetProximity(CrowdAgent agent, Vector3f agentPos, Vector3f targetPos);
 }

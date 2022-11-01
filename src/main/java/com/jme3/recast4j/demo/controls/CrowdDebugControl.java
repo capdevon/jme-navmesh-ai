@@ -47,8 +47,7 @@ public class CrowdDebugControl extends AbstractControl {
      * @param agent The agent to look for inside the crowd.
      */
     public CrowdDebugControl(CrowdAgent agent) {
-        this.agent = agent;
-        setupDebugNode(new DesktopAssetManager(true));
+        this(agent, new DesktopAssetManager(true));
     }
 
     /**
