@@ -14,5 +14,5 @@ import org.recast4j.detour.crowd.CrowdAgent;
  */
 public interface Proximity {
 
-    boolean isInTargetProximity(CrowdAgent agent, Vector3f agentPos, Vector3f targetPos);
+    public boolean isInTargetProximity(CrowdAgent agent, Vector3f agentPos, Vector3f targetPos);
 }

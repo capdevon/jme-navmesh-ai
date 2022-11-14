@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jme3.asset.AssetManager;
-import com.jme3.asset.DesktopAssetManager;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -39,16 +38,6 @@ public class CrowdDebugControl extends AbstractControl {
     private boolean verbose = false;
     private float timer = 0;
     private float refreshTime = 0.1f;
-
-    /**
-     * This control will display a visual, verbose, or both representation of an
-     * agents MoveRequestState while inside the given crowd.
-     * 
-     * @param agent The agent to look for inside the crowd.
-     */
-    public CrowdDebugControl(CrowdAgent agent) {
-        this(agent, new DesktopAssetManager(true));
-    }
 
     /**
      * This control will display a visual, verbose, or both representation of an
