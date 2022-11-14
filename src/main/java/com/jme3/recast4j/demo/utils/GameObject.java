@@ -9,27 +9,25 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.Control;
 
 /**
- * 
+ *
  * @author capdevon
  */
 public class GameObject {
-	
+
     /**
      * A private constructor to inhibit instantiation of this class.
      */
-    private GameObject() {
-    }
+    private GameObject() {}
 
     /**
      * Returns all components of Type type in the GameObject.
-     * 
-     * @param <T>
+     *
      * @param spatial
      * @param clazz
      * @return
      */
-    public static <T extends Control> T[] getComponents(Spatial spatial, Class<T> clazz) {
-        final List<Node> lst = new ArrayList<>(10);
+    public static List<Node> getComponents(Spatial spatial, Class<? extends Control> clazz) {
+        List<Node> lst = new ArrayList<>(10);
         spatial.breadthFirstTraversal(new SceneGraphVisitorAdapter() {
             @Override
             public void visit(Node node) {
@@ -38,26 +36,26 @@ public class GameObject {
                 }
             }
         });
-        return (T[]) lst.toArray();
+        return lst;
     }
 
     /**
      * Returns the component of Type type if the game object has one attached,
      * null if it doesn't.
-     *
+     * 
      * @param <T>
+     * @param spatial
      * @param clazz
-     * @return
+     * @return 
      */
     public static <T extends Control> T getComponent(Spatial spatial, Class<T> clazz) {
-        T control = spatial.getControl(clazz);
-        return control;
+        return spatial.getControl(clazz);
     }
 
     /**
      * Returns the component of Type type in the GameObject or any of its
      * children using depth first search.
-     * 
+     *
      * @param <T>
      * @param spatial
      * @param clazz
@@ -70,7 +68,7 @@ public class GameObject {
         }
 
         if (spatial instanceof Node) {
-            for (Spatial child: ((Node) spatial).getChildren()) {
+            for (Spatial child : ((Node) spatial).getChildren()) {
                 control = getComponentInChildren(child, clazz);
                 if (control != null) {
                     return control;
@@ -84,7 +82,7 @@ public class GameObject {
     /**
      * Retrieves the component of Type type in the GameObject or any of its
      * parents.
-     * 
+     *
      * @param <T>
      * @param spatial
      * @param clazz
