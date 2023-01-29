@@ -7,8 +7,8 @@ plugins {
 description = 'Navigation-mesh Toolset for jMonkeyEngine3'
 
 // select one source-code (JDK) option
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 ext {
     jmeVersion = '3.5.2-stable'
@@ -19,14 +19,14 @@ gradle.projectsEvaluated {
     tasks.withType(JavaCompile) { // compile-time options:
         options.compilerArgs << '-Xdiags:verbose'
         options.compilerArgs << '-Xlint:unchecked'
-        options.deprecation = true
+        //options.deprecation = true
         options.encoding = 'UTF-8'
     }
     tasks.withType(JavaExec) { // runtime options:
         args = []
         classpath sourceSets.main.runtimeClasspath
         //debug true
-        enableAssertions true
+        //enableAssertions true
         //jvmArgs '-verbose:gc'
         //jvmArgs '-Xbatch'
         //jvmArgs '-Xms512m', '-Xmx512m'
@@ -59,7 +59,7 @@ dependencies {
     implementation 'org.jmonkeyengine:jme3-terrain:' + jmeVersion
     
     // Physics
-    implementation 'com.github.stephengold:Minie:7.1.0+big3'
+    implementation 'com.github.stephengold:Minie:7.2.0+big3'
 
     // select one version of LWJGL
     runtimeOnly 'org.jmonkeyengine:jme3-lwjgl:' + jmeVersion  // LWJGL 2.x
