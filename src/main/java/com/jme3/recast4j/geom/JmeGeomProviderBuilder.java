@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import org.recast4j.recast.AreaModification;
@@ -139,15 +140,28 @@ public class JmeGeomProviderBuilder {
      * @return
      */
     public JmeInputGeomProvider build(AreaModification defaultArea,
-        List<NavMeshBuildMarkup> markups, List<NavMeshBuildSource> results) {
+            List<NavMeshBuildMarkup> markups, List<NavMeshBuildSource> results) {
 
-        results.clear();
+        final Set<Geometry> geometries = collectSources(defaultArea, markups, results);
+
+        Mesh optiMesh = new Mesh();
+        GeometryBatchFactory.mergeGeometries(geometries, optiMesh);
+
+        JmeInputGeomProvider geomProvider = new JmeInputGeomProvider(getVertices(optiMesh), getIndices(optiMesh));
+        results.forEach(s -> geomProvider.addModification(s));
+
+        return geomProvider;
+    }
+
+    private Set<Geometry> collectSources(AreaModification defaultArea,
+            List<NavMeshBuildMarkup> markups, List<NavMeshBuildSource> results) {
 
         final Map<Geometry, AreaModification> map = new HashMap<>();
         geometryList.forEach(g -> map.put(g, defaultArea));
 
         for (NavMeshBuildMarkup markup : markups) {
             if (markup.root instanceof Geometry) {
+
                 Geometry geo = (Geometry) markup.root;
                 if (markup.ignoreFromBuild) {
                     map.remove(geo);
@@ -156,6 +170,7 @@ public class JmeGeomProviderBuilder {
                 }
             } else if (markup.root instanceof Node) {
                 ((Node) markup.root).depthFirstTraversal(new SceneGraphVisitorAdapter() {
+
                     @Override
                     public void visit(Geometry geo) {
                         if (markup.ignoreFromBuild) {
@@ -168,18 +183,14 @@ public class JmeGeomProviderBuilder {
             }
         }
 
+        results.clear();
+
         for (Map.Entry<Geometry, AreaModification> entry : map.entrySet()) {
             NavMeshBuildSource source = new NavMeshBuildSource(entry.getKey(), entry.getValue());
             results.add(source);
             System.out.println(source);
         }
 
-        Mesh optiMesh = new Mesh();
-        GeometryBatchFactory.mergeGeometries(map.keySet(), optiMesh);
-
-        JmeInputGeomProvider geomProvider = new JmeInputGeomProvider(getVertices(optiMesh), getIndices(optiMesh));
-        results.forEach(s -> geomProvider.addModification(s));
-
-        return geomProvider;
+        return map.keySet();
     }
 }
