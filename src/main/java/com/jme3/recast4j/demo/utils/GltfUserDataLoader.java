@@ -24,7 +24,6 @@
  * MODELS/DUNE.J3O:
  * Converted from http://quadropolis.us/node/2584 [Public Domain according to the Tags of this Map]
  */
-
 package com.jme3.recast4j.demo.utils;
 
 import com.google.gson.JsonElement;
@@ -36,7 +35,7 @@ import java.util.Map.Entry;
 
 /**
  * Gltf loader for Blender user data.
- * 
+ *
  * @author Robert
  */
 public class GltfUserDataLoader implements ExtrasLoader {
@@ -47,7 +46,7 @@ public class GltfUserDataLoader implements ExtrasLoader {
         if (input instanceof Spatial) {
             if (extras.isJsonObject()) {
                 JsonObject ext = extras.getAsJsonObject();
-                for(Entry<String, JsonElement> element : ext.entrySet()) {
+                for (Entry<String, JsonElement> element : ext.entrySet()) {
                     Spatial spatial = (Spatial) input;
                     if (element.getKey().equals("open")) {
                         spatial.setUserData(element.getKey(), element.getValue().getAsBoolean());
