@@ -36,6 +36,8 @@ gradle.projectsEvaluated {
     }
 }
 
+mainClassName = 'com.jme3.recast4j.demo.Test_NavMesh'
+
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
@@ -66,7 +68,7 @@ dependencies {
     //runtimeOnly 'org.jmonkeyengine:jme3-lwjgl3:' + jmeVersion // LWJGL 3.x
 
     runtimeOnly 'org.jmonkeyengine:jme3-jogg:' + jmeVersion
-    runtimeOnly 'org.jmonkeyengine:jme3-plugins:' + jmeVersion
+    implementation 'org.jmonkeyengine:jme3-plugins:' + jmeVersion
     //runtimeOnly 'org.jmonkeyengine:jme3-testdata:' + jmeVersion
     
     // recast4j
