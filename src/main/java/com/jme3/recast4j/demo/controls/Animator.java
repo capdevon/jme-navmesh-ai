@@ -7,13 +7,18 @@ import org.slf4j.LoggerFactory;
 
 import com.jme3.anim.AnimComposer;
 import com.jme3.anim.SkinningControl;
+import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.ViewPort;
+
+import static com.jme3.recast4j.demo.utils.GameObject.getComponentInChildren;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.control.AbstractControl;
 
 /**
  *
  * @author capdevon
  */
-public class Animator extends AdapterControl {
+public class Animator extends AbstractControl {
 
     private static final Logger logger = LoggerFactory.getLogger(Animator.class);
 
@@ -26,10 +31,10 @@ public class Animator extends AdapterControl {
         super.setSpatial(spatial);
 
         if (spatial != null) {
-            skControl = getComponentInChildren(SkinningControl.class);
+            skControl = getComponentInChildren(spatial, SkinningControl.class);
             Objects.requireNonNull(skControl, "SkinningControl not found: " + spatial);
 
-            animComposer = getComponentInChildren(AnimComposer.class);
+            animComposer = getComponentInChildren(spatial, AnimComposer.class);
             Objects.requireNonNull(animComposer, "AnimComposer not found: " + spatial);
 
             configureAnimClips();
@@ -60,6 +65,16 @@ public class Animator extends AdapterControl {
 
     public String getCurrentAnimName() {
         return currAnimName;
+    }
+
+    @Override
+    protected void controlUpdate(float tpf) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    protected void controlRender(RenderManager rm, ViewPort vp) {
+        // TODO Auto-generated method stub
     }
 
 }

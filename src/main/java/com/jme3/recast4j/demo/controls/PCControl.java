@@ -6,13 +6,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jme3.recast4j.ai.NavMeshAgent;
+import static com.jme3.recast4j.demo.utils.GameObject.getComponent;
+import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.control.AbstractControl;
 
 /**
  *
  * @author capdevon
  */
-public class PCControl extends AdapterControl {
+public class PCControl extends AbstractControl {
 
     private static final Logger logger = LoggerFactory.getLogger(PCControl.class);
 
@@ -23,10 +27,10 @@ public class PCControl extends AdapterControl {
     public void setSpatial(Spatial spatial) {
         super.setSpatial(spatial);
         if (spatial != null) {
-            this.agent = getComponent(NavMeshAgent.class);
+            this.agent = getComponent(spatial, NavMeshAgent.class);
             Objects.requireNonNull(agent, "NavMeshAgent not found: " + spatial);
 
-            this.animator = getComponent(Animator.class);
+            this.animator = getComponent(spatial, Animator.class);
             Objects.requireNonNull(animator, "Animator not found: " + spatial);
         }
     }
@@ -41,6 +45,11 @@ public class PCControl extends AdapterControl {
             animator.setAnimation("Walk");
             animator.setSpeed(2);
         }
+    }
+
+    @Override
+    protected void controlRender(RenderManager rm, ViewPort vp) {
+        // TODO Auto-generated method stub
     }
 
 }
