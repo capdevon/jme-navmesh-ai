@@ -1,10 +1,6 @@
 package com.jme3.recast4j.demo.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.jme3.scene.Node;
-import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.Control;
 
@@ -20,33 +16,13 @@ public class GameObject {
     private GameObject() {}
 
     /**
-     * Returns all components of Type type in the GameObject.
-     *
-     * @param spatial
-     * @param clazz
-     * @return
-     */
-    public static List<Node> getComponents(Spatial spatial, Class<? extends Control> clazz) {
-        List<Node> lst = new ArrayList<>(10);
-        spatial.breadthFirstTraversal(new SceneGraphVisitorAdapter() {
-            @Override
-            public void visit(Node node) {
-                if (node.getControl(clazz) != null) {
-                    lst.add(node);
-                }
-            }
-        });
-        return lst;
-    }
-
-    /**
      * Returns the component of Type type if the game object has one attached,
      * null if it doesn't.
-     * 
+     *
      * @param <T>
      * @param spatial
      * @param clazz
-     * @return 
+     * @return
      */
     public static <T extends Control> T getComponent(Spatial spatial, Class<T> clazz) {
         return spatial.getControl(clazz);
