@@ -9,11 +9,6 @@ This project optimizes and adds new tools and features to the original project [
 - NavMeshTools - Use the NavMesh class to perform spatial queries such as pathfinding and walkability tests.
 - NavMeshBuildMarkup allows you to control how certain objects are treated during the NavMesh build process, specifically when collecting sources for building.
 - NavMeshBuildSettings allows you to specify a collection of settings which describe the dimensions and limitations of a particular agent type.
-- StraightPathOptions
-- NavMeshDebugViewer
-- NavPathDebugViewer
-- SoloNavMeshBuilder
-- TileNavMeshBuilder
 - IORecast to export **NavMesh** in .obj format.
 - Graphic editor to modify the NavMesh generation parameters at Runtime.
 
@@ -33,7 +28,7 @@ The individual projects and their respective requirements used in this demo can 
 # Youtube videos
 [Demo Navigation-mesh](https://www.youtube.com/watch?v=XVWxy30IH7Q)
 
-[Demo Agent-based Crowd Simulation](https://www.youtube.com/watch?v=0yvne6mQVy4)
+[NavMesh, Pathfinding Agents, Box and Circle Formation](https://www.youtube.com/watch?v=8J28kepYdsU)
 
 # 
 Crowd Agent WIP
