@@ -11,7 +11,7 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 ext {
-    jmeVersion = '3.5.2-stable'
+    jmeVersion = '3.6.0-stable'
     recast4jVersion = '1.2.8'
 }
 
@@ -52,20 +52,21 @@ dependencies {
     //   https://docs.gradle.org/current/userguide/dependency_management.html#sec:how_to_declare_your_dependencies
 
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-    implementation 'org.apache.commons:commons-lang3:3.10'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
 
     // jMonkeyEngine
     implementation 'org.jmonkeyengine:jme3-core:' + jmeVersion
     implementation 'org.jmonkeyengine:jme3-desktop:' + jmeVersion
     implementation 'org.jmonkeyengine:jme3-effects:' + jmeVersion
     implementation 'org.jmonkeyengine:jme3-terrain:' + jmeVersion
+    runtimeOnly    'org.jmonkeyengine:jme3-awt-dialogs:' + jmeVersion // JMonkeyEngine v3.6 only!
     
     // Physics
-    implementation 'com.github.stephengold:Minie:7.2.0+big3'
+    implementation 'com.github.stephengold:Minie:7.4.0+big3'
 
     // select one version of LWJGL
-    runtimeOnly 'org.jmonkeyengine:jme3-lwjgl:' + jmeVersion  // LWJGL 2.x
-    //runtimeOnly 'org.jmonkeyengine:jme3-lwjgl3:' + jmeVersion // LWJGL 3.x
+    //runtimeOnly 'org.jmonkeyengine:jme3-lwjgl:' + jmeVersion  // LWJGL 2.x
+    runtimeOnly 'org.jmonkeyengine:jme3-lwjgl3:' + jmeVersion // LWJGL 3.x
 
     runtimeOnly 'org.jmonkeyengine:jme3-jogg:' + jmeVersion
     implementation 'org.jmonkeyengine:jme3-plugins:' + jmeVersion
@@ -84,10 +85,10 @@ dependencies {
     implementation 'org.slf4j:slf4j-simple:1.7.32'
         
     // Libraries related to the Lemur GUI and Groovy:
-    implementation 'com.simsilica:lemur:1.15.0'
-    implementation 'com.simsilica:lemur-props:1.1.1'
-    implementation 'com.simsilica:lemur-proto:1.12.0'
-    runtimeOnly 'org.codehaus.groovy:groovy-jsr223:3.0.8'
+    implementation 'com.simsilica:lemur:1.16.0'
+    implementation 'com.simsilica:lemur-props:1.2.0'
+    implementation 'com.simsilica:lemur-proto:1.13.0'
+    runtimeOnly 'org.codehaus.groovy:groovy-jsr223:3.0.16'
 }
 
 // cleanup tasks
