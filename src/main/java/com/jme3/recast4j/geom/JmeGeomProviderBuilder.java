@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -141,6 +142,9 @@ public class JmeGeomProviderBuilder {
      */
     public JmeInputGeomProvider build(AreaModification defaultArea,
             List<NavMeshBuildMarkup> markups, List<NavMeshBuildSource> results) {
+    	
+        Objects.requireNonNull(markups);
+        Objects.requireNonNull(results);
 
         final Set<Geometry> geometries = collectSources(defaultArea, markups, results);
 
