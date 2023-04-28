@@ -1,4 +1,4 @@
-# jme3-recast4j-test-1
+# jme-navmesh-ai
 This project was born with the aim of creating a bridge API between the recast4j library and jMonkeyEngine.
 
 This project optimizes and adds new tools and features to the original project [jme3-recast4j](https://github.com/MeFisto94/jme3-recast4j-demo/wiki)
