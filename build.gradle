@@ -62,7 +62,7 @@ dependencies {
     runtimeOnly    'org.jmonkeyengine:jme3-awt-dialogs:' + jmeVersion // JMonkeyEngine v3.6 only!
     
     // Physics
-    implementation 'com.github.stephengold:Minie:7.4.0+big3'
+    implementation 'com.github.stephengold:Minie:7.5.0+big3'
 
     // select one version of LWJGL
     //runtimeOnly 'org.jmonkeyengine:jme3-lwjgl:' + jmeVersion  // LWJGL 2.x
