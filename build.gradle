@@ -40,17 +40,9 @@ mainClassName = 'com.jme3.recast4j.demo.Test_NavMesh'
 
 repositories {
     mavenCentral()
-    maven { url 'https://jitpack.io' }
-    maven { url 'https://jcenter.bintray.com/' } // for Lemur
-
-    // Read more about repositories here:
-    //   https://docs.gradle.org/current/userguide/dependency_management.html#sec:repositories
 }
 
 dependencies {
-    // You can read more about how to add dependencies here:
-    //   https://docs.gradle.org/current/userguide/dependency_management.html#sec:how_to_declare_your_dependencies
-
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 
@@ -62,7 +54,7 @@ dependencies {
     runtimeOnly    'org.jmonkeyengine:jme3-awt-dialogs:' + jmeVersion // JMonkeyEngine v3.6 only!
     
     // Physics
-    implementation 'com.github.stephengold:Minie:7.5.0+big3'
+    implementation 'com.github.stephengold:Minie:7.6.0+big3'
 
     // select one version of LWJGL
     //runtimeOnly 'org.jmonkeyengine:jme3-lwjgl:' + jmeVersion  // LWJGL 2.x
