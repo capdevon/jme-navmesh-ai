@@ -11,7 +11,7 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 ext {
-    jmeVersion = '3.6.0-stable'
+    jmeVersion = '3.6.1-stable'
     recast4jVersion = '1.2.8'
 }
 
