@@ -41,21 +41,21 @@ public class NavMeshAgent extends AbstractControl {
     private final Vector3f viewDirection = new Vector3f(0, 0, 1);
     private final Quaternion lookRotation = new Quaternion();
     
-    //Does the agent currently have a path? (Read Only)
+    // Does the agent currently have a path? (Read Only)
     private boolean hasPath;
-    //Is a path in the process of being computed but not yet ready? (Read Only)
+    // Is a path in the process of being computed but not yet ready? (Read Only)
     private boolean pathPending;
-    //This property holds the stop or resume condition of the NavMesh agent.
+    // This property holds the stop or resume condition of the NavMesh agent.
     private boolean isStopped;
-    
-    //Stop within this distance from the target position.
-    public float stoppingDistance = .25f;
-    //Maximum movement speed when following a path.
-    public float speed = 2;
-    //Maximum turning speed in (deg/s) while following a path.
-    public float angularSpeed = 6;
-    //Should the agent update the transform orientation?
-    public boolean updateRotation = true;
+
+    // Stop within this distance from the target position.
+    private float stoppingDistance = .25f;
+    // Maximum movement speed when following a path.
+    private float speed = 2;
+    // Maximum turning speed in (deg/s) while following a path.
+    private float angularSpeed = 6;
+    // Should the agent update the transform orientation?
+    private boolean updateRotation = true;
 
     /**
      * 

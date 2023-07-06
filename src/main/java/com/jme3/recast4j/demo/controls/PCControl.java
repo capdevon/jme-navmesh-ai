@@ -37,7 +37,7 @@ public class PCControl extends AbstractControl {
 
     @Override
     public void controlUpdate(float tpf) {
-        if (agent.remainingDistance() < agent.stoppingDistance && !agent.pathPending()) {
+        if (agent.remainingDistance() < agent.getStoppingDistance() && !agent.pathPending()) {
             animator.setAnimation("Idle");
             animator.setSpeed(1);
         } else {
@@ -49,7 +49,6 @@ public class PCControl extends AbstractControl {
 
     @Override
     protected void controlRender(RenderManager rm, ViewPort vp) {
-        // TODO Auto-generated method stub
     }
 
 }
