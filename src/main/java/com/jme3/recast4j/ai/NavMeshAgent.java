@@ -97,16 +97,9 @@ public class NavMeshAgent extends AbstractControl {
 
             // move char until waypoint reached
             if (remainingDistance > stoppingDistance) {
-                Vector3f direction = wayPoint.subtract(spatial.getWorldTranslation(), viewDirection).setY(0);
-                direction.normalizeLocal();
-
-                //smooth rotation
-                if (updateRotation && direction.lengthSquared() > 0) {
-                    lookRotation.lookAt(direction, Vector3f.UNIT_Y);
-                    smoothDamp(spatial.getWorldRotation(), lookRotation, angularSpeed * tpf, viewDirection);
-                    bcc.setViewDirection(viewDirection);
-                }
-                bcc.setWalkDirection(direction.multLocal(speed));
+                Vector3f dir = wayPoint.subtract(spatial.getWorldTranslation(), viewDirection).setY(0);
+                dir.normalizeLocal();
+                moveTo(dir, tpf);
 
             } //If at the final waypoint set at goal to true 
             else if (navPath.isAtGoalWaypoint()) {
@@ -118,14 +111,23 @@ public class NavMeshAgent extends AbstractControl {
             }
         }
     }
+
+    private void moveTo(Vector3f direction, float tpf) {
+        if (updateRotation && direction.lengthSquared() > 0) {
+            lookRotation.lookAt(direction, Vector3f.UNIT_Y);
+            smoothDamp(spatial.getWorldRotation(), lookRotation, angularSpeed * tpf, viewDirection);
+            bcc.setViewDirection(viewDirection);
+        }
+        bcc.setWalkDirection(direction.multLocal(speed));
+    }
     
     /**
      * Spherically interpolates between quaternions a and b by ratio t. The
      * parameter t is clamped to the range [0, 1].
      */
-    private Vector3f smoothDamp(Quaternion from, Quaternion to, float smoothTime, Vector3f viewDirection) {
+    private Vector3f smoothDamp(Quaternion from, Quaternion to, float smoothTime, Vector3f store) {
         from.slerp(to, FastMath.clamp(smoothTime, 0, 1));
-        return from.mult(Vector3f.UNIT_Z, viewDirection);
+        return from.mult(Vector3f.UNIT_Z, store);
     }
 
     private void startPathfinder() {
