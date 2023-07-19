@@ -3,14 +3,14 @@ This project was born with the aim of creating a bridge API between the recast4j
 
 This project optimizes and adds new tools and features to the original project [jme3-recast4j](https://github.com/MeFisto94/jme3-recast4j-demo/wiki)
 
-### Recently added features:
-- NavMeshAgent that allows you to move the character in the Scene using the NavMesh.
-- NavMeshQueryFilter - Specifies which areas to consider when searching the NavMesh.
-- NavMeshTools - Use the NavMesh class to perform spatial queries such as pathfinding and walkability tests.
-- NavMeshBuildMarkup allows you to control how certain objects are treated during the NavMesh build process, specifically when collecting sources for building.
-- NavMeshBuildSettings allows you to specify a collection of settings which describe the dimensions and limitations of a particular agent type.
-- IORecast to export **NavMesh** in .obj format.
-- Graphic editor to modify the NavMesh generation parameters at Runtime.
+### Features
+- _NavMeshAgent_ that allows you to move the character in the Scene using the NavMesh.
+- _NavMeshQueryFilter_ - Specifies which areas to consider when searching the NavMesh.
+- _NavMeshTools_ - Use the NavMesh class to perform spatial queries such as pathfinding and walkability tests.
+- _NavMeshBuildMarkup_ allows you to control how certain objects are treated during the NavMesh build process, specifically when collecting sources for building.
+- _NavMeshBuildSettings_ allows you to specify a collection of settings which describe the dimensions and limitations of a particular agent type.
+- _IORecast_ to export **NavMesh** in _.obj_ format.
+- _Graphic Editor_ to modify the NavMesh generation parameters at Runtime.
 
 # Requirements
 The individual projects and their respective requirements used in this demo can be found by following these links.
