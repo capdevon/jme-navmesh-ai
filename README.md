@@ -3,6 +3,8 @@ This project was born with the aim of creating a bridge API between the recast4j
 
 This project optimizes and adds new tools and features to the original project [jme3-recast4j](https://github.com/MeFisto94/jme3-recast4j-demo/wiki)
 
+🔔 If you found this project useful, please let me know by leaving a like to motivate me to improve it. Thanks.
+
 ### Features
 - _NavMeshAgent_ that allows you to move the character in the Scene using the NavMesh.
 - _NavMeshQueryFilter_ - Specifies which areas to consider when searching the NavMesh.
@@ -42,3 +44,6 @@ IORecast export .obj
 
 # Credits
 Huge thanks to MeFisto94 ad mitm001 for writing the original project this is based on.
+
+## Bug report / feature request
+The best way to report bug or feature request is [github's issues page](https://github.com/capdevon/jme-navmesh-ai/issues).
