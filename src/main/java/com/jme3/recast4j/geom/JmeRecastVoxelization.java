@@ -63,11 +63,11 @@ public class JmeRecastVoxelization {
             List<int[]> listTriIndices = new ArrayList<>();
             int fromIndex = 0;
 
-            for (NavMeshBuildSource sourceObj : geomProvider.getModifications()) {
-                int[] triangles = new int[sourceObj.getGeomLength()];
-                System.arraycopy(tris, fromIndex, triangles, 0, sourceObj.getGeomLength());
+            for (NavMeshModifier mod : geomProvider.getModifications()) {
+                int[] triangles = new int[mod.getGeomLength()];
+                System.arraycopy(tris, fromIndex, triangles, 0, mod.getGeomLength());
                 listTriIndices.add(triangles);
-                fromIndex += sourceObj.getGeomLength();
+                fromIndex += mod.getGeomLength();
             }
             
             if (tiled) {
@@ -197,13 +197,13 @@ public class JmeRecastVoxelization {
                      * array found in listTriIndices.
                      */
                     List<int[]> listMarkedTris = new ArrayList<>();
-                    for (NavMeshBuildSource sourceObj : geomProvider.getModifications()) {
+                    for (NavMeshModifier mod : geomProvider.getModifications()) {
                         int[] m_triareas = Recast.markWalkableTriangles(ctx, 
                                 cfg.walkableSlopeAngle, 
                                 verts, 
-                                listTriIndices.get(geomProvider.getModifications().indexOf(sourceObj)), 
-                                listTriIndices.get(geomProvider.getModifications().indexOf(sourceObj)).length/3, 
-                                sourceObj.getAreaModification());
+                                listTriIndices.get(geomProvider.getModifications().indexOf(mod)), 
+                                listTriIndices.get(geomProvider.getModifications().indexOf(mod)).length/3, 
+                                mod.getAreaModification());
                         listMarkedTris.add(m_triareas);
                     }                 
 

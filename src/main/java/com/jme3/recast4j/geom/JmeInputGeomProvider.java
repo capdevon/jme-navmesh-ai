@@ -26,7 +26,6 @@ import jme3tools.optimize.GeometryBatchFactory;
  */
 public class JmeInputGeomProvider implements InputGeomProvider {
 	
-    private Mesh mesh;
     private final float[] vertices;
     private final int[] faces;
     private final float[] normals;
@@ -35,14 +34,14 @@ public class JmeInputGeomProvider implements InputGeomProvider {
     private final float[] bmax;
     private final List<ConvexVolume> convexVolumes = new ArrayList<>();
     private final List<OffMeshLink> offMeshConnections = new ArrayList<>();
-    private final List<NavMeshBuildSource> listModifications = new ArrayList<>();
+    private final List<NavMeshModifier> listModifications = new ArrayList<>();
 
     /**
      * 
      * @param geometries
      */
     public JmeInputGeomProvider(List<Geometry> geometries) {
-        mesh = new Mesh();
+        Mesh mesh = new Mesh();
         GeometryBatchFactory.mergeGeometries(geometries, mesh);
         
         vertices = getVertices(mesh);
@@ -93,6 +92,26 @@ public class JmeInputGeomProvider implements InputGeomProvider {
     	convexVolumes.clear();
     }
     
+    public List<NavMeshModifier> getModifications() {
+        return this.listModifications;
+    }
+
+    public void addModification(NavMeshModifier mod) {
+        this.listModifications.add(mod);
+    }
+    
+    public List<OffMeshLink> getOffMeshConnections() {
+        return offMeshConnections;
+    }
+
+    public void addOffMeshConnection(OffMeshLink link) {
+        offMeshConnections.add(link);
+    }
+
+    public void removeOffMeshConnections(Predicate<OffMeshLink> filter) {
+        offMeshConnections.retainAll(offMeshConnections.stream().filter(c -> !filter.test(c)).collect(Collectors.toList()));
+    }
+    
     private float[] getVertices(Mesh mesh) {
         FloatBuffer buffer = mesh.getFloatBuffer(VertexBuffer.Type.Position);
         return BufferUtils.getFloatArray(buffer);
@@ -133,25 +152,5 @@ public class JmeInputGeomProvider implements InputGeomProvider {
                 normals[i + 2] *= d;
             }
         }
-    }
-    
-    public List<NavMeshBuildSource> getModifications() {
-        return this.listModifications;
-    }
-
-    public void addModification(NavMeshBuildSource mod) {
-        this.listModifications.add(mod);
-    }
-    
-    public List<OffMeshLink> getOffMeshConnections() {
-        return offMeshConnections;
-    }
-
-    public void addOffMeshConnection(OffMeshLink link) {
-        offMeshConnections.add(link);
-    }
-
-    public void removeOffMeshConnections(Predicate<OffMeshLink> filter) {
-        offMeshConnections.retainAll(offMeshConnections.stream().filter(c -> !filter.test(c)).collect(Collectors.toList()));
     }
 }

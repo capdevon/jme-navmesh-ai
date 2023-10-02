@@ -133,7 +133,7 @@ import com.jme3.recast4j.geom.JmeInputGeomProvider;
 import com.jme3.recast4j.geom.JmeRecastBuilder;
 import com.jme3.recast4j.geom.JmeRecastVoxelization;
 import com.jme3.recast4j.geom.JmeTileLayerBuilder;
-import com.jme3.recast4j.geom.NavMeshBuildSource;
+import com.jme3.recast4j.geom.NavMeshModifier;
 import com.jme3.recast4j.geom.NavMeshBuilderProgressListener;
 import com.jme3.recast4j.geom.OffMeshLink;
 import com.jme3.recast4j.recast.IORecast;
@@ -685,7 +685,7 @@ public class NavState extends AbstractNavState {
             //Separate individual triangles into a arrays so we can mark Area Type.
             List<int[]> listTris = new ArrayList<>();
             int fromIndex = 0;
-            for (NavMeshBuildSource sourceObj : m_geom.getModifications()) {
+            for (NavMeshModifier sourceObj : m_geom.getModifications()) {
                 int[] triangles = new int[sourceObj.getGeomLength()];
                 System.arraycopy(tris, fromIndex, triangles, 0, sourceObj.getGeomLength());
                 listTris.add(triangles);
@@ -694,7 +694,7 @@ public class NavState extends AbstractNavState {
 
             List<int[]> areas = new ArrayList<>();
 
-            for (NavMeshBuildSource sourceObj : m_geom.getModifications()) {
+            for (NavMeshModifier sourceObj : m_geom.getModifications()) {
                 int[] m_triareas = Recast.markWalkableTriangles(
                         telemetry,
                         cfg.walkableSlopeAngle,
@@ -1432,28 +1432,27 @@ public class NavState extends AbstractNavState {
             public void visit(Geometry geo) {
 
                 String[] name = geo.getMaterial().getName().split("_");
-
-                NavMeshBuildSource mod = null;
+                NavMeshModifier mod = null;
 
                 switch (name[0]) {
                     case "water":
-                        mod = new NavMeshBuildSource(geo, AREAMOD_WATER);
+                        mod = new NavMeshModifier(geo, AREAMOD_WATER);
                         break;
                     case "road":
-                        mod = new NavMeshBuildSource(geo, AREAMOD_ROAD);
+                        mod = new NavMeshModifier(geo, AREAMOD_ROAD);
                         break;
                     case "grass":
-                        mod = new NavMeshBuildSource(geo, AREAMOD_GRASS);
+                        mod = new NavMeshModifier(geo, AREAMOD_GRASS);
                         break;
                     case "door":
-                        mod = new NavMeshBuildSource(geo, AREAMOD_DOOR);
+                        mod = new NavMeshModifier(geo, AREAMOD_DOOR);
                         break;
                     default:
-                        mod = new NavMeshBuildSource(geo, AREAMOD_GROUND);
+                        mod = new NavMeshModifier(geo, AREAMOD_GROUND);
                 }
 
                 geomProvider.addModification(mod);
-                System.out.println(mod);
+                System.out.println("setNavMeshArea " + mod);
             }
         });
     }

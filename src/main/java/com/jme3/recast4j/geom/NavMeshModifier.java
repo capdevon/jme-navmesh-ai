@@ -11,7 +11,7 @@ import com.jme3.scene.Geometry;
  * 
  * @author capdevon
  */
-public class NavMeshBuildSource {
+public class NavMeshModifier {
 
     // Geometry input sources.
     public final Geometry sourceObj;
@@ -23,7 +23,7 @@ public class NavMeshBuildSource {
      * @param sourceObj Geometry to modify.
      * @param areaMod   AreaModification to set.
      */
-    public NavMeshBuildSource(Geometry sourceObj, AreaModification area) {
+    public NavMeshModifier(Geometry sourceObj, AreaModification area) {
         this.sourceObj = sourceObj;
         this.area = area;
     }
@@ -44,7 +44,7 @@ public class NavMeshBuildSource {
 
     @Override
     public String toString() {
-        return "NavMeshBuildSource [sourceObj=" + sourceObj +
+        return "NavMeshModifier [sourceObj=" + sourceObj +
             ", geomLength=" + getGeomLength() +
             ", area=" + area.getMaskedValue() +
             "]";
