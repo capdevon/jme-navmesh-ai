@@ -3,6 +3,7 @@ package com.jme3.recast4j.editor;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
+import com.jme3.recast4j.builder.NavMeshBuildSettings;
 import com.jme3.scene.Node;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.Container;

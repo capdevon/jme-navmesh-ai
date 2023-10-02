@@ -1,4 +1,4 @@
-package com.jme3.recast4j.editor.builder;
+package com.jme3.recast4j.builder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +15,6 @@ import org.recast4j.recast.RecastConfig;
 import org.recast4j.recast.RecastVectors;
 import org.recast4j.recast.geom.InputGeomProvider;
 
-import com.jme3.recast4j.editor.NavMeshBuildSettings;
-import com.jme3.recast4j.editor.SampleAreaModifications;
 import com.jme3.recast4j.geom.JmeInputGeomProvider;
 import com.jme3.recast4j.geom.JmeRecastBuilder;
 

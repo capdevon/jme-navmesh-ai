@@ -1,4 +1,4 @@
-package com.jme3.recast4j.editor.builder;
+package com.jme3.recast4j.builder;
 
 import org.recast4j.detour.MeshData;
 import org.recast4j.detour.NavMeshDataCreateParams;
@@ -6,8 +6,6 @@ import org.recast4j.recast.PolyMesh;
 import org.recast4j.recast.PolyMeshDetail;
 import org.recast4j.recast.RecastBuilder.RecastBuilderResult;
 import org.recast4j.recast.geom.InputGeomProvider;
-
-import com.jme3.recast4j.editor.SampleAreaModifications;
 
 /**
  * 

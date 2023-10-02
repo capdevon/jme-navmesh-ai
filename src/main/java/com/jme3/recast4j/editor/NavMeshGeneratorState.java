@@ -12,9 +12,10 @@ import org.recast4j.detour.io.MeshSetWriter;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
+import com.jme3.recast4j.builder.NavMeshBuildSettings;
+import com.jme3.recast4j.builder.SoloNavMeshBuilder;
+import com.jme3.recast4j.builder.TileNavMeshBuilder;
 import com.jme3.recast4j.debug.NavMeshDebugRenderer;
-import com.jme3.recast4j.editor.builder.SoloNavMeshBuilder;
-import com.jme3.recast4j.editor.builder.TileNavMeshBuilder;
 import com.jme3.recast4j.geom.InputGeomProviderBuilder;
 import com.jme3.recast4j.geom.JmeInputGeomProvider;
 import com.jme3.renderer.RenderManager;

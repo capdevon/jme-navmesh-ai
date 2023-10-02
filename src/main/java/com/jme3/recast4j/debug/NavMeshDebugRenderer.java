@@ -45,7 +45,7 @@ public class NavMeshDebugRenderer {
     // Asset manager
     protected AssetManager assetManager;
     // Node for attaching debug geometries
-    public Node debugNode = new Node("NavMeshDebug");
+    public Node debugNode = new Node("NavMeshDebugRenderer");
 
     public NavMeshDebugRenderer(AssetManager assetManager) {
         this.assetManager = assetManager;

@@ -1,4 +1,4 @@
-package com.jme3.recast4j.editor;
+package com.jme3.recast4j.builder;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -14,6 +14,10 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * 
+ * @author capdevon
+ */
 public class NavMeshProperties {
 
     private static final Logger logger = Logger.getLogger(NavMeshProperties.class.getName());
