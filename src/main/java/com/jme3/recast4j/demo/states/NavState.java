@@ -156,11 +156,13 @@ import com.simsilica.lemur.event.MouseEventControl;
  */
 public class NavState extends AbstractNavState {
 
-    private static final Logger LOG = LoggerFactory.getLogger(NavState.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(NavState.class.getName());
 
     private static final String MODEL_NAME = "jaime";
 
-    private Node worldMap, doorNode, offMeshCon;
+    private Node worldMap;
+    private Node doorNode;
+    private Node offMeshCon;
     private NavMesh navMesh;
     private NavMeshQuery navQuery;
     private Map<String, OffMeshConnection> mapOffMeshCon = new HashMap<>();
@@ -242,9 +244,9 @@ public class NavState extends AbstractNavState {
                      * always throws an exception when doing so. The hitBox is
                      * attached to the root bones attachment node.
                      */
-                    SkeletonControl skelControl = GameObject.getComponentInChildren(child, SkeletonControl.class);
-                    String name = skelControl.getSkeleton().getBone(0).getName();
-                    Spatial hitBox = skelControl.getAttachmentsNode(name).getChild(0);
+                    SkeletonControl skControl = GameObject.getComponentInChildren(child, SkeletonControl.class);
+                    String name = skControl.getSkeleton().getBone(0).getName();
+                    Spatial hitBox = skControl.getAttachmentsNode(name).getChild(0);
 
                     addDoorMouseListener(swingControl, hitBox);
                 }
@@ -258,7 +260,7 @@ public class NavState extends AbstractNavState {
             @Override
             protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
 
-                LOG.info("<========== BEGIN Door MouseEventControl ==========>");
+                logger.info("<========== BEGIN Door MouseEventControl ==========>");
 
                 /**
                  * We have the worldmap and the doors using MouseEventControl.
@@ -267,8 +269,8 @@ public class NavState extends AbstractNavState {
                  * capture to get the proper spatial.
                  */
                 if (!target.equals(hitBox)) {
-                    LOG.info("Wrong target found [{}] parentName [{}].", target.getName(), target.getParent().getName());
-                    LOG.info("Switching to capture [{}] capture parent [{}].", capture.getName(), capture.getParent().getName());
+                    logger.info("Wrong target found [{}] parentName [{}].", target.getName(), target.getParent().getName());
+                    logger.info("Switching to capture [{}] capture parent [{}].", capture.getName(), capture.getParent().getName());
                     target = capture;
                 }
 
@@ -305,8 +307,8 @@ public class NavState extends AbstractNavState {
 
                 //No obj, no go. Fail most likely result of filter setting.
                 if (!findNearestPoly.succeeded() || findNearestPoly.result.getNearestRef() == 0) {
-                    LOG.error("Door findNearestPoly unsuccessful or getNearestRef is not > 0.");
-                    LOG.error("findNearestPoly [{}] getNearestRef [{}].", findNearestPoly.status, findNearestPoly.result.getNearestRef());
+                    logger.error("Door findNearestPoly unsuccessful or getNearestRef is not > 0.");
+                    logger.error("findNearestPoly [{}] getNearestRef [{}].", findNearestPoly.status, findNearestPoly.result.getNearestRef());
                     return;
                 }
 
@@ -339,7 +341,7 @@ public class NavState extends AbstractNavState {
                      */
                     for (long poly : m_polys) {
 
-                        LOG.info("PRE flag set Poly ID [{}] Flags [{}]", poly, navMesh.getPolyFlags(poly).result);
+                        logger.info("PRE flag set Poly ID [{}] Flags [{}]", poly, navMesh.getPolyFlags(poly).result);
                         printFlags(poly);
 
                         /**
@@ -371,7 +373,7 @@ public class NavState extends AbstractNavState {
                     for (PolyAndFlag obj : listPolyFlag) {
                         //If any flag does not match, were done.
                         if (obj.flag != listPolyFlag.get(0).flag) {
-                            LOG.info("All poly flags are not the same listPolyAndFlag.");
+                            logger.info("All poly flags are not the same listPolyAndFlag.");
                             same = false;
                             break;
                         }
@@ -382,7 +384,7 @@ public class NavState extends AbstractNavState {
                         //Set all obj flags.
                         for (PolyAndFlag obj : listPolyFlag) {
                             navMesh.setPolyFlags(obj.poly, obj.flag);
-                            LOG.info("POST flag set Poly ID [{}] Flags [{}]", obj.poly, navMesh.getPolyFlags(obj.poly).result);
+                            logger.info("POST flag set Poly ID [{}] Flags [{}]", obj.poly, navMesh.getPolyFlags(obj.poly).result);
                             printFlags(obj.poly);
                         }
 
@@ -399,7 +401,7 @@ public class NavState extends AbstractNavState {
                         }
                     }
                 }
-                LOG.info("<========== END Door MouseEventControl Add ==========>");
+                logger.info("<========== END Door MouseEventControl Add ==========>");
             }
         });
     }
@@ -647,13 +649,11 @@ public class NavState extends AbstractNavState {
         offMeshCon.detachAllChildren();
 
         //Get min/max bounds.
-        float[] bmin = m_geom.getMeshBoundsMin();
-        float[] bmax = m_geom.getMeshBoundsMax();
-        Telemetry m_ctx = new Telemetry();
-        PartitionType m_partitionType = PartitionType.WATERSHED;
+        Telemetry telemetry = new Telemetry();
+        PartitionType partitionType = PartitionType.WATERSHED;
 
         RecastConfig cfg = new RecastConfigBuilder()
-                .withPartitionType(m_partitionType)
+                .withPartitionType(partitionType)
                 .withWalkableAreaMod(AREAMOD_GROUND)
                 .withAgentRadius(agentRadius)
                 .withAgentHeight(agentHeight)
@@ -668,11 +668,11 @@ public class NavState extends AbstractNavState {
                 .withVertsPerPoly(3)
                 .build();
 
-        RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, bmin, bmax);
+        RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, m_geom.getMeshBoundsMin(), m_geom.getMeshBoundsMax());
 
         // Step 2. Rasterize input polygon soup.
         // Allocate voxel heightfield where we rasterize our input data to.
-        Heightfield m_solid = new Heightfield(builderCfg.width, builderCfg.height, builderCfg.bmin, builderCfg.bmax, cfg.cs, cfg.ch);
+        Heightfield solid = new Heightfield(builderCfg.width, builderCfg.height, builderCfg.bmin, builderCfg.bmax, cfg.cs, cfg.ch);
 
         for (TriMesh geom : m_geom.meshes()) {
             float[] verts = geom.getVerts();
@@ -703,7 +703,7 @@ public class NavState extends AbstractNavState {
 
             for (NavMeshBuildSource sourceObj : m_geom.getModifications()) {
                 int[] m_triareas = Recast.markWalkableTriangles(
-                        m_ctx,
+                        telemetry,
                         cfg.walkableSlopeAngle,
                         verts,
                         listTris.get(m_geom.getModifications().indexOf(sourceObj)),
@@ -723,49 +723,49 @@ public class NavState extends AbstractNavState {
             }
             // ** END NEW CUSTOM CODE **
 
-            RecastRasterization.rasterizeTriangles(m_ctx, verts, tris, m_triareasAll, ntris, m_solid, cfg.walkableClimb);
+            RecastRasterization.rasterizeTriangles(telemetry, verts, tris, m_triareasAll, ntris, solid, cfg.walkableClimb);
         }
 
         // Step 3. Filter walkables surfaces.
-        RecastFilter.filterLowHangingWalkableObstacles(m_ctx, cfg.walkableClimb, m_solid);
-        RecastFilter.filterLedgeSpans(m_ctx, cfg.walkableHeight, cfg.walkableClimb, m_solid);
-        RecastFilter.filterWalkableLowHeightSpans(m_ctx, cfg.walkableHeight, m_solid);
+        RecastFilter.filterLowHangingWalkableObstacles(telemetry, cfg.walkableClimb, solid);
+        RecastFilter.filterLedgeSpans(telemetry, cfg.walkableHeight, cfg.walkableClimb, solid);
+        RecastFilter.filterWalkableLowHeightSpans(telemetry, cfg.walkableHeight, solid);
 
         // Step 4. Partition walkable surface to simple regions.
-        CompactHeightfield m_chf = Recast.buildCompactHeightfield(m_ctx, cfg.walkableHeight, cfg.walkableClimb, m_solid);
+        CompactHeightfield chf = Recast.buildCompactHeightfield(telemetry, cfg.walkableHeight, cfg.walkableClimb, solid);
 
-        RecastArea.erodeWalkableArea(m_ctx, cfg.walkableRadius, m_chf);
+        RecastArea.erodeWalkableArea(telemetry, cfg.walkableRadius, chf);
 
         // (Optional) Mark areas.
 //      List<ConvexVolume> vols = geom.getConvexVolumes(); 
 //      for (ConvexVolume convexVolume: vols) { 
-//          RecastArea.markConvexPolyArea(m_ctx, convexVolume.verts, convexVolume.hmin, convexVolume.hmax, convexVolume.areaMod, m_chf);
+//          RecastArea.markConvexPolyArea(telemetry, convexVolume.verts, convexVolume.hmin, convexVolume.hmax, convexVolume.areaMod, chf);
 //      }
-        if (m_partitionType == PartitionType.WATERSHED) {
+        if (partitionType == PartitionType.WATERSHED) {
             // Prepare for region partitioning, by calculating distance field
             // along the walkable surface.
-            RecastRegion.buildDistanceField(m_ctx, m_chf);
+            RecastRegion.buildDistanceField(telemetry, chf);
             // Partition the walkable surface into simple regions without holes.
-            RecastRegion.buildRegions(m_ctx, m_chf, 0, cfg.minRegionArea, cfg.mergeRegionArea);
-        } else if (m_partitionType == PartitionType.MONOTONE) {
+            RecastRegion.buildRegions(telemetry, chf, 0, cfg.minRegionArea, cfg.mergeRegionArea);
+        } else if (partitionType == PartitionType.MONOTONE) {
             // Partition the walkable surface into simple regions without holes.
             // Monotone partitioning does not need distancefield.
-            RecastRegion.buildRegionsMonotone(m_ctx, m_chf, 0, cfg.minRegionArea, cfg.mergeRegionArea);
+            RecastRegion.buildRegionsMonotone(telemetry, chf, 0, cfg.minRegionArea, cfg.mergeRegionArea);
         } else {
             // Partition the walkable surface into simple regions without holes.
-            RecastRegion.buildLayerRegions(m_ctx, m_chf, 0, cfg.minRegionArea);
+            RecastRegion.buildLayerRegions(telemetry, chf, 0, cfg.minRegionArea);
         }
 
         // Step 5. Trace and simplify region contours.
-        ContourSet m_cset = RecastContour.buildContours(m_ctx, m_chf, cfg.maxSimplificationError, cfg.maxEdgeLen, RecastConstants.RC_CONTOUR_TESS_WALL_EDGES);
+        ContourSet contour = RecastContour.buildContours(telemetry, chf, cfg.maxSimplificationError, cfg.maxEdgeLen, RecastConstants.RC_CONTOUR_TESS_WALL_EDGES);
 
         // Step 6. Build polygons mesh from contours.
-        PolyMesh m_pmesh = RecastMesh.buildPolyMesh(m_ctx, m_cset, cfg.maxVertsPerPoly);
+        PolyMesh polyMesh = RecastMesh.buildPolyMesh(telemetry, contour, cfg.maxVertsPerPoly);
 
         // Step 7. Create detail mesh which allows to access approximate height on each polygon.
-        PolyMeshDetail m_dmesh = RecastMeshDetail.buildPolyMeshDetail(m_ctx, m_pmesh, m_chf, cfg.detailSampleDist, cfg.detailSampleMaxError);
+        PolyMeshDetail detailMesh = RecastMeshDetail.buildPolyMeshDetail(telemetry, polyMesh, chf, cfg.detailSampleDist, cfg.detailSampleMaxError);
 
-        RecastBuilderResult rcResult = new RecastBuilder().new RecastBuilderResult(m_solid, m_chf, m_cset, m_pmesh, m_dmesh);
+        RecastBuilderResult rcResult = new RecastBuilder().new RecastBuilderResult(solid, chf, contour, polyMesh, detailMesh);
 
         NavMeshDataCreateParams params = getNavMeshCreateParams(m_geom, cellSize, cellHeight, agentHeight, agentRadius, agentMaxClimb, rcResult);
 
@@ -775,7 +775,7 @@ public class NavState extends AbstractNavState {
         navMesh = new NavMesh(meshData, cfg.maxVertsPerPoly, 0);
         navQuery = new NavMeshQuery(navMesh);
 
-        m_ctx.print();
+        telemetry.print();
 
         //Create offmesh connections here.
         
@@ -784,8 +784,8 @@ public class NavState extends AbstractNavState {
             saveToFile(navMesh, "recast4j-solo.nm");
 
             IORecast.saveObj("recast4j-solo.obj", navMesh);
-            IORecast.saveObj("recast4j-solo_" + cfg.partitionType + "_detail.obj", m_dmesh);
-            IORecast.saveObj("recast4j-solo_" + cfg.partitionType + ".obj", m_pmesh);
+            IORecast.saveObj("recast4j-solo_" + cfg.partitionType + "_detail.obj", detailMesh);
+            IORecast.saveObj("recast4j-solo_" + cfg.partitionType + ".obj", polyMesh);
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -1030,15 +1030,15 @@ public class NavState extends AbstractNavState {
         params.offMeshConUserID = new int[params.offMeshConCount];
 
         for (int i = 0; i < params.offMeshConCount; i++) {
-            OffMeshLink offMeshCon = m_geom.getOffMeshConnections().get(i);
+            OffMeshLink offMeshConn = m_geom.getOffMeshConnections().get(i);
             for (int j = 0; j < 6; j++) {
-                params.offMeshConVerts[6 * i + j] = offMeshCon.verts[j];
+                params.offMeshConVerts[6 * i + j] = offMeshConn.verts[j];
             }
-            params.offMeshConRad[i]     = offMeshCon.radius;
-            params.offMeshConDir[i]     = offMeshCon.biDirectional ? NavMesh.DT_OFFMESH_CON_BIDIR : 0;
-            params.offMeshConAreas[i]   = offMeshCon.area;
-            params.offMeshConFlags[i]   = offMeshCon.flags;
-            params.offMeshConUserID[i]  = offMeshCon.userID;
+            params.offMeshConRad[i]     = offMeshConn.radius;
+            params.offMeshConDir[i]     = offMeshConn.biDirectional ? NavMesh.DT_OFFMESH_CON_BIDIR : 0;
+            params.offMeshConAreas[i]   = offMeshConn.area;
+            params.offMeshConFlags[i]   = offMeshConn.flags;
+            params.offMeshConUserID[i]  = offMeshConn.userID;
         }
 
         //System.out.println(ReflectionToStringBuilder.toString(params, ToStringStyle.MULTI_LINE_STYLE));
@@ -1094,10 +1094,10 @@ public class NavState extends AbstractNavState {
                 if (!startPoly.succeeded() || !endPoly.succeeded()
                         || startPoly.result.getNearestRef() == 0 || endPoly.result.getNearestRef() == 0) {
 
-                    LOG.error("offmeshCon findNearestPoly unsuccessful or getNearestRef is not > 0.");
-                    LOG.error("Link [{}] pos {} id [{}]", offMeshConn.getKey(), Arrays.toString(offMeshConn.getValue().pos), offMeshConn.getValue().userId);
-                    LOG.error("findNearestPoly startPoly [{}] getNearestRef [{}]", startPoly.succeeded(), startPoly.result.getNearestRef());
-                    LOG.error("findNearestPoly endPoly [{}] getNearestRef [{}].", endPoly.succeeded(), endPoly.result.getNearestRef());
+                    logger.error("offmeshCon findNearestPoly unsuccessful or getNearestRef is not > 0.");
+                    logger.error("Link [{}] pos {} id [{}]", offMeshConn.getKey(), Arrays.toString(offMeshConn.getValue().pos), offMeshConn.getValue().userId);
+                    logger.error("findNearestPoly startPoly [{}] getNearestRef [{}]", startPoly.succeeded(), startPoly.result.getNearestRef());
+                    logger.error("findNearestPoly endPoly [{}] getNearestRef [{}].", endPoly.succeeded(), endPoly.result.getNearestRef());
 
                 } else {
                     //Get the tile and poly from reference.
@@ -1346,21 +1346,21 @@ public class NavState extends AbstractNavState {
                                      */
                                     if (arg[2].equals("a")) {
                                         link1.userId = ++id;
-                                        LOG.info("OffMeshConnection [{}] id  [{}]", bone.getName(), link1.userId);
-                                        LOG.info("OffMeshConnection [{}] pos {}", bone.getName(), link1.pos);
+                                        logger.info("OffMeshConnection [{}] id  [{}]", bone.getName(), link1.userId);
+                                        logger.info("OffMeshConnection [{}] pos {}", bone.getName(), link1.pos);
 
                                         mapOffMeshCon.get(link2).userId = ++id;
-                                        LOG.info("OffMeshConnection [{}] id  [{}]", link2, mapOffMeshCon.get(link2).userId);
-                                        LOG.info("OffMeshConnection [{}] pos {}", link2, mapOffMeshCon.get(link2).pos);
+                                        logger.info("OffMeshConnection [{}] id  [{}]", link2, mapOffMeshCon.get(link2).userId);
+                                        logger.info("OffMeshConnection [{}] pos {}", link2, mapOffMeshCon.get(link2).pos);
 
                                     } else {
                                         mapOffMeshCon.get(link2).userId = ++id;
-                                        LOG.info("OffMeshConnection [{}] id  [{}]", link2, mapOffMeshCon.get(link2).userId);
-                                        LOG.info("OffMeshConnection [{}] pos {}", link2, mapOffMeshCon.get(link2).pos);
+                                        logger.info("OffMeshConnection [{}] id  [{}]", link2, mapOffMeshCon.get(link2).userId);
+                                        logger.info("OffMeshConnection [{}] pos {}", link2, mapOffMeshCon.get(link2).pos);
 
                                         link1.userId = ++id;
-                                        LOG.info("OffMeshConnection [{}] id  [{}]", bone.getName(), link1.userId);
-                                        LOG.info("OffMeshConnection [{}] pos {}", bone.getName(), link1.pos);
+                                        logger.info("OffMeshConnection [{}] id  [{}]", bone.getName(), link1.userId);
+                                        logger.info("OffMeshConnection [{}] pos {}", bone.getName(), link1.pos);
                                     }
                                 }
                                 //Add this bone to map.
@@ -1374,17 +1374,17 @@ public class NavState extends AbstractNavState {
     }
 
     private void saveToFile(MeshData md, String fileName) throws IOException {
-        MeshDataWriter mdw = new MeshDataWriter();
+        MeshDataWriter writer = new MeshDataWriter();
         File f = new File(fileName);
         System.out.println("Saving MeshData=" + f.getAbsolutePath());
-        mdw.write(new FileOutputStream(f), md, ByteOrder.BIG_ENDIAN, false);
+        writer.write(new FileOutputStream(f), md, ByteOrder.BIG_ENDIAN, false);
     }
 
     private void saveToFile(NavMesh nm, String fileName) throws IOException {
-        MeshSetWriter msw = new MeshSetWriter();
+        MeshSetWriter writer = new MeshSetWriter();
         File f = new File(fileName);
         System.out.println("Saving NavMesh=" + f.getAbsolutePath());
-        msw.write(new FileOutputStream(f), nm, ByteOrder.BIG_ENDIAN, false);
+        writer.write(new FileOutputStream(f), nm, ByteOrder.BIG_ENDIAN, false);
     }
 
     //Build the tile cache.
@@ -1500,22 +1500,22 @@ public class NavState extends AbstractNavState {
         int flags = navMesh.getPolyFlags(poly).result;
 
         if (flags == 0) {
-            LOG.info("No flag found.");
+            logger.info("No flag found.");
         }
         if (isBitSet(POLYFLAGS_DOOR, flags)) {
-            LOG.info("POLYFLAGS_DOOR [{}]", POLYFLAGS_DOOR);
+            logger.info("POLYFLAGS_DOOR [{}]", POLYFLAGS_DOOR);
         }
         if (isBitSet(POLYFLAGS_WALK, flags)) {
-            LOG.info("POLYFLAGS_WALK [{}]", POLYFLAGS_WALK);
+            logger.info("POLYFLAGS_WALK [{}]", POLYFLAGS_WALK);
         }
         if (isBitSet(POLYFLAGS_SWIM, flags)) {
-            LOG.info("POLYFLAGS_SWIM [{}]", POLYFLAGS_SWIM);
+            logger.info("POLYFLAGS_SWIM [{}]", POLYFLAGS_SWIM);
         }
         if (isBitSet(POLYFLAGS_JUMP, flags)) {
-            LOG.info("POLYFLAGS_JUMP [{}]", POLYFLAGS_JUMP);
+            logger.info("POLYFLAGS_JUMP [{}]", POLYFLAGS_JUMP);
         }
         if (isBitSet(POLYFLAGS_DISABLED, flags)) {
-            LOG.info("POLYFLAGS_DISABLED [{}]", POLYFLAGS_DISABLED);
+            logger.info("POLYFLAGS_DISABLED [{}]", POLYFLAGS_DISABLED);
         }
     }
 
@@ -1531,7 +1531,7 @@ public class NavState extends AbstractNavState {
     }
 
     /**
-     * Class to hold the obj id and flags for the MouseEventControl check that
+     * Class to hold the object id and flags for the MouseEventControl check that
      * assures all flags are the same.
      */
     private class PolyAndFlag {

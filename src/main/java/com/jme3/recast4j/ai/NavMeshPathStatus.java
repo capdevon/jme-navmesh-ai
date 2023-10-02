@@ -5,7 +5,11 @@ package com.jme3.recast4j.ai;
  * @author capdevon
  */
 public enum NavMeshPathStatus {
-    PathComplete,   // The path terminates at the destination.
-    PathPartial,    // The path cannot reach the destination.
-    PathInvalid     // The path is invalid.
+    
+    // The path terminates at the destination.
+    PathComplete,
+    // The path cannot reach the destination.
+    PathPartial,
+    // The path is invalid.
+    PathInvalid
 }

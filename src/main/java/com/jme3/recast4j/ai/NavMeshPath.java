@@ -4,9 +4,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.jme3.math.Vector3f;
 
 /**
@@ -21,8 +18,6 @@ import com.jme3.math.Vector3f;
  * @author capdevon
  */
 public class NavMeshPath {
-
-    private static final Logger logger = LoggerFactory.getLogger(NavMeshPath.class);
 
     // Status of the path.
     protected NavMeshPathStatus status;

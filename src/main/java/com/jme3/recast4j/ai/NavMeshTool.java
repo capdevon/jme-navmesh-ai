@@ -23,7 +23,7 @@ import com.jme3.recast4j.detour.DetourUtils;
 public class NavMeshTool {
 
     //Set the parameters for straight path. Paths cannot exceed 256 polygons.
-    private final static int MAX_POLYS = 256;
+    private static final int MAX_POLYS = 256;
 
     private NavMeshQuery navQuery;
     private List<StraightPathItem> m_straightPath;

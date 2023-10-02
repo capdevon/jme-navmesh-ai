@@ -25,10 +25,11 @@ public class NavMeshAgentDebug extends AbstractControl {
     // Asset manager
     protected AssetManager assetManager;
     // Node for attaching debug geometries
-    public Node debugNode = new Node("NavPathDebugViewer");
+    private Node debugNode = new Node("NavPathDebugViewer");
     // Unshaded material
-    public Material debugMat;
-    public BoundingSphereDebug sphere = new BoundingSphereDebug();
+    private Material debugMat;
+    private BoundingSphereDebug sphere = new BoundingSphereDebug();
+    private float pointSize = 0.2f;
 
     private NavMeshAgent agent;
 
@@ -56,7 +57,10 @@ public class NavMeshAgentDebug extends AbstractControl {
 
     @Override
     protected void controlRender(RenderManager rm, ViewPort vp) {
-        show(rm, vp);
+        // Render all the debug geometries to the specified view port.
+        debugNode.updateLogicalState(0f);
+        debugNode.updateGeometricState();
+        rm.renderScene(debugNode, vp);
     }
 
     /**
@@ -75,7 +79,7 @@ public class NavMeshAgentDebug extends AbstractControl {
         Vector3f prevCorner = spatial.getWorldTranslation();
         for (Vector3f corner : corners) {
             drawLine(prevCorner, corner);
-            drawSphere(corner, 0.1f);
+            drawSphere(corner, pointSize);
             prevCorner = corner;
         }
     }
@@ -98,14 +102,13 @@ public class NavMeshAgentDebug extends AbstractControl {
     private void clearPath() {
         debugNode.detachAllChildren();
     }
+    
+    public float getPointSize() {
+        return pointSize;
+    }
 
-    /**
-     * Render all the debug geometries to the specified view port.
-     */
-    private void show(RenderManager rm, ViewPort vp) {
-        debugNode.updateLogicalState(0f);
-        debugNode.updateGeometricState();
-        rm.renderScene(debugNode, vp);
+    public void setPointSize(float pointSize) {
+        this.pointSize = pointSize;
     }
 
 }

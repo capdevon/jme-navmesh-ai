@@ -118,7 +118,8 @@ public class CrowdDebugControl extends AbstractControl {
     }
 
     @Override
-    protected void controlRender(RenderManager rm, ViewPort vp) {}
+    protected void controlRender(RenderManager rm, ViewPort vp) {
+    }
 
     private void setColor(ColorRGBA color) {
         if (curColor != color) {
@@ -169,8 +170,9 @@ public class CrowdDebugControl extends AbstractControl {
         Node body = new Node("Cylinder");
 
         for (int i = 0; i < 4; i++) {
-            float x = FastMath.sin(FastMath.HALF_PI * i) * radius;
-            float z = FastMath.cos(FastMath.HALF_PI * i) * radius;
+            float angle = FastMath.HALF_PI * i;
+            float x = FastMath.sin(angle) * radius;
+            float z = FastMath.cos(angle) * radius;
             Vector3f start = new Vector3f(x, 0, z);
             Vector3f end = new Vector3f(x, height, z);
 
