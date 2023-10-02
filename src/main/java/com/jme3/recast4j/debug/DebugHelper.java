@@ -33,10 +33,6 @@ public class DebugHelper {
         this.assetManager = assetManager;
     }
 
-    public void clear() {
-        debugNode.detachAllChildren();
-    }
-
     public Geometry drawArrow(Vector3f dir) {
         Arrow arrow = new Arrow(dir);
         Geometry geo = new Geometry("Arrow", arrow);
@@ -144,6 +140,10 @@ public class DebugHelper {
         mat.getAdditionalRenderState().setWireframe(true);
         mat.getAdditionalRenderState().setLineWidth(lineWidth);
         return mat;
+    }
+    
+    public void clear() {
+        debugNode.detachAllChildren();
     }
 
     /**

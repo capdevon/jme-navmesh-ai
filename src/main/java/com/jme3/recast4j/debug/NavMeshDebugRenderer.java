@@ -40,14 +40,14 @@ import com.jme3.util.BufferUtils;
  * 
  * @author capdevon
  */
-public class NavMeshDebugViewer {
+public class NavMeshDebugRenderer {
 	
     // Asset manager
     protected AssetManager assetManager;
     // Node for attaching debug geometries
-    public Node debugNode = new Node("NavMeshDebugViewer");
+    public Node debugNode = new Node("NavMeshDebug");
 
-    public NavMeshDebugViewer(AssetManager assetManager) {
+    public NavMeshDebugRenderer(AssetManager assetManager) {
         this.assetManager = assetManager;
     }
 	
