@@ -28,7 +28,6 @@ import com.jme3.system.AppSettings;
 public abstract class SimpleAppState extends BaseAppState {
 
     // cache fields
-    public SimpleApplication sapp;
     public AppSettings settings;
     public AppStateManager stateManager;
     public AssetManager assetManager;
@@ -47,19 +46,19 @@ public abstract class SimpleAppState extends BaseAppState {
     protected abstract void simpleInit();
 
     protected void refreshCacheFields() {
-        this.sapp = (SimpleApplication) getApplication();
-        this.settings       = sapp.getContext().getSettings();
-        this.stateManager   = sapp.getStateManager();
-        this.assetManager   = sapp.getAssetManager();
-        this.inputManager   = sapp.getInputManager();
-        this.viewPort       = sapp.getViewPort();
-        this.camera         = sapp.getCamera();
-        this.rootNode       = sapp.getRootNode();
-        this.guiNode        = sapp.getGuiNode();
+        SimpleApplication app = (SimpleApplication) getApplication();
+        this.settings       = app.getContext().getSettings();
+        this.stateManager   = app.getStateManager();
+        this.assetManager   = app.getAssetManager();
+        this.inputManager   = app.getInputManager();
+        this.viewPort       = app.getViewPort();
+        this.camera         = app.getCamera();
+        this.rootNode       = app.getRootNode();
+        this.guiNode        = app.getGuiNode();
     }
 
     protected PhysicsSpace getPhysicsSpace() {
-        return getState(BulletAppState.class).getPhysicsSpace();
+        return getState(BulletAppState.class, true).getPhysicsSpace();
     }
     
     /**

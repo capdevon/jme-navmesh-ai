@@ -32,6 +32,7 @@ public class Test_NavMeshGenEditor extends SimpleApplication {
 
         app.setSettings(settings);
         app.setPauseOnLostFocus(false);
+        app.setShowSettings(false);
         app.start();
     }
 
@@ -67,25 +68,26 @@ public class Test_NavMeshGenEditor extends SimpleApplication {
 
     private void addLighting() {
         //Set the atmosphere of the world, lights, post processing.
-        viewPort.setBackgroundColor(new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f));
+        ColorRGBA skyColor = new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f);
+        viewPort.setBackgroundColor(skyColor);
 
-        DirectionalLight dl = new DirectionalLight();
-        dl.setDirection(new Vector3f(-0.2f, -1, -0.3f).normalizeLocal());
-        rootNode.addLight(dl);
+        DirectionalLight dirLight = new DirectionalLight();
+        dirLight.setDirection(new Vector3f(-0.2f, -1, -0.3f).normalizeLocal());
+        rootNode.addLight(dirLight);
 
-        AmbientLight al = new AmbientLight();
-        al.setColor(new ColorRGBA(0.25f, 0.25f, 0.25f, 1));
-        rootNode.addLight(al);
+        AmbientLight ambient = new AmbientLight();
+        ambient.setColor(new ColorRGBA(0.25f, 0.25f, 0.25f, 1));
+        rootNode.addLight(ambient);
 
-        DirectionalLightShadowFilter shadowFilter = new DirectionalLightShadowFilter(assetManager, 4096, 2);
-        shadowFilter.setLight(dl);
-        shadowFilter.setShadowIntensity(0.4f);
-        shadowFilter.setShadowZExtend(256);
+        DirectionalLightShadowFilter dlsf = new DirectionalLightShadowFilter(assetManager, 4096, 2);
+        dlsf.setLight(dirLight);
+        dlsf.setShadowIntensity(0.4f);
+        dlsf.setShadowZExtend(256);
 
         FXAAFilter fxaa = new FXAAFilter();
 
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-        fpp.addFilter(shadowFilter);
+        fpp.addFilter(dlsf);
         fpp.addFilter(fxaa);
         viewPort.addProcessor(fpp);
     }

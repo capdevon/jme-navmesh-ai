@@ -5,9 +5,6 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
-import com.jme3.input.KeyInput;
-import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -16,6 +13,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.recast4j.demo.states.CrowdState;
+import com.jme3.recast4j.demo.states.TogglePhysicsDebugState;
 import com.jme3.recast4j.detour.crowd.CrowdManagerAppState;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
@@ -32,7 +30,7 @@ import com.jme3.texture.Texture;
  */
 public class Test_Crowd extends SimpleApplication {
 
-    private BulletAppState bullet;
+    private BulletAppState physics;
 
     /**
      * 
@@ -41,11 +39,11 @@ public class Test_Crowd extends SimpleApplication {
     public static void main(String[] args) {
         Test_Crowd app = new Test_Crowd();
         AppSettings settings = new AppSettings(true);
-        settings.setTitle("jme3-recast4j - Test_Crowd");
         settings.setResolution(1280, 720);
 
         app.setSettings(settings);
         app.setPauseOnLostFocus(false);
+        app.setShowSettings(false);
         app.start();
     }
 
@@ -54,7 +52,6 @@ public class Test_Crowd extends SimpleApplication {
         initPhysics();
         setupScene();
         addLighting();
-        configureInput();
         configureCamera();
         
         stateManager.attach(new CrowdManagerAppState());
@@ -75,9 +72,9 @@ public class Test_Crowd extends SimpleApplication {
      * Configure physics during startup.
      */
     private void initPhysics() {
-        bullet = new BulletAppState();
-        bullet.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
-        stateManager.attach(bullet);
+        physics = new BulletAppState();
+        stateManager.attach(physics);
+        stateManager.attach(new TogglePhysicsDebugState());
     }
 
     private void setupScene() {
@@ -89,16 +86,16 @@ public class Test_Crowd extends SimpleApplication {
         Geometry floor = new Geometry("Floor", box);
 
         Material mat = new Material(assetManager, Materials.LIGHTING);
-        Texture diffMap = assetManager.loadTexture("Textures/Ground/default_grid.png");
-        diffMap.setWrap(Texture.WrapMode.Repeat);
-        mat.setTexture("DiffuseMap", diffMap);
+        Texture texture = assetManager.loadTexture("Textures/Ground/default_grid.png");
+        texture.setWrap(Texture.WrapMode.Repeat);
+        mat.setTexture("DiffuseMap", texture);
         floor.setMaterial(mat);
 
         CollisionShape shape = CollisionShapeFactory.createMeshShape(floor);
         RigidBodyControl rbc = new RigidBodyControl(shape, 0);
         floor.addControl(rbc);
         scene.attachChild(floor);
-        bullet.getPhysicsSpace().add(rbc);
+        physics.getPhysicsSpace().add(rbc);
     }
 
     /**
@@ -122,7 +119,6 @@ public class Test_Crowd extends SimpleApplication {
         rootNode.addLight(ambient);
 
         // Render shadows based on the directional light.
-        viewPort.clearProcessors();
         DirectionalLightShadowRenderer dlsr = new DirectionalLightShadowRenderer(assetManager, 2_048, 3);
         dlsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
         dlsr.setEdgesThickness(5);
@@ -131,21 +127,4 @@ public class Test_Crowd extends SimpleApplication {
         viewPort.addProcessor(dlsr);
     }
     
-    /**
-     * Configure keyboard input during startup.
-     */
-    private void configureInput() {
-    	
-        inputManager.addMapping("TOGGLE_PHYSX_DEBUG", new KeyTrigger(KeyInput.KEY_0));
-        inputManager.addListener(new ActionListener() {
-            @Override
-            public void onAction(String name, boolean isPressed, float tpf) {
-                if (isPressed) {
-                    boolean debugEnabled = bullet.isDebugEnabled();
-                    bullet.setDebugEnabled(!debugEnabled);
-                }
-            }
-        }, "TOGGLE_PHYSX_DEBUG");
-    }
-
 }

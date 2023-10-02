@@ -122,19 +122,17 @@ import com.jme3.recast4j.ai.NavMeshPath;
 import com.jme3.recast4j.ai.NavMeshPathStatus;
 import com.jme3.recast4j.ai.NavMeshQueryFilter;
 import com.jme3.recast4j.ai.StraightPathOptions;
-import com.jme3.recast4j.demo.JmeAreaMods;
 import com.jme3.recast4j.demo.controls.Animator;
 import com.jme3.recast4j.demo.controls.DoorSwingControl;
 import com.jme3.recast4j.demo.controls.PCControl;
 import com.jme3.recast4j.demo.utils.GameObject;
 import com.jme3.recast4j.demo.utils.MainCamera;
 import com.jme3.recast4j.detour.DetourUtils;
-import com.jme3.recast4j.geom.JmeGeomProviderBuilder;
+import com.jme3.recast4j.geom.InputGeomProviderBuilder;
 import com.jme3.recast4j.geom.JmeInputGeomProvider;
 import com.jme3.recast4j.geom.JmeRecastBuilder;
 import com.jme3.recast4j.geom.JmeRecastVoxelization;
 import com.jme3.recast4j.geom.JmeTileLayerBuilder;
-import com.jme3.recast4j.geom.NavMeshBuildMarkup;
 import com.jme3.recast4j.geom.NavMeshBuildSource;
 import com.jme3.recast4j.geom.NavMeshBuilderProgressListener;
 import com.jme3.recast4j.geom.OffMeshLink;
@@ -515,7 +513,7 @@ public class NavState extends AbstractNavState {
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
 
-        JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
+        JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
 
         RecastConfig cfg = new RecastConfigBuilder()
                 .withPartitionType(RecastConstants.PartitionType.WATERSHED)
@@ -560,7 +558,7 @@ public class NavState extends AbstractNavState {
         }
 
         //Show wireframe. Helps with param tweaks. false = solid color.
-        nmDebugViewer.drawMeshData(meshData, true);
+        navMeshRenderer.drawMeshData(meshData, true);
     }
 
     /**
@@ -571,12 +569,8 @@ public class NavState extends AbstractNavState {
     private void buildSoloModified() {
 
         //Build merged mesh.
-//        JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
-//        setNavMeshArea(m_geom, worldMap);
-        NavMeshBuildMarkup markup = new NavMeshBuildMarkup(worldMap.getChild("door_green"), JmeAreaMods.AREAMOD_DOOR);
-
-        JmeGeomProviderBuilder m_gbuilder = new JmeGeomProviderBuilder(worldMap);
-        JmeInputGeomProvider m_geom = m_gbuilder.build(JmeAreaMods.AREAMOD_GROUND, Arrays.asList(markup), new ArrayList<>());
+        JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
+        setNavMeshArea(m_geom, worldMap);
 
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
@@ -631,7 +625,7 @@ public class NavState extends AbstractNavState {
         }
 
         //Show wireframe. Helps with param tweaks. false = solid color.
-        nmDebugViewer.drawMeshByArea(meshData, true);
+        navMeshRenderer.drawMeshByArea(meshData, true);
     }
 
     /**
@@ -641,8 +635,7 @@ public class NavState extends AbstractNavState {
     private void buildSoloRecast4j() {
 
         //Build merged mesh.
-        JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
-
+        JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
         setNavMeshArea(m_geom, worldMap);
 
         //Clean up offMesh connections.
@@ -792,7 +785,7 @@ public class NavState extends AbstractNavState {
         }
 
         //Show wireframe. Helps with param tweaks. false = solid color.
-        nmDebugViewer.drawMeshByArea(meshData, true);
+        navMeshRenderer.drawMeshByArea(meshData, true);
     }
 
     /**
@@ -803,8 +796,7 @@ public class NavState extends AbstractNavState {
     private void buildTiledRecast4j() {
 
         //Build merged mesh.
-        JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
-
+        JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
         setNavMeshArea(m_geom, worldMap);
 
         setOffMeshConnections();
@@ -885,7 +877,7 @@ public class NavState extends AbstractNavState {
             navMesh = msr.read(new FileInputStream(f), cfg.maxVertsPerPoly);
 
             navQuery = new NavMeshQuery(navMesh);
-            nmDebugViewer.drawNavMeshByArea(navMesh, true);
+            navMeshRenderer.drawNavMeshByArea(navMesh, true);
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -895,8 +887,7 @@ public class NavState extends AbstractNavState {
     private void buildTileCache() {
 
         //Build merged mesh.
-        JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
-
+        JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
         setNavMeshArea(m_geom, worldMap);
 
         setOffMeshConnections();
@@ -976,7 +967,7 @@ public class NavState extends AbstractNavState {
                 MeshTile tile = tc.getNavMesh().getTile(i);
                 MeshData meshData = tile.data;
                 if (meshData != null) {
-                    nmDebugViewer.drawMeshByArea(meshData, true);
+                    navMeshRenderer.drawMeshByArea(meshData, true);
                 }
             }
         } catch (IOException ex) {

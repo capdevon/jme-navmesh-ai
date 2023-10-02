@@ -2,7 +2,7 @@ package com.jme3.recast4j.demo.states;
 
 import com.jme3.app.Application;
 import com.jme3.recast4j.debug.DebugHelper;
-import com.jme3.recast4j.debug.NavMeshDebugViewer;
+import com.jme3.recast4j.debug.NavMeshDebugRenderer;
 import com.jme3.renderer.RenderManager;
 
 /**
@@ -12,12 +12,12 @@ import com.jme3.renderer.RenderManager;
 public abstract class AbstractNavState extends SimpleAppState {
 
     DebugHelper debugHelper;
-    NavMeshDebugViewer nmDebugViewer;
+    NavMeshDebugRenderer navMeshRenderer;
 
     @Override
     protected void simpleInit() {
         debugHelper = new DebugHelper(assetManager);
-        nmDebugViewer = new NavMeshDebugViewer(assetManager);
+        navMeshRenderer = new NavMeshDebugRenderer(assetManager);
     }
 
     @Override
@@ -35,7 +35,7 @@ public abstract class AbstractNavState extends SimpleAppState {
     @Override
     public void render(RenderManager rm) {
         debugHelper.show(rm, viewPort);
-        nmDebugViewer.show(rm, viewPort);
+        navMeshRenderer.show(rm, viewPort);
     }
 
 }

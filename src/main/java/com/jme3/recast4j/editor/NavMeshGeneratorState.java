@@ -12,10 +12,10 @@ import org.recast4j.detour.io.MeshSetWriter;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.recast4j.debug.NavMeshDebugViewer;
+import com.jme3.recast4j.debug.NavMeshDebugRenderer;
 import com.jme3.recast4j.editor.builder.SoloNavMeshBuilder;
 import com.jme3.recast4j.editor.builder.TileNavMeshBuilder;
-import com.jme3.recast4j.geom.JmeGeomProviderBuilder;
+import com.jme3.recast4j.geom.InputGeomProviderBuilder;
 import com.jme3.recast4j.geom.JmeInputGeomProvider;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -34,7 +34,7 @@ public class NavMeshGeneratorState extends BaseAppState {
 
     private Node worldMap;
     private JmeInputGeomProvider m_geom;
-    private NavMeshDebugViewer nmDebugViewer;
+    private NavMeshDebugRenderer nmDebugViewer;
     private ViewPort viewPort;
 
     /**
@@ -48,8 +48,8 @@ public class NavMeshGeneratorState extends BaseAppState {
 
     @Override
     protected void initialize(Application app) {
-        m_geom = new JmeGeomProviderBuilder(worldMap).build();
-        nmDebugViewer = new NavMeshDebugViewer(app.getAssetManager());
+        m_geom = InputGeomProviderBuilder.build(worldMap);
+        nmDebugViewer = new NavMeshDebugRenderer(app.getAssetManager());
         viewPort = app.getViewPort();
     }
 
@@ -100,16 +100,17 @@ public class NavMeshGeneratorState extends BaseAppState {
     /**
      *
      * @param fileName
-     * @param nm
+     * @param navMesh
      * @throws IOException
      */
-    private void saveToFile(String fileName, NavMesh nm) throws IOException {
-        File file = Path.of("nm-generated", fileName + ".navmesh").toFile();
+    private void saveToFile(String fileName, NavMesh navMesh) throws IOException {
+        File file = Path.of("navmesh-generated", fileName + ".navmesh").toFile();
         file.getParentFile().mkdirs();
         System.out.println("Saving NavMesh=" + file.getAbsolutePath());
 
+        boolean cCompatibility = false;
         MeshSetWriter msw = new MeshSetWriter();
-        msw.write(new FileOutputStream(file), nm, ByteOrder.BIG_ENDIAN, false);
+        msw.write(new FileOutputStream(file), navMesh, ByteOrder.BIG_ENDIAN, cCompatibility);
     }
 
 }

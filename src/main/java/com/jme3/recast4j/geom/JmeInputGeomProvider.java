@@ -1,5 +1,6 @@
 package com.jme3.recast4j.geom;
 
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,33 +13,43 @@ import org.recast4j.recast.RecastVectors;
 import org.recast4j.recast.geom.InputGeomProvider;
 import org.recast4j.recast.geom.TriMesh;
 
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
+import com.jme3.scene.VertexBuffer;
+import com.jme3.util.BufferUtils;
+
+import jme3tools.optimize.GeometryBatchFactory;
+
 /**
  *
  * @author capdevon
  */
 public class JmeInputGeomProvider implements InputGeomProvider {
 	
-    public final float[] vertices;
-    public final int[] faces;
-    public final float[] normals;
+    private Mesh mesh;
+    private final float[] vertices;
+    private final int[] faces;
+    private final float[] normals;
 
-    final float[] bmin;
-    final float[] bmax;
-    final List<ConvexVolume> convexVolumes = new ArrayList<>();
-    final List<OffMeshLink> offMeshConnections = new ArrayList<>();
-    final List<NavMeshBuildSource> listModifications = new ArrayList<>();
+    private final float[] bmin;
+    private final float[] bmax;
+    private final List<ConvexVolume> convexVolumes = new ArrayList<>();
+    private final List<OffMeshLink> offMeshConnections = new ArrayList<>();
+    private final List<NavMeshBuildSource> listModifications = new ArrayList<>();
 
     /**
-     * Constructor.
      * 
-     * @param vertices
-     * @param faces
+     * @param geometries
      */
-    public JmeInputGeomProvider(float[] vertices, int[] faces) {
-        this.vertices = vertices;
-        this.faces = faces;
+    public JmeInputGeomProvider(List<Geometry> geometries) {
+        mesh = new Mesh();
+        GeometryBatchFactory.mergeGeometries(geometries, mesh);
+        
+        vertices = getVertices(mesh);
+        faces = getIndices(mesh);
         normals = new float[faces.length];
         calculateNormals();
+        
         bmin = new float[3];
         bmax = new float[3];
         RecastVectors.copy(bmin, vertices, 0);
@@ -58,6 +69,11 @@ public class JmeInputGeomProvider implements InputGeomProvider {
     public float[] getMeshBoundsMax() {
         return bmax;
     }
+    
+    @Override
+    public Iterable<TriMesh> meshes() {
+        return Collections.singletonList(new TriMesh(vertices, faces));
+    }
 
     @Override
     public List<ConvexVolume> convexVolumes() {
@@ -76,18 +92,32 @@ public class JmeInputGeomProvider implements InputGeomProvider {
     public void clearConvexVolumes() {
     	convexVolumes.clear();
     }
-
-    @Override
-    public Iterable<TriMesh> meshes() {
-        return Collections.singletonList(new TriMesh(vertices, faces));
+    
+    private float[] getVertices(Mesh mesh) {
+        FloatBuffer buffer = mesh.getFloatBuffer(VertexBuffer.Type.Position);
+        return BufferUtils.getFloatArray(buffer);
     }
 
-    public void calculateNormals() {
+    private int[] getIndices(Mesh mesh) {
+        int[] indices = new int[3];
+        int[] triangles = new int[mesh.getTriangleCount() * 3];
+
+        for (int i = 0; i < mesh.getTriangleCount(); i++) {
+            mesh.getTriangle(i, indices);
+            triangles[3 * i] = indices[0];
+            triangles[3 * i + 1] = indices[1];
+            triangles[3 * i + 2] = indices[2];
+        }
+        return triangles;
+    }
+
+    private void calculateNormals() {
         for (int i = 0; i < faces.length; i += 3) {
             int v0 = faces[i] * 3;
             int v1 = faces[i + 1] * 3;
             int v2 = faces[i + 2] * 3;
-            float[] e0 = new float[3], e1 = new float[3];
+            float[] e0 = new float[3];
+            float[] e1 = new float[3];
             for (int j = 0; j < 3; ++j) {
                 e0[j] = vertices[v1 + j] - vertices[v0 + j];
                 e1[j] = vertices[v2 + j] - vertices[v0 + j];

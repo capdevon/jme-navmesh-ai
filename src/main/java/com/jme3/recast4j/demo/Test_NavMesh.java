@@ -1,8 +1,5 @@
 package com.jme3.recast4j.demo;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.jme3.animation.SkeletonControl;
 import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.SimpleApplication;
@@ -13,9 +10,6 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
-import com.jme3.input.KeyInput;
-import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -29,6 +23,7 @@ import com.jme3.recast4j.demo.controls.DoorSwingControl;
 import com.jme3.recast4j.demo.states.LemurConfigState;
 import com.jme3.recast4j.demo.states.NavState;
 import com.jme3.recast4j.demo.states.ThirdPersonCamState;
+import com.jme3.recast4j.demo.states.TogglePhysicsDebugState;
 import com.jme3.recast4j.demo.utils.GameObject;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
@@ -45,13 +40,11 @@ import com.jme3.water.WaterFilter;
  */
 public class Test_NavMesh extends SimpleApplication {
 	
-    private static final Logger logger = LoggerFactory.getLogger(Test_NavMesh.class.getName());
-    
     private final Quaternion YAW180 = new Quaternion().fromAngleAxis(FastMath.PI, new Vector3f(0,1,0));
     private Node worldMap;
     private Node doorNode;
     private Node offMeshCon;
-    private BulletAppState bullet;
+    private BulletAppState physics;
     
     public Test_NavMesh() {
         super(new StatsAppState(),
@@ -70,11 +63,11 @@ public class Test_NavMesh extends SimpleApplication {
     public static void main(String[] args) {
         Test_NavMesh app = new Test_NavMesh();
         AppSettings settings = new AppSettings(true);
-        settings.setTitle("jme3-recast4j - Test_NavMesh");
         settings.setResolution(1280, 720);
 
         app.setSettings(settings);
         app.setPauseOnLostFocus(false);
+        app.setShowSettings(false);
         app.start();
     }
 
@@ -89,32 +82,12 @@ public class Test_NavMesh extends SimpleApplication {
 //        loadPond();
 //        loadPondSurface();
 //        loadCrate();
-        
-        configureInput();
-    }
-    
-    /**
-     * Configure keyboard input during startup.
-     */
-    private void configureInput() {
-        inputManager.addMapping("TOGGLE_PHYSX_DEBUG", new KeyTrigger(KeyInput.KEY_0));
-        inputManager.addListener(new ActionListener() {
-            @Override
-            public void onAction(String name, boolean isPressed, float tpf) {
-                if (isPressed) {
-                    boolean debugEnabled = bullet.isDebugEnabled();
-                    bullet.setDebugEnabled(!debugEnabled);
-                }
-            }
-        }, "TOGGLE_PHYSX_DEBUG");
     }
     
     private void initPhysics() {
-        bullet = new BulletAppState();
-        // Performance is better when threading in parallel
-        bullet.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
-        stateManager.attach(bullet);
-        bullet.setDebugEnabled(false);
+        physics = new BulletAppState();
+        stateManager.attach(physics);
+        stateManager.attach(new TogglePhysicsDebugState());
     }
     
     private void setupWorld() {
@@ -172,7 +145,7 @@ public class Test_NavMesh extends SimpleApplication {
         RigidBodyControl rbc = new RigidBodyControl(shape, 0);
         floor.addControl(rbc);
 
-        bullet.getPhysicsSpace().add(rbc);
+        physics.getPhysicsSpace().add(rbc);
         worldMap.attachChild(floor);
     }
 
@@ -188,7 +161,7 @@ public class Test_NavMesh extends SimpleApplication {
     private void loadNavMeshLevel() {  
         Node level = (Node) assetManager.loadModel("Models/Level/recast_level.mesh.j3o"); 
         level.addControl(new RigidBodyControl(0));
-        bullet.getPhysicsSpace().add(level);
+        physics.getPhysicsSpace().add(level);
         worldMap.attachChild(level);
         
         /**
@@ -236,13 +209,13 @@ public class Test_NavMesh extends SimpleApplication {
         Node door = (Node) assetManager.loadModel("Models/Level/Door.mesh.j3o");
         door.setName("door-" + id);
         
-        SkeletonControl skelControl = GameObject.getComponentInChildren(door, SkeletonControl.class);
+        SkeletonControl skControl = GameObject.getComponentInChildren(door, SkeletonControl.class);
         /**
          * Couldn't get hardware skinning to turn off which would allow the 
          * bounding box to move with the door as it opens or closes so added
          * a hitBox to the root bone instead.
          */
-        if (skelControl != null) {
+        if (skControl != null) {
             //Create a box shape with the same dimensions as the door.
             BoundingBox bbox = (BoundingBox) door.getWorldBound();
             Box boxMesh = new Box(bbox.getXExtent(), bbox.getYExtent(), bbox.getZExtent());
@@ -270,9 +243,9 @@ public class Test_NavMesh extends SimpleApplication {
             Node collisionNode = new Node("collisionNode-" + id);
             collisionNode.attachChild(boxGeo);
 
-            String rootBone = skelControl.getSkeleton().getBone(0).getName();
+            String rootBone = skControl.getSkeleton().getBone(0).getName();
             //Our root bone for the animations.
-            skelControl.getAttachmentsNode(rootBone).attachChild(collisionNode);
+            skControl.getAttachmentsNode(rootBone).attachChild(collisionNode);
             //Add our animation swing control and attach to rootNode.
             door.addControl(new DoorSwingControl());
         }
@@ -308,7 +281,7 @@ public class Test_NavMesh extends SimpleApplication {
         Node pond = (Node) assetManager.loadModel("Models/Pond/pond.mesh.j3o"); 
         pond.setName("pond");
         pond.addControl(new RigidBodyControl(0));
-        bullet.getPhysicsSpace().add(pond);
+        physics.getPhysicsSpace().add(pond);
         worldMap.attachChild(pond);
         
         //Add offmesh connection
@@ -323,7 +296,7 @@ public class Test_NavMesh extends SimpleApplication {
         surface.setLocalTranslation(pos.x, 4f, pos.z);
         
         surface.addControl(new RigidBodyControl(0));
-        bullet.getPhysicsSpace().add(surface);
+        physics.getPhysicsSpace().add(surface);
         worldMap.attachChild(surface);
         
         //Add water offmesh connection.
@@ -338,7 +311,7 @@ public class Test_NavMesh extends SimpleApplication {
         crate.setLocalTranslation(4.0f, 0.0f, 0.0f);
         
         crate.addControl(new RigidBodyControl(0));
-        bullet.getPhysicsSpace().add(crate);
+        physics.getPhysicsSpace().add(crate);
         worldMap.attachChild(crate);
         
         //Add crate offmesh connection.

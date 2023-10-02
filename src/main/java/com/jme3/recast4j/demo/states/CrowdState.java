@@ -48,7 +48,7 @@ import com.jme3.recast4j.detour.crowd.TargetProximity;
 import com.jme3.recast4j.editor.NavMeshBuildSettings;
 import com.jme3.recast4j.editor.SampleAreaModifications;
 import com.jme3.recast4j.editor.builder.TileNavMeshBuilder;
-import com.jme3.recast4j.geom.JmeGeomProviderBuilder;
+import com.jme3.recast4j.geom.InputGeomProviderBuilder;
 import com.jme3.recast4j.geom.JmeInputGeomProvider;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
@@ -176,7 +176,7 @@ public class CrowdState extends AbstractNavState {
     }
 
     private void buildTiled() {
-        JmeInputGeomProvider m_geom = new JmeGeomProviderBuilder(worldMap).build();
+        JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
         NavMeshBuildSettings s = new NavMeshBuildSettings();
         s.agentHeight = m_agentHeight;
         s.agentRadius = m_agentRadius;
@@ -191,8 +191,8 @@ public class CrowdState extends AbstractNavState {
         TileNavMeshBuilder tileBuilder = new TileNavMeshBuilder();
         navMesh = tileBuilder.build(m_geom, s);
 
-        nmDebugViewer.drawMeshBounds(m_geom);
-        nmDebugViewer.drawNavMesh(navMesh, true);
+        navMeshRenderer.drawMeshBounds(m_geom);
+        navMeshRenderer.drawNavMesh(navMesh, true);
 
         //saveNavMesh("test.nm");
     }
