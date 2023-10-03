@@ -7,9 +7,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.ByteOrder;
 
+import org.recast4j.detour.MeshData;
 import org.recast4j.detour.MeshTile;
 import org.recast4j.detour.NavMesh;
 import org.recast4j.detour.Poly;
+import org.recast4j.detour.io.MeshDataWriter;
 import org.recast4j.detour.io.MeshSetReader;
 import org.recast4j.detour.io.MeshSetWriter;
 import org.recast4j.recast.PolyMesh;
@@ -20,42 +22,61 @@ import org.recast4j.recast.RecastConstants;
  *
  * @author capdevon
  */
-public class IORecast {
+public class NavMeshAssetManager {
+    
+    private static final boolean cCompatibility = false;
+    private static final int maxVertsPerPoly = 3;
 
-    private IORecast() {}
+    private NavMeshAssetManager() {}
 
-    public static void saveNavMesh(String fileName, NavMesh navMesh) throws IOException {
-        File f = new File(fileName);
-        saveNavMesh(f, navMesh);
+    /**
+     * 
+     * @param mesh
+     * @param f
+     * @throws IOException
+     */
+    public static void save(MeshData mesh, File f) throws IOException {
+        MeshDataWriter writer = new MeshDataWriter();
+        writer.write(new FileOutputStream(f), mesh, ByteOrder.BIG_ENDIAN, cCompatibility);
+    }
+    
+    /**
+     * 
+     * @param navMesh
+     * @param f
+     * @throws IOException
+     */
+    public static void save(NavMesh navMesh, File f) throws IOException {
+        MeshSetWriter writer = new MeshSetWriter();
+        writer.write(new FileOutputStream(f), navMesh, ByteOrder.BIG_ENDIAN, cCompatibility);
     }
 
-    public static void saveNavMesh(File file, NavMesh navMesh) throws IOException {
-        boolean cCompatibility = false;
-        MeshSetWriter msw = new MeshSetWriter();
-        msw.write(new FileOutputStream(file), navMesh, ByteOrder.BIG_ENDIAN, cCompatibility);
-    }
-
-    public static NavMesh loadNavMesh(String fileName) throws IOException {
-        File f = new File(fileName);
-        return loadNavMesh(f);
-    }
-
-    public static NavMesh loadNavMesh(File file) throws IOException {
-        int maxVertsPerPoly = 3;
-        MeshSetReader msr = new MeshSetReader();
-        NavMesh navMesh = msr.read(new FileInputStream(file), maxVertsPerPoly);
+    /**
+     * 
+     * @param f
+     * @return
+     * @throws IOException
+     */
+    public static NavMesh load(File f) throws IOException {
+        MeshSetReader reader = new MeshSetReader();
+        NavMesh navMesh = reader.read(new FileInputStream(f), maxVertsPerPoly);
         return navMesh;
     }
 
     /**
-     * Save NavMesh as .obj file
-     *
-     * @param fileName
+     * Save NavMesh as Wavefront (.obj) file
+     * 
      * @param navMesh
+     * @param file
+     * @throws IOException
      */
-    public static void saveAsObj(String fileName, NavMesh navMesh) {
-        try {
-            FileWriter fw = new FileWriter(new File(fileName));
+    public static void saveAsObj(NavMesh navMesh, File file) throws IOException {
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+        
+        try (FileWriter fw = new FileWriter(file)) {
 
             for (int i = 0; i < navMesh.getTileCount(); i++) {
                 MeshTile tile = navMesh.getTile(i);
@@ -84,26 +105,27 @@ public class IORecast {
                     vertexOffset += tile.data.header.vertCount;
                 }
             }
-
-            fw.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
     /**
-     * Save PolyMesh as .obj file
-     *
-     * @param fileName
+     * Save PolyMesh as Wavefront (.obj) file
+     * 
      * @param mesh
+     * @param file
+     * @throws IOException
      */
-    public static void saveAsObj(String fileName, PolyMesh mesh) {
-        try {
-            FileWriter fw = new FileWriter(new File(fileName));
+    public static void saveAsObj(PolyMesh mesh, File file) throws IOException {
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+
+        try (FileWriter fw = new FileWriter(file)) {
 
             for (int v = 0; v < mesh.nverts; v++) {
-                fw.write("v " + (mesh.bmin[0] + mesh.verts[v * 3] * mesh.cs) + " "
+                fw.write("v " 
+                        + (mesh.bmin[0] + mesh.verts[v * 3] * mesh.cs) + " "
                         + (mesh.bmin[1] + mesh.verts[v * 3 + 1] * mesh.ch) + " "
                         + (mesh.bmin[2] + mesh.verts[v * 3 + 2] * mesh.cs) + "\n");
             }
@@ -120,44 +142,42 @@ public class IORecast {
                 }
                 fw.write("\n");
             }
-
-            fw.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
     /**
-     * Save PolyMeshDetail as .obj file
-     *
-     * @param fileName
-     * @param dmesh
+     * Save PolyMeshDetail as Wavefront (.obj) file
+     * 
+     * @param mesh
+     * @param file
+     * @throws IOException
      */
-    public static void saveAsObj(String fileName, PolyMeshDetail dmesh) {
-        try {
-            FileWriter fw = new FileWriter(new File(fileName));
+    public static void saveAsObj(PolyMeshDetail mesh, File file) throws IOException {
 
-            for (int v = 0; v < dmesh.nverts; v++) {
-                fw.write("v " + dmesh.verts[v * 3] + " "
-                        + dmesh.verts[v * 3 + 1] + " "
-                        + dmesh.verts[v * 3 + 2] + "\n");
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+
+        try (FileWriter fw = new FileWriter(file)) {
+
+            for (int v = 0; v < mesh.nverts; v++) {
+                fw.write("v " 
+                        + mesh.verts[v * 3] + " " 
+                        + mesh.verts[v * 3 + 1] + " " 
+                        + mesh.verts[v * 3 + 2] + "\n");
             }
 
-            for (int m = 0; m < dmesh.nmeshes; m++) {
-                int vfirst = dmesh.meshes[m * 4];
-                int tfirst = dmesh.meshes[m * 4 + 2];
-                for (int f = 0; f < dmesh.meshes[m * 4 + 3]; f++) {
-                    fw.write("f " + (vfirst + dmesh.tris[(tfirst + f) * 4] + 1) + " "
-                            + (vfirst + dmesh.tris[(tfirst + f) * 4 + 1] + 1) + " "
-                            + (vfirst + dmesh.tris[(tfirst + f) * 4 + 2] + 1) + "\n");
+            for (int i = 0; i < mesh.nmeshes; i++) {
+                int vfirst = mesh.meshes[i * 4];
+                int tfirst = mesh.meshes[i * 4 + 2];
+                for (int f = 0; f < mesh.meshes[i * 4 + 3]; f++) {
+                    fw.write("f " 
+                            + (vfirst + mesh.tris[(tfirst + f) * 4] + 1) + " "
+                            + (vfirst + mesh.tris[(tfirst + f) * 4 + 1] + 1) + " "
+                            + (vfirst + mesh.tris[(tfirst + f) * 4 + 2] + 1) + "\n");
                 }
             }
-
-            fw.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
