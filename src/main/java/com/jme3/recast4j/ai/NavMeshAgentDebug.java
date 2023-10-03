@@ -29,7 +29,7 @@ public class NavMeshAgentDebug extends AbstractControl {
     // Unshaded material
     private Material debugMat;
     private BoundingSphereDebug sphere = new BoundingSphereDebug();
-    private float pointSize = 0.2f;
+    private float pointSize = 0.1f;
 
     private NavMeshAgent agent;
 
