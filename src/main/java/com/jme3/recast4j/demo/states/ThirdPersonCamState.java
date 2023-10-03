@@ -26,6 +26,7 @@
  */
 package com.jme3.recast4j.demo.states;
 
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import com.jme3.app.Application;
@@ -40,6 +41,7 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 
 /**
  *
@@ -57,11 +59,30 @@ public class ThirdPersonCamState extends BaseAppState {
     	this.cam = app.getCamera();
     	this.inputManager = app.getInputManager();
     	
-    	Node rootNode = ((SimpleApplication) app).getRootNode();
-    	Node character = (Node) rootNode.getChild("jaime");
+    	Node character = (Node) find("jaime");
         addHeadNode(character);
         
         logger.info("ThirdPersonCamState initialized");
+    }
+    
+    /**
+     * Finds a GameObject by name and returns it.
+     * 
+     * @param childName
+     * @return
+     */
+    public Spatial find(String childName) {
+        Spatial child = getRootNode().getChild(childName);
+        String errorMsg = String.format("The spatial %s could not be found", childName);
+        return Objects.requireNonNull(child, errorMsg);
+    }
+    
+    public Node getRootNode() {
+        return ((SimpleApplication) getApplication()).getRootNode();
+    }
+    
+    public Node getGuiNode() {
+        return ((SimpleApplication) getApplication()).getGuiNode();
     }
 
     @Override
@@ -76,11 +97,14 @@ public class ThirdPersonCamState extends BaseAppState {
     protected void onDisable() {
     }
     
-    //create 3rd person view.
+    /**
+     * Create 3rd person view.
+     * @param character
+     */
     private void addHeadNode(Node character) {
         
         BoundingBox bounds = (BoundingBox) character.getWorldBound();
-        Node head = new Node("headNode");
+        Node head = new Node("HeadNode");
         character.attachChild(head);
         
         //offset head node using spatial bounds to pos head level
@@ -91,27 +115,25 @@ public class ThirdPersonCamState extends BaseAppState {
         ChaseCamera chaseCam = new ChaseCamera(cam, head, inputManager);
         //duplicate blender rotation
         chaseCam.setInvertVerticalAxis(true);
-        //disable so camera stays same distance from head when moving
-        chaseCam.setSmoothMotion(false);
         chaseCam.setDefaultHorizontalRotation(1.57f);
         chaseCam.setRotationSpeed(4f);
         chaseCam.setMinDistance(bounds.getYExtent() * 2);
-        chaseCam.setDefaultDistance(10);
         chaseCam.setMaxDistance(25);
+        chaseCam.setDefaultDistance(10);
         //prevent camera rotation below head
         chaseCam.setDownRotateOnCloseViewOnly(false);  
         
         //Set arrow keys to rotate view.
         //Uses default mouse scrolling to zoom.
         chaseCam.setToggleRotationTrigger(
-            new KeyTrigger(KeyInput.KEY_LEFT),
-            new KeyTrigger(KeyInput.KEY_RIGHT),
-            new KeyTrigger(KeyInput.KEY_UP),
-            new KeyTrigger(KeyInput.KEY_DOWN));
+                new KeyTrigger(KeyInput.KEY_W), 
+                new KeyTrigger(KeyInput.KEY_A),
+                new KeyTrigger(KeyInput.KEY_S), 
+                new KeyTrigger(KeyInput.KEY_D));
 
-        inputManager.addMapping(CameraInput.CHASECAM_MOVERIGHT, new KeyTrigger(KeyInput.KEY_RIGHT));
-        inputManager.addMapping(CameraInput.CHASECAM_MOVELEFT, new KeyTrigger(KeyInput.KEY_LEFT));
-        inputManager.addMapping(CameraInput.CHASECAM_DOWN, new KeyTrigger(KeyInput.KEY_DOWN));
-        inputManager.addMapping(CameraInput.CHASECAM_UP, new KeyTrigger(KeyInput.KEY_UP));
+        inputManager.addMapping(CameraInput.CHASECAM_UP, new KeyTrigger(KeyInput.KEY_W));
+        inputManager.addMapping(CameraInput.CHASECAM_MOVELEFT, new KeyTrigger(KeyInput.KEY_A));
+        inputManager.addMapping(CameraInput.CHASECAM_DOWN, new KeyTrigger(KeyInput.KEY_S));
+        inputManager.addMapping(CameraInput.CHASECAM_MOVERIGHT, new KeyTrigger(KeyInput.KEY_D));
     }
 }
