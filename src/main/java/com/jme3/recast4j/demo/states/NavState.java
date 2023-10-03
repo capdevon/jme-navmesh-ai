@@ -48,6 +48,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteOrder;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -70,7 +71,6 @@ import org.recast4j.detour.Poly;
 import org.recast4j.detour.Result;
 import org.recast4j.detour.Tupple2;
 import org.recast4j.detour.VectorPtr;
-import org.recast4j.detour.io.MeshDataWriter;
 import org.recast4j.detour.io.MeshSetReader;
 import org.recast4j.detour.io.MeshSetWriter;
 import org.recast4j.detour.tilecache.TileCache;
@@ -133,12 +133,12 @@ import com.jme3.recast4j.geom.JmeInputGeomProvider;
 import com.jme3.recast4j.geom.JmeRecastBuilder;
 import com.jme3.recast4j.geom.JmeRecastVoxelization;
 import com.jme3.recast4j.geom.JmeTileLayerBuilder;
-import com.jme3.recast4j.geom.NavMeshModifier;
 import com.jme3.recast4j.geom.NavMeshBuilderProgressListener;
+import com.jme3.recast4j.geom.NavMeshModifier;
 import com.jme3.recast4j.geom.OffMeshLink;
-import com.jme3.recast4j.recast.IORecast;
+import com.jme3.recast4j.geom.Telemetry;
+import com.jme3.recast4j.recast.NavMeshAssetManager;
 import com.jme3.recast4j.recast.RecastConfigBuilder;
-import com.jme3.recast4j.recast.Telemetry;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -549,8 +549,8 @@ public class NavState extends AbstractNavState {
         navQuery = new NavMeshQuery(navMesh);
 
         try {
-            saveToFile(meshData, "recast-solo.md");
-            saveToFile(navMesh, "recast-solo.nm");
+            NavMeshAssetManager.save(meshData, makeFile("recast-solo.md"));
+            NavMeshAssetManager.save(navMesh, makeFile("recast-solo.nm"));
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -593,14 +593,16 @@ public class NavState extends AbstractNavState {
         //Create a RecastBuilderConfig builder with world bounds of our geometry.
         RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, m_geom.getMeshBoundsMin(), m_geom.getMeshBoundsMax());
 
-        JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
-        Telemetry ctx = new Telemetry();
+        Telemetry telemetry = new Telemetry();
         // Rasterize input polygon soup.
-        Heightfield solid = JmeRecastVoxelization.buildSolidHeightfield(m_geom, builderCfg, ctx);
-        RecastBuilderResult rcResult = rcBuilder.build(builderCfg.borderSize, builderCfg.buildMeshDetail, m_geom, cfg, solid, ctx);
-        ctx.print();
+        Heightfield solid = JmeRecastVoxelization.buildSolidHeightfield(m_geom, builderCfg, telemetry);
+        
+        JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
+        RecastBuilderResult rcResult = rcBuilder.build(builderCfg.borderSize, builderCfg.buildMeshDetail, m_geom, cfg, solid, telemetry);
+        
+        System.out.println("Telemetry:");
+        telemetry.print();
 
-//        RecastBuilderResult rcResult = rcBuilder.build(m_geom, builderCfg);
         // Build the parameter object.
         NavMeshDataCreateParams params = getNavMeshCreateParams(m_geom,
                 cellSize, cellHeight, agentHeight, agentRadius, agentMaxClimb, rcResult);
@@ -616,8 +618,8 @@ public class NavState extends AbstractNavState {
 
         //Create offmesh connections here.
         try {
-            saveToFile(meshData, "recast-solo-modified.md");
-            saveToFile(navMesh, "recast-solo-modified.nm");
+            NavMeshAssetManager.save(meshData, makeFile("recast-solo-modified.md"));
+            NavMeshAssetManager.save(navMesh, makeFile("recast-solo-modified.nm"));
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -774,12 +776,12 @@ public class NavState extends AbstractNavState {
         //Create offmesh connections here.
         
         try {
-            saveToFile(meshData, "recast4j-solo.md");
-            saveToFile(navMesh, "recast4j-solo.nm");
-
-            IORecast.saveAsObj("recast4j-solo.obj", navMesh);
-            IORecast.saveAsObj("recast4j-solo_" + cfg.partitionType + "_detail.obj", detailMesh);
-            IORecast.saveAsObj("recast4j-solo_" + cfg.partitionType + ".obj", polyMesh);
+            String filename = "recast4j-solo";
+            NavMeshAssetManager.save(meshData, makeFile(filename + ".md"));
+            NavMeshAssetManager.save(navMesh, makeFile(filename + ".nm"));
+            NavMeshAssetManager.saveAsObj(navMesh, makeFile(filename + ".obj"));
+            NavMeshAssetManager.saveAsObj(detailMesh, makeFile(filename + "_" + cfg.partitionType + "_detail.obj"));
+            NavMeshAssetManager.saveAsObj(polyMesh, makeFile(filename + "_" + cfg.partitionType + ".obj"));
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -788,7 +790,7 @@ public class NavState extends AbstractNavState {
         //Show wireframe. Helps with param tweaks. false = solid color.
         navMeshRenderer.drawMeshByArea(meshData, true);
     }
-
+    
     /**
      * This example sets area type and flags based off geometry of each
      * individual mesh and uses the custom JmeRecastBuilder class. Implements
@@ -867,7 +869,7 @@ public class NavState extends AbstractNavState {
         processOffMeshConnections();
 
         try {
-            File f = new File("test-tiled.nm");
+            File f = makeFile("recast4j-tiled.nm");
 
             // Native format using tiles.
             MeshSetWriter msw = new MeshSetWriter();
@@ -944,7 +946,7 @@ public class NavState extends AbstractNavState {
 
         try {
             //Save and read back for testing.
-            File f = new File("test-tile-cache.tc");
+            File f = makeFile("recast4j-tile-cache.tc");
 
             //Write our tile cache.
             TileCacheWriter writer = new TileCacheWriter();
@@ -974,6 +976,17 @@ public class NavState extends AbstractNavState {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+    
+    private File makeFile(String fileName) {
+        String dirName = "navmesh-test";
+        File file = Path.of(dirName, fileName).toFile();
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+        logger.info("Writing file={}", file.getAbsolutePath());
+        return file;
     }
 
     private NavMeshDataCreateParams getNavMeshCreateParams(JmeInputGeomProvider m_geom,
@@ -1363,20 +1376,6 @@ public class NavState extends AbstractNavState {
                 }
             }
         });
-    }
-
-    private void saveToFile(MeshData md, String fileName) throws IOException {
-        MeshDataWriter writer = new MeshDataWriter();
-        File f = new File(fileName);
-        System.out.println("Saving MeshData=" + f.getAbsolutePath());
-        writer.write(new FileOutputStream(f), md, ByteOrder.BIG_ENDIAN, false);
-    }
-
-    private void saveToFile(NavMesh nm, String fileName) throws IOException {
-        MeshSetWriter writer = new MeshSetWriter();
-        File f = new File(fileName);
-        System.out.println("Saving NavMesh=" + f.getAbsolutePath());
-        writer.write(new FileOutputStream(f), nm, ByteOrder.BIG_ENDIAN, false);
     }
 
     //Build the tile cache.

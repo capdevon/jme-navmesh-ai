@@ -15,7 +15,7 @@ freely, subject to the following restrictions:
  misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
  */
-package com.jme3.recast4j.recast;
+package com.jme3.recast4j.geom;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,10 +33,12 @@ public class Telemetry extends Context {
     private final ThreadLocal<Map<String, AtomicLong>> timerStart = ThreadLocal.withInitial(HashMap::new);
     private final Map<String, AtomicLong> timerAccum = new ConcurrentHashMap<>();
 
+    @Override
     public void startTimer(String name) {
         timerStart.get().put(name, new AtomicLong(System.nanoTime()));
     }
 
+    @Override
     public void stopTimer(String name) {
         if (timerStart.get().get(name) != null) {
             long delta = System.nanoTime() - timerStart.get().get(name).get();
@@ -44,6 +46,7 @@ public class Telemetry extends Context {
         }
     }
 
+    @Override
     public void warn(String string) {
         System.err.println(string);
     }

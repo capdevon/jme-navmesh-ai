@@ -10,6 +10,15 @@ import com.jme3.renderer.Camera;
  * @author capdevon
  */
 public class MainCamera {
+    
+    /**
+     * Z value for the far clipping plane (in screen coordinates)
+     */
+    private static final float farZ = 1f;
+    /**
+     * Z value for the near clipping plane (in screen coordinates)
+     */
+    private static final float nearZ = 0f;
 
     /**
      * Returns a ray going from camera through a screen point.
@@ -18,12 +27,13 @@ public class MainCamera {
      *     Ray ray = MainCamera.screenPointToRay(cam, inputManager.getCursorPosition());
      * </pre>
      */
-    public static Ray screenPointToRay(Camera cam, Vector2f click2d) {
-        // Convert screen click to 3d position
-        Vector3f click3d = cam.getWorldCoordinates(new Vector2f(click2d), 0).clone();
-        Vector3f dir = cam.getWorldCoordinates(new Vector2f(click2d), 1).subtractLocal(click3d).normalizeLocal();
+    public static Ray screenPointToRay(Camera cam, Vector2f screenXY) {
+        // Convert screen click to 3D position
+        Vector3f nearPos = cam.getWorldCoordinates(screenXY, nearZ);
+        Vector3f farPos = cam.getWorldCoordinates(screenXY, farZ);
+        Vector3f dir = farPos.subtract(nearPos).normalizeLocal();
         // Aim the ray from the clicked spot forwards.
-        Ray ray = new Ray(click3d, dir);
+        Ray ray = new Ray(nearPos, dir);
         return ray;
     }
 

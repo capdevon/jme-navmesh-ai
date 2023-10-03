@@ -40,7 +40,7 @@ import com.jme3.water.WaterFilter;
  */
 public class Test_NavMesh extends SimpleApplication {
 	
-    private final Quaternion YAW180 = new Quaternion().fromAngleAxis(FastMath.PI, new Vector3f(0,1,0));
+    private static final Quaternion YAW180 = new Quaternion().fromAngleAxis(FastMath.PI, new Vector3f(0,1,0));
     private Node worldMap;
     private Node doorNode;
     private Node offMeshCon;
