@@ -29,6 +29,8 @@ import org.recast4j.recast.RecastMesh;
 import org.recast4j.recast.RecastMeshDetail;
 import org.recast4j.recast.RecastRegion;
 import org.recast4j.recast.geom.InputGeomProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Extends the Recast4j RecastBuilder class to allow for Area Type flag setting.
@@ -46,6 +48,8 @@ import org.recast4j.recast.geom.InputGeomProvider;
  * @author capdevon
  */
 public class JmeRecastBuilder {
+    
+    private static final Logger logger = LoggerFactory.getLogger(JmeRecastBuilder.class.getName());
     
     private final RecastBuilderProgressListener progressListener;
     
@@ -111,18 +115,26 @@ public class JmeRecastBuilder {
                 });
             }
         }
+        
         executor.shutdown();
         try {
-            executor.awaitTermination(1000, TimeUnit.HOURS);
+            if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+                logger.warn("Pool did not terminate {}", executor);
+                executor.shutdownNow();
+            }
         } catch (InterruptedException e) {
+            logger.warn(e.getMessage(), e);
+            executor.shutdownNow();
         }
+        
+        logger.info("Pool shutdown {}", executor);
         return result;
     }
 
-    private RecastBuilderResult buildTile(JmeInputGeomProvider geom, RecastConfig cfg, float[] bmin, float[] bmax, final int tx, final int ty, AtomicInteger counter, int total) {
+    private RecastBuilderResult buildTile(JmeInputGeomProvider geom, RecastConfig cfg, float[] bmin, float[] bmax, int tx, int ty, AtomicInteger counter, int total) {
         RecastBuilderResult result = build(geom, new RecastBuilderConfig(cfg, bmin, bmax, tx, ty, true));
-        if (this.progressListener != null) {
-            this.progressListener.onProgress(counter.incrementAndGet(), total);
+        if (progressListener != null) {
+            progressListener.onProgress(counter.incrementAndGet(), total);
         }
         return result;
     }
@@ -150,36 +162,27 @@ public class JmeRecastBuilder {
         // - the classic Recast partitioning
         // - creates the nicest tessellation
         // - usually slowest
-        // - partitions the heightfield into nice regions without holes or
-        // overlaps
-        // - the are some corner cases where this method creates produces holes
-        // and overlaps
-        // - holes may appear when a small obstacles is close to large open area
-        // (triangulation can handle this)
+        // - partitions the heightfield into nice regions without holes or overlaps
+        // - the are some corner cases where this method creates produces holes and overlaps
+        // - holes may appear when a small obstacles is close to large open area (triangulation can handle this)
         // - overlaps may occur if you have narrow spiral corridors (i.e
         // stairs), this make triangulation to fail
         // * generally the best choice if you precompute the nacmesh, use this
         // if you have large open areas
         // 2) Monotone partioning
         // - fastest
-        // - partitions the heightfield into regions without holes and overlaps
-        // (guaranteed)
-        // - creates long thin polygons, which sometimes causes paths with
-        // detours
+        // - partitions the heightfield into regions without holes and overlaps (guaranteed)
+        // - creates long thin polygons, which sometimes causes paths with detours
         // * use this if you want fast navmesh generation
         // 3) Layer partitoining
         // - quite fast
         // - partitions the heighfield into non-overlapping regions
-        // - relies on the triangulation code to cope with holes (thus slower
-        // than monotone partitioning)
+        // - relies on the triangulation code to cope with holes (thus slower than monotone partitioning)
         // - produces better triangles than monotone partitioning
         // - does not have the corner cases of watershed partitioning
-        // - can be slow and create a bit ugly tessellation (still better than
-        // monotone)
-        // if you have large open areas with small obstacles (not a problem if
-        // you use tiles)
-        // * good choice to use for tiled navmesh with medium and small sized
-        // tiles
+        // - can be slow and create a bit ugly tessellation (still better than monotone)
+        // if you have large open areas with small obstacles (not a problem if you use tiles)
+        // * good choice to use for tiled navmesh with medium and small sized tiles
 
         if (cfg.partitionType == PartitionType.WATERSHED) {
             // Prepare for region partitioning, by calculating distance field
@@ -231,7 +234,7 @@ public class JmeRecastBuilder {
     /*
      * Step 3. Partition walkable surface to simple regions.
      */
-    private CompactHeightfield buildCompactHeightfield(InputGeomProvider geomProvider, RecastConfig cfg, Context ctx, Heightfield solid) {
+    private CompactHeightfield buildCompactHeightfield(InputGeomProvider geom, RecastConfig cfg, Context ctx, Heightfield solid) {
         // Compact the heightfield so that it is faster to handle from now on.
         // This will result more cache coherent data as well as the neighbours
         // between walkable cells will be calculated.
@@ -240,7 +243,7 @@ public class JmeRecastBuilder {
         // Erode the walkable area by agent radius.
         RecastArea.erodeWalkableArea(ctx, cfg.walkableRadius, chf);
         // (Optional) Mark areas.
-        for (ConvexVolume vol : geomProvider.convexVolumes()) {
+        for (ConvexVolume vol : geom.convexVolumes()) {
             RecastArea.markConvexPolyArea(ctx, vol.verts, vol.hmin, vol.hmax, vol.areaMod, chf);
         }
         return chf;

@@ -81,7 +81,7 @@ public class NavMeshUI extends BaseAppState {
 
         RollupPanel rollup = new RollupPanel("NavMesh Settings", propertyPanel, "glass");
         rollup.setAlpha(0, false);
-        //		rollup.setOpen(false);
+        //rollup.setOpen(false);
         container.addChild(rollup);
 
         Button refreshButton = container.addChild(new Button("Generate NavMesh"));

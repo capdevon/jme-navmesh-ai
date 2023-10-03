@@ -16,9 +16,9 @@ public class NavMeshHit {
     // Mask specifying NavMesh area at point of hit.
     protected int mask;
     // Normal at the point of hit.
-    protected Vector3f normal = new Vector3f();
+    protected Vector3f normal = Vector3f.NAN.clone();
     // Position of hit.
-    protected Vector3f position = new Vector3f();
+    protected Vector3f position = Vector3f.NAN.clone();
 
     public void clear() {
         hit = false;
@@ -46,6 +46,16 @@ public class NavMeshHit {
 
     public Vector3f getPosition() {
         return position;
+    }
+
+    @Override
+    public String toString() {
+        return "NavMeshHit [distance=" + distance 
+                + ", hit=" + hit 
+                + ", mask=" + mask 
+                + ", normal=" + normal
+                + ", position=" + position 
+                + "]";
     }
 
 }

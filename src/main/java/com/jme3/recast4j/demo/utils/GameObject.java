@@ -23,8 +23,8 @@ public class GameObject {
      * Returns the component of Type type if the game object has one attached,
      * null if it doesn't.
      */
-    public static <T extends Control> T getComponent(Spatial sp, Class<T> clazz) {
-       return sp.getControl(clazz);
+    public static <T extends Control> T getComponent(Spatial sp, Class<T> type) {
+       return sp.getControl(type);
     }
     
     /**
@@ -67,15 +67,15 @@ public class GameObject {
      * Returns the component of Type type in the GameObject or any of its
      * children using depth first search.
      */
-    public static <T extends Control> T getComponentInChildren(Spatial spatial, final Class<T> clazz) {
-        T control = spatial.getControl(clazz);
+    public static <T extends Control> T getComponentInChildren(Spatial sp, final Class<T> type) {
+        T control = sp.getControl(type);
         if (control != null) {
             return control;
         }
 
-        if (spatial instanceof Node) {
-            for (Spatial child : ((Node) spatial).getChildren()) {
-                control = getComponentInChildren(child, clazz);
+        if (sp instanceof Node) {
+            for (Spatial child : ((Node) sp).getChildren()) {
+                control = getComponentInChildren(child, type);
                 if (control != null) {
                     return control;
                 }
@@ -89,10 +89,10 @@ public class GameObject {
      * Retrieves the component of Type type in the GameObject or any of its
      * parents.
      */
-    public static <T extends Control> T getComponentInParent(Spatial spatial, Class<T> clazz) {
-        Node parent = spatial.getParent();
+    public static <T extends Control> T getComponentInParent(Spatial sp, Class<T> type) {
+        Node parent = sp.getParent();
         while (parent != null) {
-            T control = parent.getControl(clazz);
+            T control = parent.getControl(type);
             if (control != null) {
                 return control;
             }

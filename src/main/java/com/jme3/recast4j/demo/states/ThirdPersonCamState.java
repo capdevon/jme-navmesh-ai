@@ -47,7 +47,7 @@ import com.jme3.scene.Node;
  */
 public class ThirdPersonCamState extends BaseAppState {
     
-    private static final Logger LOG = Logger.getLogger(ThirdPersonCamState.class.getName());
+    private static final Logger logger = Logger.getLogger(ThirdPersonCamState.class.getName());
     
     private Camera cam;
     private InputManager inputManager;
@@ -61,7 +61,7 @@ public class ThirdPersonCamState extends BaseAppState {
     	Node character = (Node) rootNode.getChild("jaime");
         addHeadNode(character);
         
-        LOG.info("ThirdPersonCamState initialized");
+        logger.info("ThirdPersonCamState initialized");
     }
 
     @Override

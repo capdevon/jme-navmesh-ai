@@ -159,7 +159,6 @@ public class NavState extends AbstractNavState {
     private static final String MODEL_NAME = "jaime";
 
     private Node worldMap;
-    private Node doorNode;
     private Node offMeshCon;
     private NavMesh navMesh;
     private NavMeshQuery navQuery;
@@ -208,7 +207,7 @@ public class NavState extends AbstractNavState {
 
     private void setupDoors() {
         //If the doorNode in DemoApplication is not null, we will create doors.
-        doorNode = (Node) rootNode.getChild("doorNode");
+        Node doorNode = (Node) rootNode.getChild("doorNode");
 
         /**
          * This check will set any doors found in the doorNode open/closed flags
@@ -273,7 +272,7 @@ public class NavState extends AbstractNavState {
                 }
 
                 //The filter to use for this search.
-                DefaultQueryFilter filter = new DefaultQueryFilter(); //BetterDefaultQueryFilter();
+                DefaultQueryFilter filter = new DefaultQueryFilter();
 
                 //Limit the search to only door flags.
                 int includeFlags = POLYFLAGS_DOOR;
@@ -570,7 +569,7 @@ public class NavState extends AbstractNavState {
 
         //Build merged mesh.
         JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
-        setNavMeshArea(m_geom, worldMap);
+        setNavMeshModifiers(m_geom, worldMap);
 
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
@@ -636,7 +635,7 @@ public class NavState extends AbstractNavState {
 
         //Build merged mesh.
         JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
-        setNavMeshArea(m_geom, worldMap);
+        setNavMeshModifiers(m_geom, worldMap);
 
         //Clean up offMesh connections.
         offMeshCon.detachAllChildren();
@@ -734,6 +733,7 @@ public class NavState extends AbstractNavState {
 //      for (ConvexVolume convexVolume: vols) { 
 //          RecastArea.markConvexPolyArea(telemetry, convexVolume.verts, convexVolume.hmin, convexVolume.hmax, convexVolume.areaMod, chf);
 //      }
+        
         if (partitionType == PartitionType.WATERSHED) {
             // Prepare for region partitioning, by calculating distance field
             // along the walkable surface.
@@ -768,6 +768,7 @@ public class NavState extends AbstractNavState {
         navMesh = new NavMesh(meshData, cfg.maxVertsPerPoly, 0);
         navQuery = new NavMeshQuery(navMesh);
 
+        System.out.println("Telemetry:");
         telemetry.print();
 
         //Create offmesh connections here.
@@ -776,9 +777,9 @@ public class NavState extends AbstractNavState {
             saveToFile(meshData, "recast4j-solo.md");
             saveToFile(navMesh, "recast4j-solo.nm");
 
-            IORecast.saveObj("recast4j-solo.obj", navMesh);
-            IORecast.saveObj("recast4j-solo_" + cfg.partitionType + "_detail.obj", detailMesh);
-            IORecast.saveObj("recast4j-solo_" + cfg.partitionType + ".obj", polyMesh);
+            IORecast.saveAsObj("recast4j-solo.obj", navMesh);
+            IORecast.saveAsObj("recast4j-solo_" + cfg.partitionType + "_detail.obj", detailMesh);
+            IORecast.saveAsObj("recast4j-solo_" + cfg.partitionType + ".obj", polyMesh);
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -797,7 +798,7 @@ public class NavState extends AbstractNavState {
 
         //Build merged mesh.
         JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
-        setNavMeshArea(m_geom, worldMap);
+        setNavMeshModifiers(m_geom, worldMap);
 
         setOffMeshConnections();
 
@@ -888,7 +889,7 @@ public class NavState extends AbstractNavState {
 
         //Build merged mesh.
         JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
-        setNavMeshArea(m_geom, worldMap);
+        setNavMeshModifiers(m_geom, worldMap);
 
         setOffMeshConnections();
 
@@ -1206,9 +1207,9 @@ public class NavState extends AbstractNavState {
                  */
                 if (!node.getName().equals(offMeshCon.getName())) {
 
-                    SkeletonControl skelControl = GameObject.getComponentInChildren(node, SkeletonControl.class);
+                    SkeletonControl skControl = GameObject.getComponentInChildren(node, SkeletonControl.class);
 
-                    if (skelControl != null) {
+                    if (skControl != null) {
                         /**
                          * Offmesh connections require two connections, a
                          * start/end vector3f and must connect to a surrounding
@@ -1252,7 +1253,7 @@ public class NavState extends AbstractNavState {
                          *
                          * offmesh.pond.a offmesh.pond.b offmesh.1.a offmesh.1.b
                          */
-                        Bone[] roots = skelControl.getSkeleton().getRoots();
+                        Bone[] roots = skControl.getSkeleton().getRoots();
                         for (Bone bone : roots) {
                             /**
                              * Split the name up using delimiter.
@@ -1425,7 +1426,7 @@ public class NavState extends AbstractNavState {
         }
     }
 
-    private void setNavMeshArea(JmeInputGeomProvider geomProvider, Node root) {
+    private void setNavMeshModifiers(JmeInputGeomProvider m_geom, Node root) {
 
         root.depthFirstTraversal(new SceneGraphVisitorAdapter() {
             @Override
@@ -1451,7 +1452,7 @@ public class NavState extends AbstractNavState {
                         mod = new NavMeshModifier(geo, AREAMOD_GROUND);
                 }
 
-                geomProvider.addModification(mod);
+                m_geom.addModification(mod);
                 System.out.println("setNavMeshArea " + mod);
             }
         });

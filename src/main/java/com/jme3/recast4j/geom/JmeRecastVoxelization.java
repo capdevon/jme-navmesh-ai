@@ -18,15 +18,18 @@ import org.recast4j.recast.geom.TriMesh;
  * @author capdevon
  */
 public class JmeRecastVoxelization {
+    
+    private JmeRecastVoxelization() {}
 	
-	/**
-	 * 
-	 * @param geomProvider
-	 * @param builderCfg
-	 * @param ctx
-	 * @return
-	 */
-    public static Heightfield buildSolidHeightfield(JmeInputGeomProvider geomProvider, RecastBuilderConfig builderCfg, Context ctx) {
+    /**
+     * buildSolidHeightfield
+     * 
+     * @param m_geom
+     * @param builderCfg
+     * @param ctx
+     * @return
+     */
+    public static Heightfield buildSolidHeightfield(JmeInputGeomProvider m_geom, RecastBuilderConfig builderCfg, Context ctx) {
     	
         RecastConfig cfg = builderCfg.cfg;
 
@@ -43,7 +46,7 @@ public class JmeRecastVoxelization {
         // If your input data is multiple meshes, you can transform them here,
         // calculate
         // the are type for each of the meshes and rasterize them.
-        for (TriMesh geom : geomProvider.meshes()) {
+        for (TriMesh geom : m_geom.meshes()) {
             float[] verts = geom.getVerts();
             int[] tris = geom.getTris();
             int ntris = tris.length / 3;
@@ -63,7 +66,7 @@ public class JmeRecastVoxelization {
             List<int[]> listTriIndices = new ArrayList<>();
             int fromIndex = 0;
 
-            for (NavMeshModifier mod : geomProvider.getModifications()) {
+            for (NavMeshModifier mod : m_geom.getModifications()) {
                 int[] triangles = new int[mod.getGeomLength()];
                 System.arraycopy(tris, fromIndex, triangles, 0, mod.getGeomLength());
                 listTriIndices.add(triangles);
@@ -107,10 +110,10 @@ public class JmeRecastVoxelization {
 
                         for (int i = 0; i < node_ntris; i++) {
 
-                            //Create a triangle from the node.
-                            nodeTri[0] = node_tris[i*3];
-                            nodeTri[1] = node_tris[i*3+1];
-                            nodeTri[2] = node_tris[i*3+2];
+                            // Create a triangle from the node.
+                            nodeTri[0] = node_tris[i * 3];
+                            nodeTri[1] = node_tris[i * 3 + 1];
+                            nodeTri[2] = node_tris[i * 3 + 2];
 
                             //Cycle through each array.
                             for (int[] areaTris: listTriIndices) {
@@ -122,16 +125,15 @@ public class JmeRecastVoxelization {
                                 boolean found = false;
 
                                 //Cycle through each areas indices.
-                                for (int j = 0; j < areaTris.length/3; j++) {
+                                for (int j = 0; j < areaTris.length / 3; j++) {
 
-                                    //Create triangle from the array.
-                                    areaTri[0] = areaTris[j*3];
-                                    areaTri[1] = areaTris[j*3+1];
-                                    areaTri[2] = areaTris[j*3+2];
+                                    // Create triangle from the array.
+                                    areaTri[0] = areaTris[j * 3];
+                                    areaTri[1] = areaTris[j * 3 + 1];
+                                    areaTri[2] = areaTris[j * 3 + 2];
 
                                     /**
-                                     * If we find a matching triangle in this 
-                                     * array, we are done.
+                                     * If we find a matching triangle in this array, we are done.
                                      */
                                     if (Arrays.equals(nodeTri, areaTri)) {
                                         found = true;
@@ -160,7 +162,7 @@ public class JmeRecastVoxelization {
                                             verts, 
                                             nodeTri, 
                                             nodeTri.length/3,
-                                            geomProvider.getModifications().get(listTriIndices.indexOf(areaTris)).getAreaModification());
+                                            m_geom.getModifications().get(listTriIndices.indexOf(areaTris)).getAreaModification());
 
                                     /**
                                      * Add marked triangle to the listMarkedTris.
@@ -197,12 +199,12 @@ public class JmeRecastVoxelization {
                      * array found in listTriIndices.
                      */
                     List<int[]> listMarkedTris = new ArrayList<>();
-                    for (NavMeshModifier mod : geomProvider.getModifications()) {
+                    for (NavMeshModifier mod : m_geom.getModifications()) {
                         int[] m_triareas = Recast.markWalkableTriangles(ctx, 
                                 cfg.walkableSlopeAngle, 
                                 verts, 
-                                listTriIndices.get(geomProvider.getModifications().indexOf(mod)), 
-                                listTriIndices.get(geomProvider.getModifications().indexOf(mod)).length/3, 
+                                listTriIndices.get(m_geom.getModifications().indexOf(mod)), 
+                                listTriIndices.get(m_geom.getModifications().indexOf(mod)).length/3, 
                                 mod.getAreaModification());
                         listMarkedTris.add(m_triareas);
                     }                 

@@ -53,7 +53,7 @@ public class IORecast {
      * @param fileName
      * @param navMesh
      */
-    public static void saveObj(String fileName, NavMesh navMesh) {
+    public static void saveAsObj(String fileName, NavMesh navMesh) {
         try {
             FileWriter fw = new FileWriter(new File(fileName));
 
@@ -98,7 +98,7 @@ public class IORecast {
      * @param fileName
      * @param mesh
      */
-    public static void saveObj(String fileName, PolyMesh mesh) {
+    public static void saveAsObj(String fileName, PolyMesh mesh) {
         try {
             FileWriter fw = new FileWriter(new File(fileName));
 
@@ -134,7 +134,7 @@ public class IORecast {
      * @param fileName
      * @param dmesh
      */
-    public static void saveObj(String fileName, PolyMeshDetail dmesh) {
+    public static void saveAsObj(String fileName, PolyMeshDetail dmesh) {
         try {
             FileWriter fw = new FileWriter(new File(fileName));
 

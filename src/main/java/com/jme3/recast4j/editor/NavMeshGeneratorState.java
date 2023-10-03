@@ -35,7 +35,7 @@ public class NavMeshGeneratorState extends BaseAppState {
 
     private Node worldMap;
     private JmeInputGeomProvider m_geom;
-    private NavMeshDebugRenderer nmDebugViewer;
+    private NavMeshDebugRenderer navMeshRenderer;
     private ViewPort viewPort;
 
     /**
@@ -50,7 +50,7 @@ public class NavMeshGeneratorState extends BaseAppState {
     @Override
     protected void initialize(Application app) {
         m_geom = InputGeomProviderBuilder.build(worldMap);
-        nmDebugViewer = new NavMeshDebugRenderer(app.getAssetManager());
+        navMeshRenderer = new NavMeshDebugRenderer(app.getAssetManager());
         viewPort = app.getViewPort();
     }
 
@@ -68,28 +68,28 @@ public class NavMeshGeneratorState extends BaseAppState {
 
     @Override
     public void render(RenderManager rm) {
-        nmDebugViewer.show(rm, viewPort);
+        navMeshRenderer.show(rm, viewPort);
     }
 
-    public void generateNavMesh(NavMeshBuildSettings settingsUI) {
+    public void generateNavMesh(NavMeshBuildSettings nmSettings) {
         try {
-            System.out.println(settingsUI);
+            System.out.println(nmSettings);
 
             NavMesh navMesh = null;
             long startTime = System.currentTimeMillis();
 
-            if (settingsUI.tiled) {
-                navMesh = tileNavMeshBuilder.build(m_geom, settingsUI);
+            if (nmSettings.tiled) {
+                navMesh = tileNavMeshBuilder.build(m_geom, nmSettings);
             } else {
-                navMesh = soloNavMeshBuilder.build(m_geom, settingsUI);
+                navMesh = soloNavMeshBuilder.build(m_geom, nmSettings);
             }
 
             long endTime = System.currentTimeMillis() - startTime;
             System.out.println("Build NavMesh succeeded after: " + endTime + " ms");
 
-            nmDebugViewer.clear();
-            nmDebugViewer.drawNavMeshByArea(navMesh, true);
-            nmDebugViewer.drawMeshBounds(m_geom);
+            navMeshRenderer.clear();
+            navMeshRenderer.drawNavMeshByArea(navMesh, true);
+            navMeshRenderer.drawMeshBounds(m_geom);
 
             saveToFile(worldMap.getName(), navMesh);
 

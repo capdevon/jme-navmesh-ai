@@ -42,23 +42,23 @@ import org.recast4j.recast.RecastConfig;
 
 /**
  * Uses the JmeInputGeomProvider to build layers for the tile cache. Calls the
- * RecastBuilder that accepts the jmeInputGeomProvider to build the
+ * RecastBuilder that accepts the JmeInputGeomProvider to build the
  * HeightFiield.
  * 
  * @author Robert
  */
 public class JmeTileLayerBuilder extends AbstractTileLayersBuilder {
 
-    private JmeInputGeomProvider m_geom;
+    private JmeInputGeomProvider geom;
     private RecastConfig cfg;
     private int tw;
     private int th;
 
-    public JmeTileLayerBuilder(JmeInputGeomProvider m_geom, RecastConfig cfg) {
-        this.m_geom = m_geom;
+    public JmeTileLayerBuilder(JmeInputGeomProvider geom, RecastConfig cfg) {
+        this.geom = geom;
         this.cfg = cfg;
-        float[] bmin = m_geom.getMeshBoundsMin();
-        float[] bmax = m_geom.getMeshBoundsMax();
+        float[] bmin = geom.getMeshBoundsMin();
+        float[] bmax = geom.getMeshBoundsMax();
         int[] twh = Recast.calcTileCount(bmin, bmax, cfg.cs, cfg.tileSize);
         tw = twh[0];
         th = twh[1];
@@ -115,9 +115,9 @@ public class JmeTileLayerBuilder extends AbstractTileLayersBuilder {
 
     protected HeightfieldLayerSet getHeightfieldSet(int tx, int ty) {
         JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
-        float[] bmin = m_geom.getMeshBoundsMin();
-        float[] bmax = m_geom.getMeshBoundsMax();
+        float[] bmin = geom.getMeshBoundsMin();
+        float[] bmax = geom.getMeshBoundsMax();
         RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, bmin, bmax, tx, ty, true);
-        return rcBuilder.buildLayers(m_geom, builderCfg);
+        return rcBuilder.buildLayers(geom, builderCfg);
     }
 }

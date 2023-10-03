@@ -226,6 +226,18 @@ public class NavMeshAgent extends AbstractControl {
     public void setAngularSpeed(float angularSpeed) {
         this.angularSpeed = angularSpeed;
     }
+    
+    public boolean isUpdateRotation() {
+        return updateRotation;
+    }
+
+    /**
+     * Should the agent update the transform orientation?
+     * @param updateRotation
+     */
+    public void setUpdateRotation(boolean updateRotation) {
+        this.updateRotation = updateRotation;
+    }
 
     public float getStoppingDistance() {
         return stoppingDistance;
