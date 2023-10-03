@@ -182,7 +182,7 @@ public class NavMeshDebugRenderer {
      * creates one mesh with geometry and material and adds it to the debug node.
      * 
      * @param meshData  MeshData to parse.
-     * @param areaType  The are type to sort the vertices by.
+     * @param areaType  The area type to sort the vertices by.
      * @param wireframe Display mesh as solid or wire frame.
      */
     private void sortVertsByArea(MeshData meshData, int areaType, boolean wireframe) {
@@ -218,7 +218,7 @@ public class NavMeshDebugRenderer {
             }
 
             // Create the mesh FloatBuffer.
-            FloatBuffer floatBuffer = BufferUtils.createFloatBuffer(verts);
+            FloatBuffer vertsBuffer = BufferUtils.createFloatBuffer(verts);
 
             /**
              * As always, there are three vertices per index so set size accordingly.
@@ -238,34 +238,34 @@ public class NavMeshDebugRenderer {
             // Prepare to set vertex colors based off area type.
             int colorIndex = 0;
             // Create the float array for the color buffer.
-            float[] colorArray = new float[indexes.length * 4];
+            float[] colorBuffer = new float[indexes.length * 4];
 
-            // Populate the colorArray based off area type.
+            // Populate the colorBuffer based off area type.
             ColorRGBA areaColor = getAreaColor(areaType);
-            for (int i = 0; i < indexes.length; i++) {
-                colorArray[colorIndex++] = areaColor.getRed();
-                colorArray[colorIndex++] = areaColor.getGreen();
-                colorArray[colorIndex++] = areaColor.getBlue();
-                colorArray[colorIndex++] = 1.0f;
-            }
+//            for (int i = 0; i < indexes.length; i++) {
+//                colorBuffer[colorIndex++] = areaColor.getRed();
+//                colorBuffer[colorIndex++] = areaColor.getGreen();
+//                colorBuffer[colorIndex++] = areaColor.getBlue();
+//                colorBuffer[colorIndex++] = 1.0f;
+//            }
 
             // Set the buffers for the mesh.
             Mesh mesh = new Mesh();
-            mesh.setBuffer(VertexBuffer.Type.Position, 3, floatBuffer);
+            mesh.setBuffer(VertexBuffer.Type.Position, 3, vertsBuffer);
             mesh.setBuffer(VertexBuffer.Type.Index, 3, indexBuffer);
-            mesh.setBuffer(VertexBuffer.Type.Color, 4, colorArray);
+            //mesh.setBuffer(VertexBuffer.Type.Color, 4, colorBuffer);
             mesh.updateBound();
+            mesh.updateCounts();
 
             // Build the geometry for the mesh.
             Geometry geo = new Geometry("ColoredMesh", mesh);
             Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-            mat.setBoolean("VertexColor", true);
-
-            // Set wireframe or solid.
+            //mat.setBoolean("VertexColor", true);
+            mat.setColor("Color", areaColor);
             mat.getAdditionalRenderState().setWireframe(wireframe);
             geo.setMaterial(mat);
             // Move to just above surface.
-            geo.move(0, 0.125f, 0);
+            geo.move(0, 0.025f, 0);
             geo.setShadowMode(ShadowMode.Off);
 
             // Add to root node.
