@@ -24,28 +24,28 @@ package com.jme3.recast4j.demo;
 
 import org.recast4j.recast.AreaModification;
 
-public class JmeAreaMods {
+public interface JmeAreaMods {
 
-	public static final int POLYAREA_TYPE_MASK 		= 0x07;
-	public static final int POLYAREA_TYPE_GROUND 	= 0x1;
-	public static final int POLYAREA_TYPE_WATER 	= 0x2;
-	public static final int POLYAREA_TYPE_ROAD 		= 0x3;
-	public static final int POLYAREA_TYPE_DOOR 		= 0x4;
-	public static final int POLYAREA_TYPE_GRASS 	= 0x5;
-	public static final int POLYAREA_TYPE_JUMP 		= 0x6;
+    public final int POLYAREA_TYPE_MASK   = 0x07;
+    public final int POLYAREA_TYPE_GROUND = 0x1;
+    public final int POLYAREA_TYPE_WATER  = 0x2;
+    public final int POLYAREA_TYPE_ROAD   = 0x3;
+    public final int POLYAREA_TYPE_DOOR   = 0x4;
+    public final int POLYAREA_TYPE_GRASS  = 0x5;
+    public final int POLYAREA_TYPE_JUMP   = 0x6;
 
-	public static final AreaModification AREAMOD_GROUND = new AreaModification(POLYAREA_TYPE_GROUND, POLYAREA_TYPE_MASK);
-	public static final AreaModification AREAMOD_WATER 	= new AreaModification(POLYAREA_TYPE_WATER, POLYAREA_TYPE_MASK);
-	public static final AreaModification AREAMOD_ROAD 	= new AreaModification(POLYAREA_TYPE_ROAD, POLYAREA_TYPE_MASK);
-	public static final AreaModification AREAMOD_GRASS 	= new AreaModification(POLYAREA_TYPE_GRASS, POLYAREA_TYPE_MASK);
-	public static final AreaModification AREAMOD_DOOR 	= new AreaModification(POLYAREA_TYPE_DOOR, POLYAREA_TYPE_DOOR);
-	public static final AreaModification AREAMOD_JUMP 	= new AreaModification(POLYAREA_TYPE_JUMP, POLYAREA_TYPE_JUMP);
+    public final AreaModification AREAMOD_GROUND = new AreaModification(POLYAREA_TYPE_GROUND, POLYAREA_TYPE_MASK);
+    public final AreaModification AREAMOD_WATER  = new AreaModification(POLYAREA_TYPE_WATER, POLYAREA_TYPE_MASK);
+    public final AreaModification AREAMOD_ROAD   = new AreaModification(POLYAREA_TYPE_ROAD, POLYAREA_TYPE_MASK);
+    public final AreaModification AREAMOD_GRASS  = new AreaModification(POLYAREA_TYPE_GRASS, POLYAREA_TYPE_MASK);
+    public final AreaModification AREAMOD_DOOR   = new AreaModification(POLYAREA_TYPE_DOOR, POLYAREA_TYPE_DOOR);
+    public final AreaModification AREAMOD_JUMP   = new AreaModification(POLYAREA_TYPE_JUMP, POLYAREA_TYPE_JUMP);
 
-	public static final int POLYFLAGS_WALK = 0x01; 		// Ability to walk (ground, grass, road)
-	public static final int POLYFLAGS_SWIM = 0x02; 		// Ability to swim (water).
-	public static final int POLYFLAGS_DOOR = 0x04; 		// Ability to move through doors.
-	public static final int POLYFLAGS_JUMP = 0x08; 		// Ability to jump.
-	public static final int POLYFLAGS_DISABLED = 0x10; 	// Disabled polygon
-	public static final int POLYFLAGS_ALL = 0xffff; 	// All abilities.
+    public final int POLYFLAGS_WALK     = 0x01; // Ability to walk (ground, grass, road)
+    public final int POLYFLAGS_SWIM     = 0x02; // Ability to swim (water).
+    public final int POLYFLAGS_DOOR     = 0x04; // Ability to move through doors.
+    public final int POLYFLAGS_JUMP     = 0x08; // Ability to jump.
+    public final int POLYFLAGS_DISABLED = 0x10; // Disabled polygon
+    public final int POLYFLAGS_ALL      = 0xffff; // All abilities.
 
 }

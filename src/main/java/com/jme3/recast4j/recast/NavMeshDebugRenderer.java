@@ -62,14 +62,14 @@ public class NavMeshDebugRenderer {
         debugNode.updateGeometricState();
         rm.renderScene(debugNode, vp);
     }
-    
+
     public void drawMeshBounds(InputGeomProvider geomProvider) {
-    	drawMeshBounds(geomProvider.getMeshBoundsMin(), geomProvider.getMeshBoundsMax());
+        drawMeshBounds(geomProvider.getMeshBoundsMin(), geomProvider.getMeshBoundsMax());
     }
-    
+
     public void drawMeshBounds(NavMesh mesh) {
-    	float[][] meshBounds = getNavMeshBounds(mesh);
-    	drawMeshBounds(meshBounds[0], meshBounds[1]);
+        float[][] meshBounds = getNavMeshBounds(mesh);
+        drawMeshBounds(meshBounds[0], meshBounds[1]);
     }
     
     protected void drawMeshBounds(float[] bmin, float[] bmax) {
@@ -114,7 +114,7 @@ public class NavMeshDebugRenderer {
             }
         }
     }
-    
+
     public void drawNavMeshByArea(NavMesh navMesh, boolean wireframe) {
         int maxTiles = navMesh.getMaxTiles();
         for (int i = 0; i < maxTiles; i++) {
@@ -310,8 +310,9 @@ public class NavMeshDebugRenderer {
     }
 
     private ColorRGBA getAreaColor(int i) {
-        if (i == 0)
+        if (i == 0) {
             return new ColorRGBA(0, 0.75f, 1.0f, 0.5f);
+        }
 
         int r = (bit(i, 4) + bit(i, 1) * 2 + 1) * 63;
         int g = (bit(i, 3) + bit(i, 2) * 2 + 1) * 63;

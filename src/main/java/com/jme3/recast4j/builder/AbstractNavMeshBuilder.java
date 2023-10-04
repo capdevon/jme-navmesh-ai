@@ -13,8 +13,20 @@ import org.recast4j.recast.geom.InputGeomProvider;
  */
 public abstract class AbstractNavMeshBuilder {
 
+    /**
+     * 
+     * @param m_geom
+     * @param m_cellSize
+     * @param m_cellHeight
+     * @param m_agentHeight
+     * @param m_agentRadius
+     * @param m_agentMaxClimb
+     * @param rcResult
+     * @return
+     */
     protected NavMeshDataCreateParams getNavMeshCreateParams(InputGeomProvider m_geom, float m_cellSize,
-        float m_cellHeight, float m_agentHeight, float m_agentRadius, float m_agentMaxClimb, RecastBuilderResult rcResult) {
+            float m_cellHeight, float m_agentHeight, float m_agentRadius, float m_agentMaxClimb,
+            RecastBuilderResult rcResult) {
 
         PolyMesh m_pmesh = rcResult.getMesh();
         PolyMeshDetail m_dmesh = rcResult.getMeshDetail();
@@ -58,14 +70,20 @@ public abstract class AbstractNavMeshBuilder {
             if (meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_WALKABLE) {
                 meshData.polys[i].setArea(SampleAreaModifications.SAMPLE_POLYAREA_TYPE_GROUND);
             }
-            if (meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_GROUND ||
-                meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_GRASS ||
-                meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_ROAD) {
-                meshData.polys[i].flags = SampleAreaModifications.SAMPLE_POLYFLAGS_WALK;
-            } else if (meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_WATER) {
-                meshData.polys[i].flags = SampleAreaModifications.SAMPLE_POLYFLAGS_SWIM;
-            } else if (meshData.polys[i].getArea() == SampleAreaModifications.SAMPLE_POLYAREA_TYPE_DOOR) {
-                meshData.polys[i].flags = SampleAreaModifications.SAMPLE_POLYFLAGS_DOOR;
+            switch (meshData.polys[i].getArea()) {
+                case SampleAreaModifications.SAMPLE_POLYAREA_TYPE_GROUND:
+                case SampleAreaModifications.SAMPLE_POLYAREA_TYPE_GRASS:
+                case SampleAreaModifications.SAMPLE_POLYAREA_TYPE_ROAD:
+                    meshData.polys[i].flags = SampleAreaModifications.SAMPLE_POLYFLAGS_WALK;
+                    break;
+                case SampleAreaModifications.SAMPLE_POLYAREA_TYPE_WATER:
+                    meshData.polys[i].flags = SampleAreaModifications.SAMPLE_POLYFLAGS_SWIM;
+                    break;
+                case SampleAreaModifications.SAMPLE_POLYAREA_TYPE_DOOR:
+                    meshData.polys[i].flags = SampleAreaModifications.SAMPLE_POLYFLAGS_DOOR;
+                    break;
+                default:
+                    break;
             }
         }
         return meshData;
