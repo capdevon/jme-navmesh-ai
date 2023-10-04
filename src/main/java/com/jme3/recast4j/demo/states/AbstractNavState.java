@@ -1,8 +1,8 @@
 package com.jme3.recast4j.demo.states;
 
 import com.jme3.app.Application;
-import com.jme3.recast4j.debug.DebugHelper;
-import com.jme3.recast4j.debug.NavMeshDebugRenderer;
+import com.jme3.recast4j.demo.utils.DebugHelper;
+import com.jme3.recast4j.recast.NavMeshDebugRenderer;
 import com.jme3.renderer.RenderManager;
 
 /**

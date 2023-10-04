@@ -1,4 +1,4 @@
-package com.jme3.recast4j.debug;
+package com.jme3.recast4j.recast;
 
 //import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_DOOR;
 //import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_GRASS;
@@ -25,7 +25,6 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.recast4j.detour.DetourUtils;
-import com.jme3.recast4j.recast.utils.RecastUtils;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;

@@ -20,7 +20,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *  SOFTWARE.
  */
-package com.jme3.recast4j.recast.utils;
+package com.jme3.recast4j.recast;
 
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -108,6 +108,7 @@ public class RecastUtils {
                 indexBuffer.put(idx);
             }
         }
+        
         Mesh mesh = new Mesh();
         mesh.setBuffer(VertexBuffer.Type.Position, 3, vertices);
         mesh.setBuffer(VertexBuffer.Type.Index, 3, indexBuffer);

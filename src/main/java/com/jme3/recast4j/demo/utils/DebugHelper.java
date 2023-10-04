@@ -1,4 +1,4 @@
-package com.jme3.recast4j.debug;
+package com.jme3.recast4j.demo.utils;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.environment.util.BoundingSphereDebug;
