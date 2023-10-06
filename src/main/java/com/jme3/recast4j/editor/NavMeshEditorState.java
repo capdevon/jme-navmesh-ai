@@ -16,14 +16,14 @@ import com.simsilica.lemur.style.BaseStyles;
  * 
  * @author capdevon
  */
-public class NavMeshUI extends BaseAppState {
+public class NavMeshEditorState extends BaseAppState {
 
     private Container container;
-    private NavMeshGeneratorState navMeshState;
+    private NavMeshGenState navMeshState;
 
     @Override
     protected void initialize(Application app) {
-        this.navMeshState = getState(NavMeshGeneratorState.class, true);
+        this.navMeshState = getState(NavMeshGenState.class, true);
 
         // initialize lemur
         GuiGlobals.initialize(app);
@@ -86,7 +86,7 @@ public class NavMeshUI extends BaseAppState {
 
         Button refreshButton = container.addChild(new Button("Generate NavMesh"));
         refreshButton.addClickCommands(source -> {
-            navMeshState.generateNavMesh(settings);
+            navMeshState.generateNavMesh(settings, false);
         });
 
         return container;

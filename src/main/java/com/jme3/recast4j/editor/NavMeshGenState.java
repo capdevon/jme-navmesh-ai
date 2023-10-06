@@ -1,14 +1,11 @@
 package com.jme3.recast4j.editor;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteOrder;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
 import org.recast4j.detour.NavMesh;
-import org.recast4j.detour.io.MeshSetWriter;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
@@ -17,6 +14,7 @@ import com.jme3.recast4j.builder.SoloNavMeshBuilder;
 import com.jme3.recast4j.builder.TileNavMeshBuilder;
 import com.jme3.recast4j.geom.InputGeomProviderBuilder;
 import com.jme3.recast4j.geom.JmeInputGeomProvider;
+import com.jme3.recast4j.recast.NavMeshAssetManager;
 import com.jme3.recast4j.recast.NavMeshDebugRenderer;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -26,15 +24,14 @@ import com.jme3.scene.Node;
  *
  * @author capdevon
  */
-public class NavMeshGeneratorState extends BaseAppState {
+public class NavMeshGenState extends BaseAppState {
 
-    private static final Logger logger = Logger.getLogger(NavMeshGeneratorState.class.getName());
+    private static final Logger logger = Logger.getLogger(NavMeshGenState.class.getName());
 
     private final SoloNavMeshBuilder soloNavMeshBuilder = new SoloNavMeshBuilder();
     private final TileNavMeshBuilder tileNavMeshBuilder = new TileNavMeshBuilder();
 
     private Node worldMap;
-    private JmeInputGeomProvider m_geom;
     private NavMeshDebugRenderer navMeshRenderer;
     private ViewPort viewPort;
 
@@ -43,13 +40,12 @@ public class NavMeshGeneratorState extends BaseAppState {
      *
      * @param worldMap
      */
-    public NavMeshGeneratorState(Node worldMap) {
+    public NavMeshGenState(Node worldMap) {
         this.worldMap = worldMap;
     }
 
     @Override
     protected void initialize(Application app) {
-        m_geom = InputGeomProviderBuilder.build(worldMap);
         navMeshRenderer = new NavMeshDebugRenderer(app.getAssetManager());
         viewPort = app.getViewPort();
     }
@@ -71,12 +67,15 @@ public class NavMeshGeneratorState extends BaseAppState {
         navMeshRenderer.show(rm, viewPort);
     }
 
-    public void generateNavMesh(NavMeshBuildSettings nmSettings) {
+    public void generateNavMesh(NavMeshBuildSettings nmSettings, boolean autoSave) {
         try {
             System.out.println(nmSettings);
 
-            NavMesh navMesh = null;
             long startTime = System.currentTimeMillis();
+            System.out.println("Building NavMesh...");
+            
+            JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
+            NavMesh navMesh;
 
             if (nmSettings.tiled) {
                 navMesh = tileNavMeshBuilder.build(m_geom, nmSettings);
@@ -91,7 +90,9 @@ public class NavMeshGeneratorState extends BaseAppState {
             navMeshRenderer.drawNavMeshByArea(navMesh, true);
             navMeshRenderer.drawMeshBounds(m_geom);
 
-            saveToFile(worldMap.getName(), navMesh);
+            if (autoSave) {
+                saveToFile(worldMap.getName(), navMesh);
+            }
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -106,12 +107,12 @@ public class NavMeshGeneratorState extends BaseAppState {
      */
     private void saveToFile(String fileName, NavMesh navMesh) throws IOException {
         File file = Path.of("navmesh-generated", fileName + ".navmesh").toFile();
-        file.getParentFile().mkdirs();
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
         System.out.println("Saving NavMesh=" + file.getAbsolutePath());
-
-        boolean cCompatibility = false;
-        MeshSetWriter msw = new MeshSetWriter();
-        msw.write(new FileOutputStream(file), navMesh, ByteOrder.BIG_ENDIAN, cCompatibility);
+        NavMeshAssetManager.save(navMesh, file);
     }
 
 }

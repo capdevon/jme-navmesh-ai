@@ -7,8 +7,8 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FXAAFilter;
-import com.jme3.recast4j.editor.NavMeshGeneratorState;
-import com.jme3.recast4j.editor.NavMeshUI;
+import com.jme3.recast4j.editor.NavMeshGenState;
+import com.jme3.recast4j.editor.NavMeshEditorState;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.shadow.DirectionalLightShadowFilter;
@@ -46,8 +46,8 @@ public class Test_NavMeshGenEditor extends SimpleApplication {
         loadScene();
         addLighting();
 
-        stateManager.attach(new NavMeshGeneratorState(scene));
-        stateManager.attach(new NavMeshUI());
+        stateManager.attach(new NavMeshGenState(scene));
+        stateManager.attach(new NavMeshEditorState());
     }
 
     private void configureCamera() {
