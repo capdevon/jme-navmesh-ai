@@ -47,13 +47,18 @@ public class RecastUtils {
     private RecastUtils() {}
 
     public static Mesh getDebugMesh(PolyDetail[] meshes, float[] detailVerts, int[] detailTris) {
-        Mesh mesh = new Mesh();
+        
         List<Geometry> geometryList = new ArrayList<>(meshes.length);
 
+        int i = 0;
         for (PolyDetail pd : meshes) {
-            geometryList.add(new Geometry("", getDebugMesh(pd, detailVerts, detailTris)));
+            Mesh debugMesh = getDebugMesh(pd, detailVerts, detailTris);
+            Geometry geom = new Geometry("PolyDetail-" + i, debugMesh);
+            geometryList.add(geom);
+            i++;
         }
 
+        Mesh mesh = new Mesh();
         GeometryBatchFactory.mergeGeometries(geometryList, mesh);
         return mesh;
     }
@@ -97,7 +102,7 @@ public class RecastUtils {
             if (p.verts.length != 3) {
                 throw new IllegalArgumentException("Error: Cannot display a polygon mesh, Triangle Mesh required. "
                         + "Please ensure that the vertsPerPoly setting in the RecastConfig is set to 3");
-            } // @TODO: Delaunay Traingulation, if you're brave enough.
+            } // TODO: Delaunay Traingulation, if you're brave enough.
             sumIndices += p.verts.length;
         }
 
