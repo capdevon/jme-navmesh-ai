@@ -47,14 +47,14 @@ import org.recast4j.recast.RecastConfig;
  * 
  * @author Robert
  */
-public class JmeTileLayerBuilder extends AbstractTileLayersBuilder {
+public class JmeTileLayersBuilder extends AbstractTileLayersBuilder {
 
     private JmeInputGeomProvider geom;
     private RecastConfig cfg;
     private int tw;
     private int th;
 
-    public JmeTileLayerBuilder(JmeInputGeomProvider geom, RecastConfig cfg) {
+    public JmeTileLayersBuilder(JmeInputGeomProvider geom, RecastConfig cfg) {
         this.geom = geom;
         this.cfg = cfg;
         float[] bmin = geom.getMeshBoundsMin();
@@ -66,14 +66,6 @@ public class JmeTileLayerBuilder extends AbstractTileLayersBuilder {
 
     public List<byte[]> build(ByteOrder order, boolean cCompatibility, int threads) {
         return build(order, cCompatibility, threads, tw, th);
-    }
-
-    public int getTw() {
-        return tw;
-    }
-
-    public int getTh() {
-        return th;
     }
 
     @Override
@@ -113,7 +105,7 @@ public class JmeTileLayerBuilder extends AbstractTileLayersBuilder {
         return result;
     }
 
-    protected HeightfieldLayerSet getHeightfieldSet(int tx, int ty) {
+    private HeightfieldLayerSet getHeightfieldSet(int tx, int ty) {
         JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
         float[] bmin = geom.getMeshBoundsMin();
         float[] bmax = geom.getMeshBoundsMax();

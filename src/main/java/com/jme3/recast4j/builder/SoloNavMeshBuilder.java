@@ -26,33 +26,14 @@ public class SoloNavMeshBuilder extends AbstractNavMeshBuilder {
     public NavMesh build(JmeInputGeomProvider m_geom, NavMeshBuildSettings s) {
 
         // Initialize build config.
-        RecastConfig cfg = new RecastConfig(
-                s.partitionType,
-                s.cellSize,
-                s.cellHeight,
-                s.agentHeight,
-                s.agentRadius,
-                s.agentMaxClimb,
-                s.agentMaxSlope,
-                s.regionMinSize,
-                s.regionMergeSize,
-                s.edgeMaxLen,
-                s.edgeMaxError,
-                s.vertsPerPoly,
-                s.detailSampleDist,
-                s.detailSampleMaxError,
-                s.tileSize,
-                SampleAreaModifications.SAMPLE_AREAMOD_WALKABLE,
-                s.filterLowHangingObstacles,
-                s.filterLedgeSpans,
-                s.filterWalkableLowHeightSpans);
+        RecastConfig cfg = toRecastConfig(s);
         
         // Create a RecastBuilderConfig with world bounds of our geometry.
-        RecastBuilderConfig bcfg = new RecastBuilderConfig(cfg, m_geom.getMeshBoundsMin(), m_geom.getMeshBoundsMax());
+        RecastBuilderConfig builderCfg = new RecastBuilderConfig(cfg, m_geom.getMeshBoundsMin(), m_geom.getMeshBoundsMax());
 
         // Build our Navmesh data using our gathered geometry and configuration.
         JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
-        RecastBuilderResult rcResult = rcBuilder.build(m_geom, bcfg);
+        RecastBuilderResult rcResult = rcBuilder.build(m_geom, builderCfg);
 
         MeshData meshData = buildMeshData(m_geom, s.cellSize, s.cellHeight, s.agentHeight, s.agentRadius, s.agentMaxClimb, rcResult);
 
@@ -62,11 +43,12 @@ public class SoloNavMeshBuilder extends AbstractNavMeshBuilder {
         return navMesh;
     }
 
-    private MeshData buildMeshData(JmeInputGeomProvider m_geom, float m_cellSize, float m_cellHeight, 
-            float m_agentHeight, float m_agentRadius, float m_agentMaxClimb, RecastBuilderResult rcResult) {
+    private MeshData buildMeshData(JmeInputGeomProvider m_geom, float cellSize, float cellHeight, 
+            float agentHeight, float agentRadius, float agentMaxClimb, RecastBuilderResult rcResult) {
 
         // Set the parameters needed to build our MeshData using the RecastBuilder results.
-        NavMeshDataCreateParams params = getNavMeshCreateParams(m_geom, m_cellSize, m_cellHeight, m_agentHeight, m_agentRadius, m_agentMaxClimb, rcResult);
+        NavMeshDataCreateParams params = getNavMeshCreateParams(
+                m_geom, cellSize, cellHeight, agentHeight, agentRadius, agentMaxClimb, rcResult);
 
         // Generate MeshData using our parameters object.
         MeshData data = NavMeshBuilder.createNavMeshData(params);

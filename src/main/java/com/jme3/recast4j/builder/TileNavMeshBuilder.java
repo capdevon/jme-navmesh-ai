@@ -33,26 +33,7 @@ public class TileNavMeshBuilder extends AbstractNavMeshBuilder {
     public NavMesh build(JmeInputGeomProvider m_geom, NavMeshBuildSettings s) {
 
         // Initialize build config.
-        RecastConfig cfg = new RecastConfig(
-                s.partitionType,
-                s.cellSize,
-                s.cellHeight,
-                s.agentHeight,
-                s.agentRadius,
-                s.agentMaxClimb,
-                s.agentMaxSlope, 
-                s.regionMinSize, 
-                s.regionMergeSize,
-                s.edgeMaxLen, 
-                s.edgeMaxError, 
-                s.vertsPerPoly, 
-                s.detailSampleDist, 
-                s.detailSampleMaxError,
-                s.tileSize, 
-                SampleAreaModifications.SAMPLE_AREAMOD_WALKABLE, 
-                s.filterLowHangingObstacles, 
-                s.filterLedgeSpans, 
-                s.filterWalkableLowHeightSpans);
+        RecastConfig cfg = toRecastConfig(s);
         
         // Build all tiles
         JmeRecastBuilder rcBuilder = new JmeRecastBuilder();
@@ -66,8 +47,8 @@ public class TileNavMeshBuilder extends AbstractNavMeshBuilder {
         return navMesh;
     }
 
-    private List<MeshData> buildMeshData(InputGeomProvider m_geom, float cellSize, float cellHeight, float agentHeight,
-        float agentRadius, float agentMaxClimb, RecastBuilderResult[][] rcResult) {
+    private List<MeshData> buildMeshData(InputGeomProvider m_geom, float cellSize, float cellHeight, 
+            float agentHeight, float agentRadius, float agentMaxClimb, RecastBuilderResult[][] rcResult) {
 
         List<MeshData> meshData = new ArrayList<>();
 
@@ -77,8 +58,9 @@ public class TileNavMeshBuilder extends AbstractNavMeshBuilder {
 
         for (int y = 0; y < th; y++) {
             for (int x = 0; x < tw; x++) {
-                NavMeshDataCreateParams params = getNavMeshCreateParams(m_geom,
-                    cellSize, cellHeight, agentHeight, agentRadius, agentMaxClimb, rcResult[x][y]);
+                NavMeshDataCreateParams params = getNavMeshCreateParams(
+                        m_geom, cellSize, cellHeight, agentHeight, agentRadius, agentMaxClimb, rcResult[x][y]);
+                
                 params.tileX = x;
                 params.tileY = y;
 

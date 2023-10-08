@@ -5,6 +5,7 @@ import org.recast4j.detour.NavMeshDataCreateParams;
 import org.recast4j.recast.PolyMesh;
 import org.recast4j.recast.PolyMeshDetail;
 import org.recast4j.recast.RecastBuilder.RecastBuilderResult;
+import org.recast4j.recast.RecastConfig;
 import org.recast4j.recast.geom.InputGeomProvider;
 
 /**
@@ -12,21 +13,34 @@ import org.recast4j.recast.geom.InputGeomProvider;
  * @author capdevon
  */
 public abstract class AbstractNavMeshBuilder {
+    
+    protected RecastConfig toRecastConfig(NavMeshBuildSettings s) {
+        RecastConfig cfg = new RecastConfig(
+                s.partitionType,
+                s.cellSize,
+                s.cellHeight,
+                s.agentHeight,
+                s.agentRadius,
+                s.agentMaxClimb,
+                s.agentMaxSlope,
+                s.regionMinSize,
+                s.regionMergeSize,
+                s.edgeMaxLen,
+                s.edgeMaxError,
+                s.vertsPerPoly,
+                s.detailSampleDist,
+                s.detailSampleMaxError,
+                s.tileSize,
+                SampleAreaModifications.SAMPLE_AREAMOD_WALKABLE,
+                s.filterLowHangingObstacles,
+                s.filterLedgeSpans,
+                s.filterWalkableLowHeightSpans);
+        
+        return cfg;
+    }
 
-    /**
-     * 
-     * @param m_geom
-     * @param m_cellSize
-     * @param m_cellHeight
-     * @param m_agentHeight
-     * @param m_agentRadius
-     * @param m_agentMaxClimb
-     * @param rcResult
-     * @return
-     */
-    protected NavMeshDataCreateParams getNavMeshCreateParams(InputGeomProvider m_geom, float m_cellSize,
-            float m_cellHeight, float m_agentHeight, float m_agentRadius, float m_agentMaxClimb,
-            RecastBuilderResult rcResult) {
+    protected NavMeshDataCreateParams getNavMeshCreateParams(InputGeomProvider m_geom, float m_cellSize, float m_cellHeight, 
+            float m_agentHeight, float m_agentRadius, float m_agentMaxClimb, RecastBuilderResult rcResult) {
 
         PolyMesh m_pmesh = rcResult.getMesh();
         PolyMeshDetail m_dmesh = rcResult.getMeshDetail();

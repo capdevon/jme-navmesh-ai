@@ -132,8 +132,8 @@ import com.jme3.recast4j.geom.InputGeomProviderBuilder;
 import com.jme3.recast4j.geom.JmeInputGeomProvider;
 import com.jme3.recast4j.geom.JmeRecastBuilder;
 import com.jme3.recast4j.geom.JmeRecastVoxelization;
-import com.jme3.recast4j.geom.JmeTileLayerBuilder;
-import com.jme3.recast4j.geom.NavMeshBuilderProgressListener;
+import com.jme3.recast4j.geom.JmeTileLayersBuilder;
+import com.jme3.recast4j.geom.JmeRecastBuilderProgressListener;
 import com.jme3.recast4j.geom.NavMeshModifier;
 import com.jme3.recast4j.geom.OffMeshLink;
 import com.jme3.recast4j.geom.Telemetry;
@@ -515,7 +515,7 @@ public class NavState extends AbstractNavState {
         JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
 
         RecastConfig cfg = new RecastConfigBuilder()
-                .withPartitionType(RecastConstants.PartitionType.WATERSHED)
+                .withPartitionType(PartitionType.WATERSHED)
                 .withWalkableAreaMod(AREAMOD_GROUND)
                 .withAgentRadius(agentRadius)
                 .withAgentHeight(agentHeight)
@@ -826,7 +826,7 @@ public class NavState extends AbstractNavState {
                 .build();
 
         // Build all tiles
-        JmeRecastBuilder rcBuilder = new JmeRecastBuilder(new NavMeshBuilderProgressListener());
+        JmeRecastBuilder rcBuilder = new JmeRecastBuilder(new JmeRecastBuilderProgressListener());
         int threads = 1;
         RecastBuilderResult[][] rcResult = rcBuilder.buildTiles(m_geom, cfg, threads);
         // Add tiles to nav mesh
@@ -923,7 +923,7 @@ public class NavState extends AbstractNavState {
          * with an underpass would have a layer for travel under the bridge and
          * another for traveling over the bridge.
          */
-        JmeTileLayerBuilder layerBuilder = new JmeTileLayerBuilder(m_geom, cfg);
+        JmeTileLayersBuilder layerBuilder = new JmeTileLayersBuilder(m_geom, cfg);
         List<byte[]> layers = layerBuilder.build(ByteOrder.BIG_ENDIAN, cCompatibility, 1);
 
         //Build the tile cache which also builds the navMesh.

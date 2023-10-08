@@ -58,9 +58,9 @@ public class JmeRecastBuilder {
     }
     
     /**
-     * Sets the progress listener for this job. Reports back the completed tile
-     * and number of tiles for the job. Setting timers on the callback allows 
-     * for accurate determination of build times.
+     * Sets the progress listener for this job. Reports back the completed tile and
+     * number of tiles for the job. Setting timers on the callback allows for
+     * accurate determination of build times.
      * 
      * @param progressListener The listener to set for the job.
      */
@@ -71,8 +71,8 @@ public class JmeRecastBuilder {
     /**
      * Builds the polymesh and detailmesh by creating tiles.
      * 
-     * @param geom The geometry to be used for constructing the meshes.
-     * @param cfg The configuration parameters to be used for constructing the meshes.
+     * @param geom    The geometry to be used for constructing the meshes.
+     * @param cfg     The configuration parameters to be used for constructing the meshes.
      * @param threads The number of threads to use for this build job.
      * @return The build results.
      */

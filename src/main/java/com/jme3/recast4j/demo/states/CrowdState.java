@@ -202,8 +202,9 @@ public class CrowdState extends AbstractNavState {
             File f = new File(fileName);
             System.out.println("Saving NavMesh=" + f.getAbsolutePath());
 
+            boolean cCompatibility = false;
             MeshSetWriter msw = new MeshSetWriter();
-            msw.write(new FileOutputStream(f), navMesh, ByteOrder.BIG_ENDIAN, false);
+            msw.write(new FileOutputStream(f), navMesh, ByteOrder.BIG_ENDIAN, cCompatibility);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -214,9 +215,9 @@ public class CrowdState extends AbstractNavState {
         try {
             File f = new File(fileName);
             System.out.println("Loading NavMesh=" + f.getAbsolutePath());
-            int maxVertsPerPoly = 3;
 
             // Read in saved NavMesh.
+            int maxVertsPerPoly = 3;
             MeshSetReader msr = new MeshSetReader();
             navMesh = msr.read(new FileInputStream(f), maxVertsPerPoly);
 
@@ -340,8 +341,8 @@ public class CrowdState extends AbstractNavState {
              * Create an attachments node for Jaime's right hand,
              * and attach the saber to that Node.
              */
-            SkinningControl skeletonControl = model.getControl(SkinningControl.class);
-            Node n = skeletonControl.getAttachmentsNode("hand.R");
+            SkinningControl skinningControl = model.getControl(SkinningControl.class);
+            Node n = skinningControl.getAttachmentsNode("hand.R");
             n.attachChild(saber);
         }
 

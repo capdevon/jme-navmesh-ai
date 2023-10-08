@@ -151,7 +151,7 @@ public class Test_NavMesh extends SimpleApplication {
 
 //    private void loadNavMeshDune() {
 //        worldMap = (Geometry)assetManager.loadModel("Models/dune.j3o");
-//        // @TODO: Dune.j3o does not have normals and thus no neat lighting.
+//        // TODO: Dune.j3o does not have normals and thus no neat lighting.
 //        TangentBinormalGenerator.generate(worldMap.getMesh());
 //    }
 
