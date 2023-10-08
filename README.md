@@ -9,7 +9,7 @@ This project optimizes and adds new tools and features to the original project [
 - _NavMeshAgent_ that allows you to move the character in the Scene using the NavMesh.
 - _NavMeshQueryFilter_ - Specifies which areas to consider when searching the NavMesh.
 - _NavMeshTools_ - Use the NavMesh class to perform spatial queries such as pathfinding and walkability tests.
-- _NavMeshBuildModifier_ allows you to control how certain objects are treated during the NavMesh build process, specifically when collecting sources for building.
+- _NavMeshModifier_ allows you to control how certain objects are treated during the NavMesh build process, specifically when collecting sources for building.
 - _NavMeshBuildSettings_ allows you to specify a collection of settings which describe the dimensions and limitations of a particular agent type.
 - _NavMeshAssetManager_ to export **NavMesh** in _.obj_ format.
 - _Graphic Editor_ to modify the NavMesh generation parameters at Runtime.
