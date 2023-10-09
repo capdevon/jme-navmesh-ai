@@ -9,9 +9,9 @@ This project optimizes and adds new tools and features to the original project [
 - _NavMeshAgent_ that allows you to move the character in the Scene using the NavMesh.
 - _NavMeshQueryFilter_ - Specifies which areas to consider when searching the NavMesh.
 - _NavMeshTools_ - Use the NavMesh class to perform spatial queries such as pathfinding and walkability tests.
-- _NavMeshBuildMarkup_ allows you to control how certain objects are treated during the NavMesh build process, specifically when collecting sources for building.
+- _NavMeshModifier_ allows you to control how certain objects are treated during the NavMesh build process, specifically when collecting sources for building.
 - _NavMeshBuildSettings_ allows you to specify a collection of settings which describe the dimensions and limitations of a particular agent type.
-- _IORecast_ to export **NavMesh** in _.obj_ format.
+- _NavMeshAssetManager_ to export **NavMesh** in _.obj_ format.
 - _Graphic Editor_ to modify the NavMesh generation parameters at Runtime.
 
 # Requirements
@@ -33,13 +33,13 @@ The individual projects and their respective requirements used in this demo can 
 [NavMesh, Pathfinding Agents, Box and Circle Formation](https://www.youtube.com/watch?v=8J28kepYdsU)
 
 # 
-Crowd Agent WIP
+Crowd Agent
 ![Screenshot](images/crowd-agent-2.jpg)
 ⭐NEW Editor
 ![Screenshot](images/editor-2.jpg)
 Solo NavMesh
 ![Screenshot](images/buildSoloModified-2.jpg)
-IORecast export .obj
+Exports the NavMesh in .obj format
 ![Screenshot](images/navmesh-obj-export.jpg)
 
 # Credits
