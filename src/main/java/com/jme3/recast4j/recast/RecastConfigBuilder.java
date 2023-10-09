@@ -25,27 +25,28 @@ package com.jme3.recast4j.recast;
 import org.recast4j.recast.AreaModification;
 import org.recast4j.recast.RecastConfig;
 import org.recast4j.recast.RecastConstants;
+import org.recast4j.recast.RecastConstants.PartitionType;
 
 import com.jme3.recast4j.demo.JmeAreaMods;
 
 public class RecastConfigBuilder {
 
-    protected RecastConstants.PartitionType partitionType;
-    protected float cellSize;
-    protected float cellHeight;
-    protected float agentHeight;
-    protected float agentRadius;
-    protected float agentMaxClimb;
-    protected float agentMaxSlope;
-    protected int regionMinSize;
-    protected int regionMergeSize;
-    protected float edgeMaxLen;
-    protected float edgeMaxError;
-    protected int vertsPerPoly;
-    protected float detailSampleDist;
-    protected float detailSampleMaxError;
-    protected int tileSize;
-    protected AreaModification walkableAreaMod;
+    protected PartitionType partitionType = PartitionType.WATERSHED;
+    protected float cellSize = 0.3f;
+    protected float cellHeight = 0.2f;
+    protected float agentHeight = 2.0f;
+    protected float agentRadius = 0.6f;
+    protected float agentMaxClimb = 0.9f;
+    protected float agentMaxSlope = 45f;
+    protected int regionMinSize = 8;
+    protected int regionMergeSize = 20;
+    protected float edgeMaxLen = 12f;
+    protected float edgeMaxError = 1.3f;
+    protected int vertsPerPoly = 3;
+    protected float detailSampleDist = 6.0f;
+    protected float detailSampleMaxError = 1.0f;
+    protected int tileSize = 0;
+    protected AreaModification walkableAreaMod = JmeAreaMods.AREAMOD_GROUND;
 
     /**
      * We have values which we can derive from others using a formula.
@@ -53,46 +54,6 @@ public class RecastConfigBuilder {
      * we'll overwrite what the user is trying to do
      */
     boolean modifiedCalculatedValue = false;
-
-    public RecastConfigBuilder(RecastConfigBuilder rcb) {
-        this.partitionType = rcb.partitionType;
-        this.cellSize = rcb.cellSize;
-        this.cellHeight = rcb.cellHeight;
-        this.agentHeight = rcb.agentHeight;
-        this.agentRadius = rcb.agentRadius;
-        this.agentMaxClimb = rcb.agentMaxClimb;
-        this.agentMaxSlope = rcb.agentMaxSlope;
-        this.regionMinSize = rcb.regionMinSize;
-        this.regionMergeSize = rcb.regionMergeSize;
-        this.edgeMaxLen = rcb.edgeMaxLen;
-        this.edgeMaxError = rcb.edgeMaxError;
-        this.vertsPerPoly = rcb.vertsPerPoly;
-        this.detailSampleDist = rcb.detailSampleDist;
-        this.detailSampleMaxError = rcb.detailSampleMaxError;
-        this.tileSize = rcb.tileSize;
-        this.walkableAreaMod = rcb.walkableAreaMod;
-        this.modifiedCalculatedValue = rcb.modifiedCalculatedValue;
-    }
-
-    public RecastConfigBuilder() {
-        // Set default values here
-        agentHeight = 2.0f;
-        agentRadius = 0.6f;
-        cellHeight = 0.2f;
-        cellSize = 0.3f;
-        agentMaxClimb = 0.9f;
-        edgeMaxError = 1.3f;
-        edgeMaxLen = 12f;
-        regionMergeSize = 20;
-        regionMinSize = 8;
-        detailSampleDist = 6.0f;
-        detailSampleMaxError = 1.0f;
-        agentMaxSlope = 45f;
-        vertsPerPoly = 6;
-        tileSize = 0;
-        partitionType = RecastConstants.PartitionType.WATERSHED;
-        walkableAreaMod = JmeAreaMods.AREAMOD_GROUND;
-    }
 
     /**
      * WATERSHED Watershed, Classic Recast partitioning method generating the nicest tessellation.
@@ -154,9 +115,8 @@ public class RecastConfigBuilder {
 
 
     /**
-     * Sets the radius of the typical agent. This should represent the median of all agents and extreme outliers shall
-     * have their own NavMesh.
-     * Default: 0.6f
+     * Sets the radius of the typical agent. This should represent the median of all
+     * agents and extreme outliers shall have their own NavMesh. Default: 0.6f
      * @param agentRadius The Radius of the typical Agent
      * @return this
      */
@@ -285,38 +245,20 @@ public class RecastConfigBuilder {
      * @return this
      */
     public RecastConfigBuilder deriveValues() {
-        cellSize = agentRadius / 2f; // r / 2
-        cellHeight = cellSize / 2f; // cs / 2
-        agentMaxClimb = 2f * cellHeight; // > 2 * ch
-        edgeMaxLen = 8f * agentRadius; // r*8
+        cellSize = agentRadius / 2f;        // r/2
+        cellHeight = cellSize / 2f;         // cs/2
+        agentMaxClimb = 2f * cellHeight;    // > 2*ch
+        edgeMaxLen = 8f * agentRadius;      // r*8
         return this;
     }
-
-    public RecastConfigBuilder clone() {
-        return new RecastConfigBuilder(this);
-    }
-
+    
     /**
      * Build the RecastConfig Instance.<br>
-     * @param deriveValues Whether to derive some values from formulas by calling deriveValues for you.
-     * @see #deriveValues()
-     * @return
-     */
-    public RecastConfig build(boolean deriveValues) {
-        if (deriveValues) {
-            deriveValues();
-        }
-
-        return new RecastConfig(partitionType, cellSize, cellHeight, agentHeight, agentRadius, agentMaxClimb, agentMaxSlope,
-                regionMinSize, regionMergeSize, edgeMaxLen, edgeMaxError, vertsPerPoly, detailSampleDist, detailSampleMaxError,
-                tileSize, walkableAreaMod);
-    }
-
-    /**
-     * Build the RecastConfig Instance.<br>
-     * Note: This will automatically calculate CellSize, CellHeight and others if you didn't set any of those.<br>
+     * Note: This will automatically calculate CellSize, CellHeight and others if
+     * you didn't set any of those.<br>
      * If you do not want this behavior, use {@link #build(boolean)} with false.
-     * @return
+     * 
+     * @return RecastConfig Instance
      */
     public RecastConfig build() {
         if (modifiedCalculatedValue) {
@@ -325,4 +267,36 @@ public class RecastConfigBuilder {
             return build(true);
         }
     }
+
+    /**
+     * Build the RecastConfig Instance.<br>
+     * 
+     * @param deriveValues Whether to derive some values from formulas by calling deriveValues for you.
+     * @see #deriveValues()
+     * @return RecastConfig Instance
+     */
+    public RecastConfig build(boolean deriveValues) {
+        if (deriveValues) {
+            deriveValues();
+        }
+
+        return new RecastConfig(
+                partitionType, 
+                cellSize, 
+                cellHeight, 
+                agentHeight, 
+                agentRadius, 
+                agentMaxClimb, 
+                agentMaxSlope,
+                regionMinSize, 
+                regionMergeSize, 
+                edgeMaxLen, 
+                edgeMaxError, 
+                vertsPerPoly, 
+                detailSampleDist, 
+                detailSampleMaxError,
+                tileSize, 
+                walkableAreaMod);
+    }
+
 }
