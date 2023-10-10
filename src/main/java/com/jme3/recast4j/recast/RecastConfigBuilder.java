@@ -29,31 +29,31 @@ import org.recast4j.recast.RecastConstants.PartitionType;
 
 import com.jme3.recast4j.demo.JmeAreaMods;
 
-public class RecastConfigBuilder {
+public final class RecastConfigBuilder {
 
-    protected PartitionType partitionType = PartitionType.WATERSHED;
-    protected float cellSize = 0.3f;
-    protected float cellHeight = 0.2f;
-    protected float agentHeight = 2.0f;
-    protected float agentRadius = 0.6f;
-    protected float agentMaxClimb = 0.9f;
-    protected float agentMaxSlope = 45f;
-    protected int regionMinSize = 8;
-    protected int regionMergeSize = 20;
-    protected float edgeMaxLen = 12f;
-    protected float edgeMaxError = 1.3f;
-    protected int vertsPerPoly = 3;
-    protected float detailSampleDist = 6.0f;
-    protected float detailSampleMaxError = 1.0f;
-    protected int tileSize = 0;
-    protected AreaModification walkableAreaMod = JmeAreaMods.AREAMOD_GROUND;
+    private PartitionType partitionType = PartitionType.WATERSHED;
+    private float cellSize = 0.3f;
+    private float cellHeight = 0.2f;
+    private float agentHeight = 2.0f;
+    private float agentRadius = 0.6f;
+    private float agentMaxClimb = 0.9f;
+    private float agentMaxSlope = 45f;
+    private int regionMinSize = 8;
+    private int regionMergeSize = 20;
+    private float edgeMaxLen = 12f;
+    private float edgeMaxError = 1.3f;
+    private int vertsPerPoly = 3;
+    private float detailSampleDist = 6.0f;
+    private float detailSampleMaxError = 1.0f;
+    private int tileSize = 0;
+    private AreaModification walkableAreaMod = JmeAreaMods.AREAMOD_GROUND;
 
     /**
      * We have values which we can derive from others using a formula.
      * When such a value is modified, we have to disable auto-deriveal or else
      * we'll overwrite what the user is trying to do
      */
-    boolean modifiedCalculatedValue = false;
+    private boolean modifiedCalculatedValue = false;
 
     /**
      * WATERSHED Watershed, Classic Recast partitioning method generating the nicest tessellation.
@@ -196,7 +196,7 @@ public class RecastConfigBuilder {
 
     /**
      * Max number of vertices per polygon
-     * Default: 6
+     * Default: 3
      * @param vertsPerPoly maximum number of vertices
      * @return this
      */
