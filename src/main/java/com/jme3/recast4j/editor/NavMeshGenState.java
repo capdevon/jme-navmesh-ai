@@ -28,8 +28,8 @@ public class NavMeshGenState extends BaseAppState {
 
     private static final Logger logger = Logger.getLogger(NavMeshGenState.class.getName());
 
-    private final SoloNavMeshBuilder soloNavMeshBuilder = new SoloNavMeshBuilder();
-    private final TileNavMeshBuilder tileNavMeshBuilder = new TileNavMeshBuilder();
+    private SoloNavMeshBuilder soloNavMeshBuilder = new SoloNavMeshBuilder();
+    private TileNavMeshBuilder tileNavMeshBuilder = new TileNavMeshBuilder();
 
     private Node worldMap;
     private NavMeshDebugRenderer navMeshRenderer;
