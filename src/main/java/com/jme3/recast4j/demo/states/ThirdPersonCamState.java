@@ -48,20 +48,20 @@ import com.jme3.scene.Spatial;
  * @author Robert
  */
 public class ThirdPersonCamState extends BaseAppState {
-    
+
     private static final Logger logger = Logger.getLogger(ThirdPersonCamState.class.getName());
-    
+
     private Camera cam;
     private InputManager inputManager;
 
     @Override
     protected void initialize(Application app) {
-    	this.cam = app.getCamera();
-    	this.inputManager = app.getInputManager();
-    	
-    	Node character = (Node) find("jaime");
+        this.cam = app.getCamera();
+        this.inputManager = app.getInputManager();
+
+        Node character = (Node) find("jaime");
         addHeadNode(character);
-        
+
         logger.info("ThirdPersonCamState initialized");
     }
     
