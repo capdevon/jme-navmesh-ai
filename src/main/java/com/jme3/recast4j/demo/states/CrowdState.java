@@ -116,7 +116,7 @@ public class CrowdState extends AbstractNavState {
         inputManager.addListener(actionListener, "CROWD_PICK");
     }
 
-    private ActionListener actionListener = new ActionListener() {
+    private final ActionListener actionListener = new ActionListener() {
         @Override
         public void onAction(String name, boolean keyPressed, float tpf) {
             if (name.equals("CROWD_PICK") && !keyPressed) {
@@ -176,7 +176,7 @@ public class CrowdState extends AbstractNavState {
     }
 
     private void buildTiled() {
-        JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
+        
         NavMeshBuildSettings s = new NavMeshBuildSettings();
         s.agentHeight = m_agentHeight;
         s.agentRadius = m_agentRadius;
@@ -188,6 +188,7 @@ public class CrowdState extends AbstractNavState {
 
         System.out.println("Building NavMesh... Please wait");
 
+        JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
         TileNavMeshBuilder tileBuilder = new TileNavMeshBuilder();
         navMesh = tileBuilder.build(m_geom, s);
 
