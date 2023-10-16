@@ -4,6 +4,7 @@ import com.jme3.animation.SkeletonControl;
 import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
+import com.jme3.app.state.ConstantVerifierState;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.BulletAppState;
@@ -50,6 +51,7 @@ public class Test_NavMesh extends SimpleApplication {
         super(new StatsAppState(),
                 new AudioListenerState(),
                 new DebugKeysAppState(),
+                new ConstantVerifierState(),
                 new NavState(),
                 new LemurConfigState(),
                 new ThirdPersonCamState()
