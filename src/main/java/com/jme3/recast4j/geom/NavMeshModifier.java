@@ -19,9 +19,10 @@ public class NavMeshModifier {
     public final AreaModification area;
 
     /**
+     * Creates a new instance of {@code NavMeshModifier}.
      * 
      * @param sourceObj Geometry to modify.
-     * @param areaMod   AreaModification to set.
+     * @param area      AreaModification to set.
      */
     public NavMeshModifier(Geometry sourceObj, AreaModification area) {
         this.sourceObj = sourceObj;
