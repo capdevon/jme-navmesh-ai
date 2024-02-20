@@ -54,7 +54,7 @@ dependencies {
     runtimeOnly    'org.jmonkeyengine:jme3-awt-dialogs:' + jmeVersion // JMonkeyEngine v3.6 only!
     
     // Physics
-    implementation 'com.github.stephengold:Minie:7.8.1+big3'
+    implementation 'com.github.stephengold:Minie:8.0.0+big4'
 
     // select one version of LWJGL
     //runtimeOnly 'org.jmonkeyengine:jme3-lwjgl:' + jmeVersion  // LWJGL 2.x
@@ -81,9 +81,6 @@ dependencies {
     implementation 'com.simsilica:lemur-props:1.2.0'
     implementation 'com.simsilica:lemur-proto:1.13.0'
     runtimeOnly 'org.codehaus.groovy:groovy-jsr223:3.0.16'
-        
-    // https://mvnrepository.com/artifact/junit/junit
-    testImplementation 'junit:junit:4.13.2'
 }
 
 // cleanup tasks
