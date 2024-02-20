@@ -256,9 +256,9 @@ public class JmeCrowd extends Crowd {
     }
 
     /**
-     * Submits a new move request for the specified agent.<br/>
-     * This method is used when a new target is set.<br/>
-     * The position will be constrained to the surface of the navigation mesh.<br/>
+     * Submits a new move request for the specified agent.
+     * This method is used when a new target is set.
+     * The position will be constrained to the surface of the navigation mesh.
      * The request will be processed during the next #update().
      * 
      * @param agent     The agent
@@ -277,7 +277,7 @@ public class JmeCrowd extends Crowd {
     }
     
     /**
-     * Finds the closest point on NavMesh within specified range.<br/>
+     * Finds the closest point on NavMesh within specified range.
      * Submits a new move request for the specified agent.
      * 
      * @param agent  The agent
