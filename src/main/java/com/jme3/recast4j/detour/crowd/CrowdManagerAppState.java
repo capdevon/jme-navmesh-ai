@@ -5,7 +5,7 @@ import com.jme3.app.state.BaseAppState;
 import com.jme3.util.SafeArrayList;
 
 /**
- * CrowdManagerAppState provide easier interfacing with the jMonkeyEngine.<br />
+ * CrowdManagerAppState provide easier interfacing with the jMonkeyEngine.
  * Use this as starting point for your entity-based approaches.
  */
 public class CrowdManagerAppState extends BaseAppState {
