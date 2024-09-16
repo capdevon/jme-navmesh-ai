@@ -8,3 +8,16 @@ bin
 # Native libraries that get extracted once the project is run
 /*.so
 /*.dll
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# IntelliJ Core
+.idea
+
+# Eclipse Core
+.settings/
+
+# JDT-specific (Eclipse Java Development Tools)
+.classpath
+.project
