@@ -14,7 +14,7 @@ This project optimizes and adds new tools and features to the original project [
 - _NavMeshAssetManager_ to export **NavMesh** in _.obj_ format.
 - _Graphic Editor_ to modify the NavMesh generation parameters at Runtime.
 
-# Requirements
+## Requirements
 The individual projects and their respective requirements used in this demo can be found by following these links.
 
 - [jmonkeyengine](https://github.com/jMonkeyEngine/jmonkeyengine) - A complete 3D game development suite written purely in Java.
@@ -23,16 +23,16 @@ The individual projects and their respective requirements used in this demo can 
 - [Lemur](https://github.com/jMonkeyEngine-Contributions/Lemur) - jMonkeyEngine-based UI toolkit.
 - java 11+
 
-# Documentation
+## Documentation
 - [Recast Navigation for JME](https://wiki.jmonkeyengine.org/docs/3.4/contributions/ai/recast.html)
 - [Building Process Slides](https://github.com/capdevon/jme3-recast4j-test-1/blob/main/docs/MikkoMononen_RecastSlides.pdf) - A series of slides that explain the build process of Recast.
 
-# Youtube videos
+## Youtube videos
 [Demo Navigation-mesh](https://www.youtube.com/watch?v=XVWxy30IH7Q)
 
 [NavMesh, Pathfinding Agents, Box and Circle Formation](https://www.youtube.com/watch?v=8J28kepYdsU)
 
-# 
+## 
 Crowd Agent
 ![Screenshot](images/crowd-agent-2.jpg)
 ⭐NEW Editor
@@ -42,7 +42,7 @@ Solo NavMesh
 Exports the NavMesh in .obj format
 ![Screenshot](images/navmesh-obj-export.jpg)
 
-# Credits
+## Credits
 Huge thanks to MeFisto94 ad mitm001 for writing the original project this is based on.
 
 ## Bug report / feature request
