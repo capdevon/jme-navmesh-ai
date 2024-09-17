@@ -16,12 +16,12 @@ public class TogglePhysicsDebugState extends BaseAppState implements ActionListe
 
     private static final String TOGGLE_PHYSICS_DEBUG = "TOGGLE_PHYSICS_DEBUG";
 
-    private BulletAppState physics;
+    private BulletAppState bulletAppState;
     private InputManager inputManager;
 
     @Override
     protected void initialize(Application app) {
-        this.physics = getState(BulletAppState.class, true);
+        this.bulletAppState = getState(BulletAppState.class, true);
         this.inputManager = app.getInputManager();
     }
 
@@ -44,8 +44,8 @@ public class TogglePhysicsDebugState extends BaseAppState implements ActionListe
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
         if (name.equals(TOGGLE_PHYSICS_DEBUG) && isPressed) {
-            boolean debug = physics.isDebugEnabled();
-            physics.setDebugEnabled(!debug);
+            boolean debug = bulletAppState.isDebugEnabled();
+            bulletAppState.setDebugEnabled(!debug);
         }
     }
 
