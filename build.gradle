@@ -1,10 +1,11 @@
+
 plugins {
-    id 'application'
-    // Apply the java-library plugin to add support for Java Library
-    id 'java-library'
+    id 'java-library'  // to build JVM libraries
+    id 'maven-publish' // to publish artifacts to Maven repositories
 }
 
-description = 'Navigation-mesh Toolset for jMonkeyEngine3'
+group = 'com.github.capdevon'
+version = '0.1.0'
 
 // select one source-code (JDK) option
 sourceCompatibility = JavaVersion.VERSION_11
@@ -13,6 +14,9 @@ targetCompatibility = JavaVersion.VERSION_11
 ext {
     jmeVersion = '3.6.1-stable'
     recast4jVersion = '1.2.8'
+    
+    artifact = 'jme-navmesh-ai'
+    baseName = "${artifact}-${version}" // for artifacts
 }
 
 gradle.projectsEvaluated {
@@ -35,8 +39,6 @@ gradle.projectsEvaluated {
         jvmArgs '-XX:+UseG1GC', '-XX:MaxGCPauseMillis=10'
     }
 }
-
-mainClassName = 'com.jme3.recast4j.demo.Test_NavMesh'
 
 repositories {
     mavenCentral()
@@ -96,4 +98,29 @@ task cleanLogs(type: Delete) {
 }
 task cleanSOs(type: Delete) {
     delete fileTree(dir: '.', include: '*.so')
+}
+
+jar {
+    archiveBaseName = project.ext.baseName
+    doLast {
+        println "using Java ${JavaVersion.current()} (${System.getProperty("java.vendor")})"
+    }
+    manifest {
+        attributes 'Created-By': "${JavaVersion.current()} (${System.getProperty("java.vendor")})"
+    }
+}
+java.withJavadocJar()
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = project.ext.artifact
+            groupId = "${group}"
+            version = "${version}"
+            from components.java
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
 }
