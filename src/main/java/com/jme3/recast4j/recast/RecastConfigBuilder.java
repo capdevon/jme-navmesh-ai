@@ -27,8 +27,6 @@ import org.recast4j.recast.RecastConfig;
 import org.recast4j.recast.RecastConstants;
 import org.recast4j.recast.RecastConstants.PartitionType;
 
-import com.jme3.recast4j.demo.JmeAreaMods;
-
 public final class RecastConfigBuilder {
 
     private PartitionType partitionType = PartitionType.WATERSHED;
