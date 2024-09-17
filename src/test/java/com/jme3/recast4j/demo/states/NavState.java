@@ -26,22 +26,22 @@
  */
 package com.jme3.recast4j.demo.states;
 
-import static com.jme3.recast4j.demo.JmeAreaMods.AREAMOD_DOOR;
-import static com.jme3.recast4j.demo.JmeAreaMods.AREAMOD_GRASS;
-import static com.jme3.recast4j.demo.JmeAreaMods.AREAMOD_GROUND;
-import static com.jme3.recast4j.demo.JmeAreaMods.AREAMOD_ROAD;
-import static com.jme3.recast4j.demo.JmeAreaMods.AREAMOD_WATER;
-import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_DOOR;
-import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_GRASS;
-import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_GROUND;
-import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_JUMP;
-import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_ROAD;
-import static com.jme3.recast4j.demo.JmeAreaMods.POLYAREA_TYPE_WATER;
-import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_DISABLED;
-import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_DOOR;
-import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_JUMP;
-import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_SWIM;
-import static com.jme3.recast4j.demo.JmeAreaMods.POLYFLAGS_WALK;
+import static com.jme3.recast4j.recast.JmeAreaMods.AREAMOD_DOOR;
+import static com.jme3.recast4j.recast.JmeAreaMods.AREAMOD_GRASS;
+import static com.jme3.recast4j.recast.JmeAreaMods.AREAMOD_GROUND;
+import static com.jme3.recast4j.recast.JmeAreaMods.AREAMOD_ROAD;
+import static com.jme3.recast4j.recast.JmeAreaMods.AREAMOD_WATER;
+import static com.jme3.recast4j.recast.JmeAreaMods.POLYAREA_TYPE_DOOR;
+import static com.jme3.recast4j.recast.JmeAreaMods.POLYAREA_TYPE_GRASS;
+import static com.jme3.recast4j.recast.JmeAreaMods.POLYAREA_TYPE_GROUND;
+import static com.jme3.recast4j.recast.JmeAreaMods.POLYAREA_TYPE_JUMP;
+import static com.jme3.recast4j.recast.JmeAreaMods.POLYAREA_TYPE_ROAD;
+import static com.jme3.recast4j.recast.JmeAreaMods.POLYAREA_TYPE_WATER;
+import static com.jme3.recast4j.recast.JmeAreaMods.POLYFLAGS_DISABLED;
+import static com.jme3.recast4j.recast.JmeAreaMods.POLYFLAGS_DOOR;
+import static com.jme3.recast4j.recast.JmeAreaMods.POLYFLAGS_JUMP;
+import static com.jme3.recast4j.recast.JmeAreaMods.POLYFLAGS_SWIM;
+import static com.jme3.recast4j.recast.JmeAreaMods.POLYFLAGS_WALK;
 
 import java.io.File;
 import java.io.FileInputStream;

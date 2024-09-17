@@ -14,6 +14,7 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
@@ -181,30 +182,32 @@ public class CrowdDebugControl extends AbstractControl {
             body.attachChild(line);
         }
 
-        Geometry c1 = createCircle(16, radius);
-        c1.setName("Bottom.Circle");
+        Geometry c1 = createCircle(radius);
+        c1.setName("Bottom-Circle");
         c1.setLocalTranslation(0, 0, 0);
         body.attachChild(c1);
 
-        Geometry c2 = createCircle(16, radius);
-        c1.setName("Top.Circle");
+        Geometry c2 = createCircle(radius);
+        c1.setName("Top-Circle");
         c2.setLocalTranslation(0, height, 0);
         body.attachChild(c2);
 
         return body;
     }
 
-    private Geometry createCircle(int samples, float radius) {
+    private Geometry createCircle(float radius) {
+        int samples = 16;
         Circle circle = new Circle(radius, samples);
-        Geometry geo = new Geometry("Circle", circle);
-        geo.setMaterial(wireMaterial);
-        geo.setShadowMode(ShadowMode.Off);
-        return geo;
+        return makeGeometry("Circle", circle);
     }
 
     private Geometry createLine(Vector3f start, Vector3f end) {
         Line line = new Line(start, end);
-        Geometry geo = new Geometry("Line", line);
+        return makeGeometry("Line", line);
+    }
+    
+    private Geometry makeGeometry(String name, Mesh mesh) {
+        Geometry geo = new Geometry(name, mesh);
         geo.setMaterial(wireMaterial);
         geo.setShadowMode(ShadowMode.Off);
         return geo;

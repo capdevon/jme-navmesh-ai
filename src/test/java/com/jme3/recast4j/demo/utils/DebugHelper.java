@@ -36,7 +36,7 @@ public class DebugHelper {
     public Geometry drawArrow(Vector3f dir) {
         Arrow arrow = new Arrow(dir);
         Geometry geo = new Geometry("Arrow", arrow);
-        geo.setMaterial(createWireMat());
+        geo.setMaterial(createWireMaterial());
         debugNode.attachChild(geo);
         return geo;
     }
@@ -50,7 +50,7 @@ public class DebugHelper {
     public Geometry drawLine(Vector3f from, Vector3f to) {
         Line line = new Line(from, to);
         Geometry geo = new Geometry("Line", line);
-        geo.setMaterial(createWireMat());
+        geo.setMaterial(createWireMaterial());
         debugNode.attachChild(geo);
         return geo;
     }
@@ -64,7 +64,7 @@ public class DebugHelper {
     public Geometry drawCube(Vector3f center, Vector3f size) {
         Box box = new Box(size.x, size.y, size.z);
         Geometry geo = new Geometry("Box", box);
-        geo.setMaterial(createColorMat());
+        geo.setMaterial(createColorMaterial());
         geo.setLocalTranslation(center);
         debugNode.attachChild(geo);
         return geo;
@@ -85,7 +85,7 @@ public class DebugHelper {
     public Geometry drawWireCube(Vector3f center, Vector3f size) {
         WireBox box = new WireBox(size.x, size.y, size.z);
         Geometry geo = new Geometry("WireBox", box);
-        geo.setMaterial(createWireMat());
+        geo.setMaterial(createWireMaterial());
         geo.setLocalTranslation(center);
         debugNode.attachChild(geo);
         return geo;
@@ -104,7 +104,7 @@ public class DebugHelper {
     public Geometry drawSphere(Vector3f center, float radius) {
         Sphere sphere = new Sphere(10, 30, radius);
         Geometry geo = new Geometry("Sphere", sphere);
-        geo.setMaterial(createColorMat());
+        geo.setMaterial(createColorMaterial());
         geo.setLocalTranslation(center);
         debugNode.attachChild(geo);
         return geo;
@@ -121,20 +121,20 @@ public class DebugHelper {
     public Geometry drawWireSphere(Vector3f center, float radius) {
         BoundingSphereDebug sphere = new BoundingSphereDebug();
         Geometry geo = new Geometry("WireSphere", sphere);
-        geo.setMaterial(createWireMat());
+        geo.setMaterial(createWireMaterial());
         geo.setLocalTranslation(center);
         geo.setLocalScale(radius);
         debugNode.attachChild(geo);
         return geo;
     }
 
-    private Material createColorMat() {
+    private Material createColorMaterial() {
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", color);
         return mat;
     }
 
-    private Material createWireMat() {
+    private Material createWireMaterial() {
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", color);
         mat.getAdditionalRenderState().setWireframe(true);
