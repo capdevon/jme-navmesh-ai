@@ -16,14 +16,13 @@ import com.jme3.scene.Spatial;
  */
 public class InputGeomProviderBuilder {
     
-    public static final String NAVMESH_IGNORE = "ignoreFromBuild";
-    private static final Predicate<Spatial> DefaultFilter = sp -> sp.getUserData(NAVMESH_IGNORE) == null;
+    private static final Predicate<Spatial> DefaultFilter = sp -> sp.getUserData(NavMeshData.JME_NAVMESH_IGNORE) == null;
 
     private InputGeomProviderBuilder() {}
     
     /**
      * Performs a search in the SceneGraph to collect all geometries of the supplied
-     * node. It uses the default filter: If userData "ignoreFromBuild" is set, it
+     * node. It uses the default filter: if NavMeshData.JME_NAVMESH_IGNORE is set, it
      * ignores this space.
      * 
      * @param rootNode The Node to use.
