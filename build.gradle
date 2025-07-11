@@ -12,7 +12,7 @@ sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
 ext {
-    jmeVersion = '3.7.0-stable'
+    jmeVersion = '3.6.1-stable'
     recast4jVersion = '1.2.8'
     
     artifact = 'jme-navmesh-ai'
