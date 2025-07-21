@@ -1,5 +1,5 @@
 ---
-# GitHub Actions workflow for commits pushed to the Archer-Game-Template2 repo - all branches
+# GitHub Actions workflow for commits pushed to the repo - all branches
 
 name: CI at GitHub
 on: [push]
