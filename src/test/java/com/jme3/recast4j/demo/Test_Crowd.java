@@ -12,6 +12,8 @@ import com.jme3.material.Materials;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.FXAAFilter;
 import com.jme3.recast4j.demo.states.CrowdState;
 import com.jme3.recast4j.demo.states.TogglePhysicsDebugState;
 import com.jme3.recast4j.detour.crowd.CrowdManagerAppState;
@@ -19,6 +21,7 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
+import com.jme3.shadow.DirectionalLightShadowFilter;
 import com.jme3.shadow.DirectionalLightShadowRenderer;
 import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.system.AppSettings;
@@ -32,14 +35,11 @@ public class Test_Crowd extends SimpleApplication {
 
     private BulletAppState physics;
 
-    /**
-     * 
-     * @param args
-     */
     public static void main(String[] args) {
         Test_Crowd app = new Test_Crowd();
         AppSettings settings = new AppSettings(true);
         settings.setResolution(1280, 720);
+        settings.setFrameRate(60);
 
         app.setSettings(settings);
         app.setPauseOnLostFocus(false);
@@ -81,21 +81,23 @@ public class Test_Crowd extends SimpleApplication {
         Node scene = new Node("MainScene");
         rootNode.attachChild(scene);
 
+        Material mat = new Material(assetManager, Materials.PBR);
+        Texture texture = assetManager.loadTexture("Textures/Ground/default_grid.png");
+        texture.setWrap(Texture.WrapMode.Repeat);
+        mat.setTexture("BaseColorMap", texture);
+        mat.setFloat("Metallic", 0.2f);
+        mat.setFloat("Roughness", 0.765f);
+
         Box box = new Box(40f, .1f, 40f);
         box.scaleTextureCoordinates(new Vector2f(12, 12));
         Geometry floor = new Geometry("Floor", box);
-
-        Material mat = new Material(assetManager, Materials.LIGHTING);
-        Texture texture = assetManager.loadTexture("Textures/Ground/default_grid.png");
-        texture.setWrap(Texture.WrapMode.Repeat);
-        mat.setTexture("DiffuseMap", texture);
         floor.setMaterial(mat);
 
         CollisionShape shape = CollisionShapeFactory.createMeshShape(floor);
-        RigidBodyControl rbc = new RigidBodyControl(shape, 0);
-        floor.addControl(rbc);
+        RigidBodyControl rb = new RigidBodyControl(shape, 0);
+        floor.addControl(rb);
         scene.attachChild(floor);
-        physics.getPhysicsSpace().add(rbc);
+        physics.getPhysicsSpace().add(rb);
     }
 
     /**
@@ -108,23 +110,26 @@ public class Test_Crowd extends SimpleApplication {
         ColorRGBA skyColor = new ColorRGBA(0.1f, 0.2f, 0.4f, 1f);
         viewPort.setBackgroundColor(skyColor);
 
-        Vector3f lightDir = new Vector3f(-7f, -3f, -5f).normalizeLocal();
-        DirectionalLight sun = new DirectionalLight(lightDir);
-        sun.setName("sun");
-        rootNode.addLight(sun);
+        AmbientLight al = new AmbientLight();
+        al.setName("Global");
+        rootNode.addLight(al);
 
-        AmbientLight ambient = new AmbientLight();
-        ambient.setColor(new ColorRGBA(0.25f, 0.25f, 0.25f, 1));
-        ambient.setName("ambient");
-        rootNode.addLight(ambient);
+        DirectionalLight dl = new DirectionalLight();
+        dl.setName("Sun");
+        dl.setDirection(new Vector3f(-7f, -3f, -5f).normalizeLocal());
+        rootNode.addLight(dl);
 
         // Render shadows based on the directional light.
-        DirectionalLightShadowRenderer dlsr = new DirectionalLightShadowRenderer(assetManager, 2_048, 3);
-        dlsr.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
-        dlsr.setEdgesThickness(5);
-        dlsr.setLight(sun);
-        dlsr.setShadowIntensity(0.4f);
-        viewPort.addProcessor(dlsr);
+        DirectionalLightShadowFilter dlsf = new DirectionalLightShadowFilter(assetManager, 2_048, 3);
+        dlsf.setLight(dl);
+        dlsf.setShadowIntensity(0.4f);
+        dlsf.setShadowZExtend(256);
+        dlsf.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
+
+        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+        fpp.addFilter(dlsf);
+        fpp.addFilter(new FXAAFilter());
+        viewPort.addProcessor(fpp);
     }
     
 }

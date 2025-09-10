@@ -16,7 +16,8 @@ import com.jme3.scene.Spatial;
  */
 public class InputGeomProviderBuilder {
     
-    private static final Predicate<Spatial> DefaultFilter = sp -> sp.getUserData(NavMeshData.JME_NAVMESH_IGNORE) == null;
+    private static final Predicate<Spatial> DefaultFilter =
+            sp -> sp.getUserData(NavMeshData.JME_NAVMESH_IGNORE) == null;
 
     private InputGeomProviderBuilder() {}
     

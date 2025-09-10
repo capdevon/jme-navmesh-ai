@@ -3,6 +3,7 @@ package com.jme3.recast4j.editor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.recast4j.detour.NavMesh;
@@ -69,10 +70,10 @@ public class NavMeshGenState extends BaseAppState {
 
     public void generateNavMesh(NavMeshBuildSettings nmSettings, boolean autoSave) {
         try {
-            System.out.println(nmSettings);
+            logger.info(nmSettings.toString());
 
             long startTime = System.currentTimeMillis();
-            System.out.println("Building NavMesh...");
+            logger.info("Building NavMesh...");
             
             JmeInputGeomProvider m_geom = InputGeomProviderBuilder.build(worldMap);
             NavMesh navMesh;
@@ -84,7 +85,7 @@ public class NavMeshGenState extends BaseAppState {
             }
 
             long endTime = System.currentTimeMillis() - startTime;
-            System.out.println("Build NavMesh succeeded after: " + endTime + " ms");
+            logger.info("Build NavMesh succeeded after: " + endTime + " ms");
 
             navMeshRenderer.clear();
             navMeshRenderer.drawNavMeshByArea(navMesh, true);
@@ -95,23 +96,17 @@ public class NavMeshGenState extends BaseAppState {
             }
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
 
-    /**
-     *
-     * @param fileName
-     * @param navMesh
-     * @throws IOException
-     */
     private void saveToFile(String fileName, NavMesh navMesh) throws IOException {
         File file = Path.of("navmesh-generated", fileName + ".navmesh").toFile();
         File parentDir = file.getParentFile();
         if (parentDir != null && !parentDir.exists()) {
             parentDir.mkdirs();
         }
-        System.out.println("Saving NavMesh=" + file.getAbsolutePath());
+        logger.info("Saving NavMesh=" + file.getAbsolutePath());
         NavMeshAssetManager.save(navMesh, file);
     }
 

@@ -31,6 +31,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
 import com.jme3.shadow.DirectionalLightShadowFilter;
+import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture2D;
 import com.jme3.water.WaterFilter;
@@ -58,14 +59,11 @@ public class Test_NavMesh extends SimpleApplication {
         );
     }
 
-    /**
-     * 
-     * @param args
-     */
     public static void main(String[] args) {
         Test_NavMesh app = new Test_NavMesh();
         AppSettings settings = new AppSettings(true);
         settings.setResolution(1280, 720);
+        settings.setFrameRate(60);
 
         app.setSettings(settings);
         app.setPauseOnLostFocus(false);
@@ -109,20 +107,21 @@ public class Test_NavMesh extends SimpleApplication {
         ColorRGBA skyColor = new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f);
         viewPort.setBackgroundColor(skyColor);
 
-        DirectionalLight sun = new DirectionalLight();
-        sun.setDirection(new Vector3f(-0.2f, -1, -0.3f).normalizeLocal());
-        sun.setName("sun");
-        rootNode.addLight(sun);
-
         AmbientLight ambient = new AmbientLight();
-        ambient.setColor(new ColorRGBA(0.25f, 0.25f, 0.25f, 1));
-        ambient.setName("ambient");
+        ambient.setName("Global");
         rootNode.addLight(ambient);
 
-        DirectionalLightShadowFilter dlsf = new DirectionalLightShadowFilter(assetManager, 4096, 2);
-        dlsf.setLight(sun);
+        DirectionalLight dl = new DirectionalLight();
+        dl.setDirection(new Vector3f(-0.2f, -1, -0.3f).normalizeLocal());
+        dl.setName("Sun");
+        rootNode.addLight(dl);
+
+        // Render shadows based on the directional light.
+        DirectionalLightShadowFilter dlsf = new DirectionalLightShadowFilter(assetManager, 2_048, 3);
+        dlsf.setLight(dl);
         dlsf.setShadowIntensity(0.4f);
         dlsf.setShadowZExtend(256);
+        dlsf.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
 
         FXAAFilter fxaa = new FXAAFilter();
 
@@ -166,7 +165,7 @@ public class Test_NavMesh extends SimpleApplication {
         physics.getPhysicsSpace().add(level);
         worldMap.attachChild(level);
         
-        /**
+        /*
          * Create door node here since NavState checks the door node for null 
          * to avoid trying to add MouseEventControl when no door node is used. 
          * Like when loading different scenes such as the pond. The nodes name 
@@ -175,7 +174,7 @@ public class Test_NavMesh extends SimpleApplication {
         doorNode = new Node("doorNode");
         rootNode.attachChild(doorNode);
 
-        /**
+        /*
          * Creating doors in blender with their origin at (0,0,0) is required.
          * The findPolysAroundCircle method in MouseEventControl uses the doors 
          * origin to localize the search for door polys so doors must be moved 
@@ -198,7 +197,7 @@ public class Test_NavMesh extends SimpleApplication {
      */
     private void loadDoor(int id, Vector3f location, Quaternion rotation) {
         
-        /**
+        /*
          * gltf loader test. This works but gltf doesn't when it comes to 
          * exporting animations created in blender. Imported animations into 
          * blender that are then exported do work however.
@@ -236,7 +235,7 @@ public class Test_NavMesh extends SimpleApplication {
             //Center hitBox to door.
             boxGeo.setLocalTranslation(bbox.getCenter());
 
-            /**
+            /*
              * Create a node that will use the same origin as the root
              * bone which has the same origin as the door. This will 
              * keep the searches in MouseEventControl localized to this 
@@ -252,7 +251,7 @@ public class Test_NavMesh extends SimpleApplication {
             door.addControl(new DoorSwingControl());
         }
         
-        /**
+        /*
          * Creating doors in blender with their origin at (0,0,0) is required.
          * The findPolysAroundCircle method in MouseEventControl uses the doors 
          * origin to localize the search for door polys so doors must be moved 

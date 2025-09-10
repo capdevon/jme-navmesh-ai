@@ -12,6 +12,7 @@ import com.jme3.recast4j.editor.NavMeshEditorState;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.shadow.DirectionalLightShadowFilter;
+import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.system.AppSettings;
 
 /**
@@ -20,15 +21,12 @@ import com.jme3.system.AppSettings;
  */
 public class Test_NavMeshGenEditor extends SimpleApplication {
 
-    /**
-     *
-     * @param args
-     */
     public static void main(String[] args) {
         Test_NavMeshGenEditor app = new Test_NavMeshGenEditor();
         AppSettings settings = new AppSettings(true);
         settings.setTitle("NavMeshEditorApp");
         settings.setResolution(1280, 720);
+        settings.setFrameRate(60);
 
         app.setSettings(settings);
         app.setPauseOnLostFocus(false);
@@ -71,24 +69,23 @@ public class Test_NavMeshGenEditor extends SimpleApplication {
         ColorRGBA skyColor = new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f);
         viewPort.setBackgroundColor(skyColor);
 
-        DirectionalLight dirLight = new DirectionalLight();
-        dirLight.setDirection(new Vector3f(-0.2f, -1, -0.3f).normalizeLocal());
-        rootNode.addLight(dirLight);
-
         AmbientLight ambient = new AmbientLight();
-        ambient.setColor(new ColorRGBA(0.25f, 0.25f, 0.25f, 1));
         rootNode.addLight(ambient);
 
-        DirectionalLightShadowFilter dlsf = new DirectionalLightShadowFilter(assetManager, 4096, 2);
-        dlsf.setLight(dirLight);
+        DirectionalLight dl = new DirectionalLight();
+        dl.setDirection(new Vector3f(-0.2f, -1, -0.3f).normalizeLocal());
+        rootNode.addLight(dl);
+
+        // Render shadows based on the directional light.
+        DirectionalLightShadowFilter dlsf = new DirectionalLightShadowFilter(assetManager, 2_048, 3);
+        dlsf.setLight(dl);
         dlsf.setShadowIntensity(0.4f);
         dlsf.setShadowZExtend(256);
-
-        FXAAFilter fxaa = new FXAAFilter();
+        dlsf.setEdgeFilteringMode(EdgeFilteringMode.PCFPOISSON);
 
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
         fpp.addFilter(dlsf);
-        fpp.addFilter(fxaa);
+        fpp.addFilter(new FXAAFilter());
         viewPort.addProcessor(fpp);
     }
 

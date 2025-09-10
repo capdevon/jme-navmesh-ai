@@ -1,5 +1,8 @@
 package com.jme3.recast4j.detour.crowd;
 
+/**
+ * @author capdevon
+ */
 public class CrowdConfig {
 
     public final float maxAgentRadius;

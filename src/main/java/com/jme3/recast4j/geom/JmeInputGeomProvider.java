@@ -36,10 +36,6 @@ public class JmeInputGeomProvider implements InputGeomProvider {
     private final List<OffMeshLink> offMeshConnections = new ArrayList<>();
     private final List<NavMeshModifier> listModifications = new ArrayList<>();
 
-    /**
-     * 
-     * @param geometries
-     */
     public JmeInputGeomProvider(List<Geometry> geometries) {
         Mesh mesh = new Mesh();
         GeometryBatchFactory.mergeGeometries(geometries, mesh);

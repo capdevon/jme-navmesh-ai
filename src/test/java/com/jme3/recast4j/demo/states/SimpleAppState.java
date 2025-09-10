@@ -28,14 +28,14 @@ import com.jme3.system.AppSettings;
 public abstract class SimpleAppState extends BaseAppState {
 
     // cache fields
-    public AppSettings settings;
-    public AppStateManager stateManager;
-    public AssetManager assetManager;
-    public InputManager inputManager;
-    public ViewPort viewPort;
-    public Camera camera;
-    public Node rootNode;
-    public Node guiNode;
+    protected AppSettings settings;
+    protected AppStateManager stateManager;
+    protected AssetManager assetManager;
+    protected InputManager inputManager;
+    protected ViewPort viewPort;
+    protected Camera camera;
+    protected Node rootNode;
+    protected Node guiNode;
 
     @Override
     protected void initialize(Application app) {
