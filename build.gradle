@@ -12,7 +12,7 @@ sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
 ext {
-    jmeVersion = '3.6.1-stable'
+    jmeVersion = '3.8.1-stable'
     recast4jVersion = '1.2.8'
     
     artifact = 'jme-navmesh-ai'
@@ -20,23 +20,25 @@ ext {
 }
 
 gradle.projectsEvaluated {
-    tasks.withType(JavaCompile) { // compile-time options:
+    tasks.withType(JavaCompile).configureEach { // compile-time options:
         options.compilerArgs << '-Xdiags:verbose'
         options.compilerArgs << '-Xlint:unchecked'
         //options.deprecation = true
         options.encoding = 'UTF-8'
     }
-    tasks.withType(JavaExec) { // runtime options:
-        args = []
-        classpath sourceSets.main.runtimeClasspath
-        //debug true
-        //enableAssertions true
-        //jvmArgs '-verbose:gc'
-        //jvmArgs '-Xbatch'
-        //jvmArgs '-Xms512m', '-Xmx512m'
-        //jvmArgs '-XX:+PrintCompilation'
-        //jvmArgs '-XX:+UseConcMarkSweepGC'
-        jvmArgs '-XX:+UseG1GC', '-XX:MaxGCPauseMillis=10'
+    tasks.withType(JavaExec).tap {
+        configureEach { // runtime options:
+            args = []
+            classpath sourceSets.main.runtimeClasspath
+            //debug true
+            //enableAssertions true
+            //jvmArgs '-verbose:gc'
+            //jvmArgs '-Xbatch'
+            //jvmArgs '-Xms512m', '-Xmx512m'
+            //jvmArgs '-XX:+PrintCompilation'
+            //jvmArgs '-XX:+UseConcMarkSweepGC'
+            jvmArgs '-XX:+UseG1GC', '-XX:MaxGCPauseMillis=10'
+        }
     }
 }
 
@@ -46,7 +48,7 @@ repositories {
 
 dependencies {
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-    implementation 'org.apache.commons:commons-lang3:3.15.0'
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
 
     // jMonkeyEngine
     implementation 'org.jmonkeyengine:jme3-core:' + jmeVersion
@@ -56,14 +58,14 @@ dependencies {
     runtimeOnly    'org.jmonkeyengine:jme3-awt-dialogs:' + jmeVersion // JMonkeyEngine v3.6 only!
     
     // Physics
-    implementation 'com.github.stephengold:Minie:8.2.0+big4'
+    implementation 'com.github.stephengold:Minie:9.0.1+big4'
 
     // select one version of LWJGL
     //runtimeOnly 'org.jmonkeyengine:jme3-lwjgl:' + jmeVersion  // LWJGL 2.x
     runtimeOnly 'org.jmonkeyengine:jme3-lwjgl3:' + jmeVersion // LWJGL 3.x
 
     runtimeOnly 'org.jmonkeyengine:jme3-jogg:' + jmeVersion
-    implementation 'org.jmonkeyengine:jme3-plugins:' + jmeVersion
+    runtimeOnly 'org.jmonkeyengine:jme3-plugins:' + jmeVersion
     //runtimeOnly 'org.jmonkeyengine:jme3-testdata:' + jmeVersion
     
     // recast4j
@@ -87,16 +89,17 @@ dependencies {
 
 // cleanup tasks
 clean.dependsOn('cleanDLLs', 'cleanDyLibs', 'cleanLogs', 'cleanSOs')
-task cleanDLLs(type: Delete) {
+
+tasks.register('cleanDLLs', Delete) {
     delete fileTree(dir: '.', include: '*.dll')
 }
-task cleanDyLibs(type: Delete) {
+tasks.register('cleanDyLibs', Delete) {
     delete fileTree(dir: '.', include: '*.dylib')
 }
-task cleanLogs(type: Delete) {
+tasks.register('cleanLogs', Delete) {
     delete fileTree(dir: '.', include: 'hs_err_pid*.log')
 }
-task cleanSOs(type: Delete) {
+tasks.register('cleanSOs', Delete) {
     delete fileTree(dir: '.', include: '*.so')
 }
 
